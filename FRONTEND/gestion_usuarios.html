@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CAPCOB - Gestión de Usuarios</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sidebar-bg: #0f1117;
+      --main-bg: #f5f6fa;
+      --white: #ffffff;
+      --purple: #a855f7;
+      --purple-light: #f3e8ff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --green: #22c55e;
+      --green-light: #dcfce7;
+      --red: #ef4444;
+      --red-light: #fee2e2;
+      --gray-light: #f3f4f6;
+    }
+
+    html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--main-bg); overflow: hidden; }
+    .layout { display: flex; height: 100vh; }
+
+    /* ══ SIDEBAR ══ */
+    .sidebar {
+      width: 260px; background: var(--sidebar-bg);
+      display: flex; flex-direction: column; flex-shrink: 0;
+    }
+    .user-block {
+      display: flex; align-items: center; gap: 10px;
+      padding: 20px 18px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.07); cursor: pointer;
+    }
+    .avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: #374151;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; position: relative;
+    }
+    .avatar svg { width: 20px; height: 20px; stroke: #9ca3af; fill: none; stroke-width: 1.8; }
+    .notif-dot {
+      position: absolute; top: 1px; right: 1px;
+      width: 8px; height: 8px;
+      background: var(--purple); border-radius: 50%;
+      border: 2px solid var(--sidebar-bg);
+    }
+    .user-name { font-size: .85rem; font-weight: 600; color: #f9fafb; }
+    .user-handle { font-size: .72rem; color: #6b7280; }
+    .chevron { width: 14px; height: 14px; stroke: #6b7280; fill: none; stroke-width: 2; }
+
+    .nav { flex: 1; padding: 12px 0; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 18px; font-size: .85rem; color: #9ca3af;
+      cursor: pointer; border-left: 3px solid transparent;
+      transition: all .18s; text-decoration: none;
+    }
+    .nav-item:hover { color: #f9fafb; background: rgba(255,255,255,.04); }
+    .nav-item.active {
+      background: rgba(255,255,255,.07); color: #f9fafb;
+      border-left-color: var(--purple); font-weight: 600;
+    }
+    .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; flex-shrink: 0; }
+    .nav-item.active svg { stroke: var(--purple); }
+
+    .nav-bottom {
+      padding: 12px 18px 20px;
+      border-top: 1px solid rgba(255,255,255,.07);
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .nav-bottom a {
+      display: flex; align-items: center; gap: 10px;
+      font-size: .8rem; color: #6b7280;
+      text-decoration: none; padding: 7px 0; transition: color .15s;
+    }
+    .nav-bottom a:hover { color: #9ca3af; }
+    .nav-bottom a svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+    /* ══ MAIN ══ */
+    .main {
+      flex: 1; overflow-y: auto;
+      padding: 28px 32px;
+      display: flex; flex-direction: column; gap: 22px;
+    }
+    .main::-webkit-scrollbar { width: 6px; }
+    .main::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+
+    /* header */
+    .header-row { display: flex; align-items: center; justify-content: space-between; }
+    .title-wrap { display: flex; flex-direction: column; gap: 3px; }
+    .page-title { font-size: 1.4rem; font-weight: 800; color: var(--text); }
+    .page-sub { font-size: .82rem; color: var(--muted); }
+    .logo-badge {
+      display: flex; align-items: center; gap: 8px;
+      font-weight: 800; font-size: 1rem; color: var(--text);
+    }
+    .logo-badge img { width: 38px; height: auto; }
+
+    /* toolbar */
+    .toolbar {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .search-box {
+      display: flex; align-items: center; gap: 8px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 9px 14px;
+      background: var(--white); flex: 1; max-width: 320px;
+    }
+    .search-box svg { width: 16px; height: 16px; stroke: var(--muted); fill: none; stroke-width: 1.8; flex-shrink: 0; }
+    .search-box input {
+      border: none; outline: none; font-size: .85rem;
+      font-family: 'Inter', sans-serif; color: var(--text);
+      background: transparent; width: 100%;
+    }
+    .search-box input::placeholder { color: #9ca3af; }
+
+    .select-rol {
+      border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 9px 14px;
+      font-size: .85rem; font-family: 'Inter', sans-serif;
+      color: var(--text); background: var(--white);
+      cursor: pointer; outline: none;
+      font-weight: 600;
+    }
+
+    .btn-add {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 20px;
+      background: var(--purple); color: #fff;
+      border: none; border-radius: 10px;
+      font-size: .85rem; font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer; transition: background .2s;
+      white-space: nowrap;
+    }
+    .btn-add:hover { background: #9333ea; }
+    .btn-add svg { width: 16px; height: 16px; stroke: #fff; fill: none; stroke-width: 2.5; }
+
+    /* table card */
+    .table-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead tr { background: var(--white); border-bottom: 1px solid var(--border); }
+    th {
+      padding: 13px 18px;
+      font-size: .75rem; font-weight: 600;
+      color: var(--muted); text-align: left;
+      letter-spacing: .05em; text-transform: uppercase;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #fafafa; }
+
+    td {
+      padding: 13px 18px;
+      font-size: .85rem; color: var(--text);
+      vertical-align: middle;
+    }
+
+    /* user cell */
+    .user-cell { display: flex; align-items: center; gap: 10px; }
+    .user-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: #e5e7eb;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem; font-weight: 700; color: var(--muted);
+      flex-shrink: 0; overflow: hidden;
+    }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+    .user-cell-info { display: flex; flex-direction: column; }
+    .user-cell-name { font-weight: 600; font-size: .85rem; color: var(--text); }
+    .user-cell-role { font-size: .72rem; color: var(--muted); }
+
+    /* role badge */
+    .role-badge {
+      display: inline-block;
+      padding: 3px 10px; border-radius: 6px;
+      font-size: .75rem; font-weight: 600;
+    }
+    .role-admin  { background: var(--purple-light); color: var(--purple); }
+    .role-ventas { color: var(--muted); background: transparent; }
+    .role-audit  { color: var(--muted); background: transparent; }
+
+    /* status badge */
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px; border-radius: 20px;
+      font-size: .75rem; font-weight: 600;
+    }
+    .status-active   { background: var(--green-light); color: #16a34a; }
+    .status-inactive { background: var(--purple-light); color: var(--purple); }
+
+    /* action buttons */
+    .action-cell { display: flex; align-items: center; gap: 8px; }
+    .btn-edit {
+      padding: 5px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 7px; background: var(--white);
+      font-size: .78rem; font-weight: 600;
+      color: var(--text); cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-edit:hover { background: var(--gray-light); }
+    .btn-delete {
+      width: 30px; height: 30px;
+      border: 1.5px solid #fca5a5;
+      border-radius: 7px; background: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: background .15s;
+    }
+    .btn-delete:hover { background: var(--red-light); }
+    .btn-delete svg { width: 14px; height: 14px; stroke: var(--red); fill: none; stroke-width: 2; }
+
+    /* footer */
+    .table-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px;
+      border-top: 1px solid var(--border);
+      background: var(--white);
+    }
+    .footer-info { font-size: .78rem; color: var(--muted); }
+
+    .pagination { display: flex; align-items: center; gap: 6px; }
+    .pg-btn {
+      width: 30px; height: 30px;
+      border-radius: 7px; border: 1px solid var(--border);
+      background: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: .78rem; color: var(--muted);
+      transition: all .15s; font-family: 'Inter', sans-serif;
+    }
+    .pg-btn:hover { background: var(--gray-light); }
+    .pg-btn.active { background: var(--purple); color: #fff; border-color: var(--purple); font-weight: 700; }
+    .pg-btn svg { width: 12px; height: 12px; stroke: var(--muted); fill: none; stroke-width: 2; }
+
+    /* ══ MODAL AÑADIR/EDITAR ══ */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.4); z-index: 100;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff; border-radius: 16px;
+      padding: 32px 36px; width: 440px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+      position: relative;
+    }
+    .modal h3 { font-size: 1.05rem; font-weight: 800; margin-bottom: 20px; color: var(--text); }
+    .modal-close {
+      position: absolute; top: 16px; right: 18px;
+      background: none; border: none; cursor: pointer;
+      font-size: 1.1rem; color: var(--muted);
+    }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: .75rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; letter-spacing: .05em; text-transform: uppercase; }
+    .form-group input,
+    .form-group select {
+      width: 100%; border: 1.5px solid var(--border);
+      border-radius: 8px; padding: 10px 12px;
+      font-size: .85rem; font-family: 'Inter', sans-serif;
+      color: var(--text); outline: none;
+      transition: border-color .2s;
+    }
+    .form-group input:focus,
+    .form-group select:focus { border-color: var(--purple); }
+    .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+    .btn-cancel {
+      flex: 1; padding: 11px;
+      border: 1.5px solid var(--border); border-radius: 9px;
+      background: var(--white); font-size: .88rem; font-weight: 600;
+      font-family: 'Inter', sans-serif; cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-cancel:hover { background: var(--gray-light); }
+    .btn-save {
+      flex: 1; padding: 11px;
+      background: var(--purple); color: #fff;
+      border: none; border-radius: 9px;
+      font-size: .88rem; font-weight: 600;
+      font-family: 'Inter', sans-serif; cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-save:hover { background: #9333ea; }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar">
+    <div class="user-block">
+      <div class="avatar">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <div class="notif-dot"></div>
+      </div>
+      <div style="flex:1">
+        <div class="user-name">Usuario 1</div>
+        <div class="user-handle">@usuarioprueba</div>
+      </div>
+      <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+
+    <nav class="nav">
+      <a class="nav-item" href="inicio.html">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Inicio
+      </a>
+      <a class="nav-item" href="PRODUCTOS_VENTAS.html">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        Producto de ventas (graficos)
+      </a>
+      <a class="nav-item" href="REGISTRO_VENTAS_ANUALES.html">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Registro de ventas Anuales
+      </a>
+      <a class="nav-item active" href="GESTION_USUARIOS.html">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Usuario
+      </a>
+    </nav>
+
+    <div class="nav-bottom">
+      <a href="#">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Configuracion
+      </a>
+      <a href="login.html">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Cerrar Sesion
+      </a>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <main class="main">
+
+    <!-- Header -->
+    <div class="header-row">
+      <div class="title-wrap">
+        <div class="page-title">Gestión de Usuarios</div>
+        <div class="page-sub">Administra los usuarios y sus permisos en el sistema.</div>
+      </div>
+      <div class="logo-badge">
+        <img src="LOGO_CAPCOB.png" alt="CAPCOB logo"/>
+        CAPCOB
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Buscar usuario..." oninput="filtrarUsuarios()"/>
+      </div>
+      <select class="select-rol" id="rolFilter" onchange="filtrarUsuarios()">
+        <option value="">Todos los roles</option>
+        <option value="Administrador">Administrador</option>
+        <option value="Ventas">Ventas</option>
+        <option value="Auditor">Auditor</option>
+      </select>
+      <button class="btn-add" onclick="abrirModal()">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Añadir nuevo usuario
+      </button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Rol</th>
+            <th>Email</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div class="table-footer">
+        <div class="footer-info" id="footerInfo"></div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Modal añadir/editar -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="cerrarModal()">✕</button>
+    <h3 id="modalTitle">Añadir nuevo usuario</h3>
+    <div class="form-group">
+      <label>Nombre completo</label>
+      <input type="text" id="fNombre" placeholder="Ej: Gabriel Márquez"/>
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="fEmail" placeholder="usuario@example.com"/>
+    </div>
+    <div class="form-group">
+      <label>Rol</label>
+      <select id="fRol">
+        <option>Administrador</option>
+        <option>Ventas</option>
+        <option>Auditor</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Estado</label>
+      <select id="fEstado">
+        <option>Activo</option>
+        <option>Inactivo</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-save" onclick="guardarUsuario()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Data ──
+  let usuarios = [
+    { id:1, nombre:'Gabriel Márquez', rol:'Administrador', email:'gabriel@example.com', estado:'Activo' },
+    { id:2, nombre:'Melissa Silva',   rol:'Ventas',        email:'melissa@example.com', estado:'Activo' },
+    { id:3, nombre:'Andrés López',    rol:'Ventas',        email:'andres@example.com',  estado:'Activo' },
+    { id:4, nombre:'Laura Garcia',    rol:'Auditor',       email:'laura@example.com',   estado:'Activo' },
+    { id:5, nombre:'Samuel Ruiz',     rol:'Ventas',        email:'samuel@example.com',  estado:'Inactivo' },
+  ];
+
+  let editingId = null;
+  let paginaActual = 1;
+  const porPagina = 5;
+
+  function iniciales(nombre) {
+    return nombre.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+  }
+
+  function rolBadge(rol) {
+    if (rol === 'Administrador') return `<span class="role-badge role-admin">${rol}</span>`;
+    return `<span class="role-badge role-ventas">${rol}</span>`;
+  }
+
+  function estadoBadge(estado) {
+    if (estado === 'Activo') return `<span class="status-badge status-active">Activo</span>`;
+    return `<span class="status-badge status-inactive">Inactivo</span>`;
+  }
+
+  function filtrarUsuarios() {
+    paginaActual = 1;
+    renderTable();
+  }
+
+  function renderTable() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const rol    = document.getElementById('rolFilter').value;
+
+    let filtrados = usuarios.filter(u => {
+      const matchSearch = u.nombre.toLowerCase().includes(search) || u.email.toLowerCase().includes(search);
+      const matchRol    = rol === '' || u.rol === rol;
+      return matchSearch && matchRol;
+    });
+
+    const total  = filtrados.length;
+    const inicio = (paginaActual - 1) * porPagina;
+    const pagina = filtrados.slice(inicio, inicio + porPagina);
+
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+
+    if (pagina.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:28px">No se encontraron usuarios.</td></tr>`;
+    } else {
+      pagina.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar">${iniciales(u.nombre)}</div>
+              <div class="user-cell-info">
+                <span class="user-cell-name">${u.nombre}</span>
+                <span class="user-cell-role">● ${u.rol}</span>
+              </div>
+            </div>
+          </td>
+          <td>${rolBadge(u.rol)}</td>
+          <td>${u.email}</td>
+          <td>${estadoBadge(u.estado)}</td>
+          <td>
+            <div class="action-cell">
+              <button class="btn-edit" onclick="editarUsuario(${u.id})">Editar</button>
+              <button class="btn-delete" onclick="eliminarUsuario(${u.id})" title="Eliminar">
+                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Footer info
+    document.getElementById('footerInfo').textContent =
+      `Mostrando ${Math.min(inicio+1,total)}–${Math.min(inicio+porPagina,total)} de ${total} usuarios`;
+
+    // Pagination
+    const totalPags = Math.ceil(total / porPagina);
+    const pgDiv = document.getElementById('pagination');
+    pgDiv.innerHTML = '';
+
+    // prev
+    const prev = document.createElement('div');
+    prev.className = 'pg-btn';
+    prev.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>`;
+    prev.onclick = () => { if (paginaActual > 1) { paginaActual--; renderTable(); } };
+    pgDiv.appendChild(prev);
+
+    for (let i=1; i<=totalPags; i++) {
+      const btn = document.createElement('div');
+      btn.className = 'pg-btn' + (i === paginaActual ? ' active' : '');
+      btn.textContent = i;
+      btn.onclick = (()=> { const p=i; return ()=>{ paginaActual=p; renderTable(); }; })();
+      pgDiv.appendChild(btn);
+    }
+
+    // next
+    const next = document.createElement('div');
+    next.className = 'pg-btn';
+    next.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>`;
+    next.onclick = () => { if (paginaActual < totalPags) { paginaActual++; renderTable(); } };
+    pgDiv.appendChild(next);
+  }
+
+  // ── Modal ──
+  function abrirModal(id = null) {
+    editingId = id;
+    document.getElementById('modalTitle').textContent = id ? 'Editar usuario' : 'Añadir nuevo usuario';
+    if (id) {
+      const u = usuarios.find(x => x.id === id);
+      document.getElementById('fNombre').value = u.nombre;
+      document.getElementById('fEmail').value  = u.email;
+      document.getElementById('fRol').value    = u.rol;
+      document.getElementById('fEstado').value = u.estado;
+    } else {
+      document.getElementById('fNombre').value = '';
+      document.getElementById('fEmail').value  = '';
+      document.getElementById('fRol').value    = 'Ventas';
+      document.getElementById('fEstado').value = 'Activo';
+    }
+    document.getElementById('modalOverlay').classList.add('show');
+  }
+
+  function cerrarModal() {
+    document.getElementById('modalOverlay').classList.remove('show');
+    editingId = null;
+  }
+
+  function guardarUsuario() {
+    const nombre = document.getElementById('fNombre').value.trim();
+    const email  = document.getElementById('fEmail').value.trim();
+    const rol    = document.getElementById('fRol').value;
+    const estado = document.getElementById('fEstado').value;
+
+    if (!nombre || !email) { alert('Por favor completa todos los campos.'); return; }
+
+    if (editingId) {
+      const u = usuarios.find(x => x.id === editingId);
+      u.nombre = nombre; u.email = email; u.rol = rol; u.estado = estado;
+    } else {
+      const newId = usuarios.length ? Math.max(...usuarios.map(u=>u.id)) + 1 : 1;
+      usuarios.push({ id: newId, nombre, rol, email, estado });
+    }
+    cerrarModal();
+    renderTable();
+  }
+
+  function editarUsuario(id) { abrirModal(id); }
+
+  function eliminarUsuario(id) {
+    if (confirm('¿Estás seguro de eliminar este usuario?')) {
+      usuarios = usuarios.filter(u => u.id !== id);
+      renderTable();
+    }
+  }
+
+  // cerrar modal al click fuera
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModal();
+  });
+
+  renderTable();
+</script>
+</body>
+</html>

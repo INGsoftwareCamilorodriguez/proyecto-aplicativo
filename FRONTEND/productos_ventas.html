@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CAPCOB - Producto de ventas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sidebar-bg: #0f1117;
+      --main-bg: #f5f6fa;
+      --white: #ffffff;
+      --purple: #a855f7;
+      --purple-light: #f3e8ff;
+      --teal: #06b6d4;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+    }
+
+    html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--main-bg); overflow: hidden; }
+
+    .layout { display: flex; height: 100vh; }
+
+    /* ══ SIDEBAR ══ */
+    .sidebar {
+      width: 260px;
+      background: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .user-block {
+      display: flex; align-items: center; gap: 10px;
+      padding: 20px 18px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      cursor: pointer;
+    }
+    .avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: #374151;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; position: relative;
+    }
+    .avatar svg { width: 20px; height: 20px; stroke: #9ca3af; fill: none; stroke-width: 1.8; }
+    .notif-dot {
+      position: absolute; top: 1px; right: 1px;
+      width: 8px; height: 8px;
+      background: var(--purple); border-radius: 50%;
+      border: 2px solid var(--sidebar-bg);
+    }
+    .user-name { font-size: .85rem; font-weight: 600; color: #f9fafb; }
+    .user-handle { font-size: .72rem; color: #6b7280; }
+    .chevron { width: 14px; height: 14px; stroke: #6b7280; fill: none; stroke-width: 2; }
+
+    .nav { flex: 1; padding: 12px 0; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 18px;
+      font-size: .85rem; color: #9ca3af;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: all .18s; text-decoration: none;
+    }
+    .nav-item:hover { color: #f9fafb; background: rgba(255,255,255,.04); }
+    .nav-item.active {
+      background: rgba(255,255,255,.07); color: #f9fafb;
+      border-left-color: var(--purple); font-weight: 600;
+    }
+    .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; flex-shrink: 0; }
+    .nav-item.active svg { stroke: var(--purple); }
+
+    .nav-bottom {
+      padding: 12px 18px 20px;
+      border-top: 1px solid rgba(255,255,255,.07);
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .nav-bottom a {
+      display: flex; align-items: center; gap: 10px;
+      font-size: .8rem; color: #6b7280;
+      text-decoration: none; padding: 7px 0;
+      transition: color .15s;
+    }
+    .nav-bottom a:hover { color: #9ca3af; }
+    .nav-bottom a svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+    /* ══ MAIN ══ */
+    .main {
+      flex: 1; overflow-y: auto;
+      padding: 28px 32px;
+      display: flex; flex-direction: column; gap: 20px;
+    }
+    .main::-webkit-scrollbar { width: 6px; }
+    .main::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+
+    /* header */
+    .header-row {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .title-row {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .title-bar {
+      width: 4px; height: 28px;
+      background: var(--purple); border-radius: 2px;
+    }
+    .page-title { font-size: 1.4rem; font-weight: 800; color: var(--text); }
+
+    .search-icon {
+      width: 20px; height: 20px; stroke: var(--muted); fill: none; stroke-width: 1.8; cursor: pointer;
+    }
+
+    .logo-badge {
+      display: flex; align-items: center; gap: 8px;
+      font-weight: 800; font-size: 1rem; color: var(--text);
+    }
+    .logo-badge img { width: 38px; height: auto; }
+
+    /* filter tabs */
+    .filter-tabs {
+      display: flex; gap: 8px;
+    }
+    .tab {
+      padding: 6px 18px;
+      border-radius: 20px;
+      font-size: .78rem; font-weight: 600;
+      cursor: pointer; border: none;
+      transition: all .15s;
+    }
+    .tab.active { background: var(--purple); color: #fff; }
+    .tab.inactive { background: #e5e7eb; color: var(--muted); }
+    .tab.inactive:hover { background: #d1d5db; }
+
+    /* charts grid */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 22px;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 220px;
+    }
+
+    /* pagination */
+    .pagination {
+      display: flex; align-items: center; justify-content: flex-end; gap: 6px;
+      margin-top: 10px;
+    }
+    .pg-btn {
+      width: 28px; height: 28px;
+      border-radius: 6px; border: 1px solid var(--border);
+      background: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: .78rem; color: var(--muted);
+      transition: all .15s;
+    }
+    .pg-btn:hover { background: #f3f4f6; }
+    .pg-btn.active { background: var(--purple); color: #fff; border-color: var(--purple); font-weight: 700; }
+    .pg-btn svg { width: 12px; height: 12px; stroke: var(--muted); fill: none; stroke-width: 2; }
+
+    /* date range */
+    .date-row {
+      display: flex; align-items: center; gap: 10px;
+      font-size: .82rem; color: var(--muted);
+    }
+    .date-pill {
+      display: flex; align-items: center; gap: 6px;
+      border: 1px solid var(--border);
+      border-radius: 8px; padding: 6px 12px;
+      background: var(--white); cursor: pointer;
+      font-size: .8rem; color: var(--text);
+    }
+    .date-pill svg { width: 15px; height: 15px; stroke: var(--muted); fill: none; stroke-width: 1.8; }
+
+    /* section label */
+    .section-label {
+      display: inline-block;
+      background: var(--purple);
+      color: #fff;
+      font-size: .75rem; font-weight: 700;
+      padding: 5px 14px; border-radius: 20px;
+      letter-spacing: .03em;
+    }
+
+    /* product cards */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .product-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+
+    .prod-label {
+      font-size: .78rem; font-weight: 700; color: var(--text);
+    }
+    .prod-qty {
+      font-size: 1.6rem; font-weight: 800; color: var(--purple);
+    }
+    .prod-trend {
+      display: flex; align-items: center; gap: 6px;
+      font-size: .78rem; font-weight: 600;
+    }
+    .trend-up   { color: #16a34a; }
+    .trend-down { color: #dc2626; }
+    .trend-icon { font-size: .9rem; }
+
+    .prod-price-label { font-size: .75rem; color: var(--muted); font-weight: 600; }
+    .prod-price { font-size: .95rem; font-weight: 700; color: var(--purple); }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar">
+    <div class="user-block">
+      <div class="avatar">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <div class="notif-dot"></div>
+      </div>
+      <div style="flex:1">
+        <div class="user-name">Usuario 1</div>
+        <div class="user-handle">@usuarioprueba</div>
+      </div>
+      <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+
+    <nav class="nav">
+      <a class="nav-item" href="inicio.html">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Inicio
+      </a>
+      <a class="nav-item active" href="PRODUCTOS_VENTAS.html">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        Producto de ventas (graficos)
+      </a>
+      <a class="nav-item" href="REGISTRO_VENTAS_ANUALES.html">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Registro de ventas Anuales
+      </a>
+      <a class="nav-item" href="GESTION_USUARIOS.html">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Usuario
+      </a>
+    </nav>
+
+    <div class="nav-bottom">
+      <a href="configuracion.html">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Configuracion
+      </a>
+      <a href="login.html">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Cerrar Sesion
+      </a>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <main class="main">
+
+    <!-- Header -->
+    <div class="header-row">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div class="title-row">
+          <div class="title-bar"></div>
+          <div class="page-title">Producto de ventas</div>
+        </div>
+        <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <div class="logo-badge">
+        <img src="LOGO_CAPCOB.png" alt="CAPCOB logo"/>
+        CAPCOB
+      </div>
+    </div>
+
+    <!-- Filter tabs + date -->
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div class="filter-tabs">
+        <button class="tab active" onclick="setTab(this,'todas')">TODAS LAS VENTAS</button>
+        <button class="tab inactive" onclick="setTab(this,'semana')">ESTA SEMANA</button>
+        <button class="tab inactive" onclick="setTab(this,'mes')">ESTE MES</button>
+      </div>
+    </div>
+
+    <!-- Charts row -->
+    <div class="charts-grid">
+      <!-- Bar chart -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <span class="section-label">TODAS LAS VENTAS</span>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="barChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Pie chart -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <span class="section-label" style="background:var(--teal);">TODAS LAS VENTAS</span>
+          <div class="pagination">
+            <div class="pg-btn"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+            <div class="pg-btn">1</div>
+            <div class="pg-btn active">2</div>
+            <div class="pg-btn">3</div>
+            <div class="pg-btn"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:200px;">
+          <canvas id="pieChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Date range -->
+    <div class="date-row">
+      <div class="date-pill">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        10 FEB 2026
+      </div>
+      <span>a</span>
+      <div class="date-pill">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        18 FEB 2026
+        <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:var(--muted);fill:none;stroke-width:2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+    </div>
+
+    <!-- Section label -->
+    <div>
+      <span class="section-label">cantidad y porcentaje de venta</span>
+    </div>
+
+    <!-- Product cards -->
+    <div class="products-grid">
+      <div class="product-card">
+        <div class="prod-label">Producto 1 - Cantidad:</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="prod-qty">25</div>
+          <div class="prod-trend trend-up">
+            <span class="trend-icon">📈</span> +150%
+          </div>
+        </div>
+        <div class="prod-price-label">Precio:</div>
+        <div class="prod-price">$0</div>
+      </div>
+
+      <div class="product-card">
+        <div class="prod-label">Producto 2 - Cantidad:</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="prod-qty">5</div>
+          <div class="prod-trend trend-down">
+            <span class="trend-icon">📉</span> -50%
+          </div>
+        </div>
+        <div class="prod-price-label">Precio:</div>
+        <div class="prod-price">$0</div>
+      </div>
+
+      <div class="product-card">
+        <div class="prod-label">Producto 3 - Cantidad:</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="prod-qty">12</div>
+          <div class="prod-trend trend-up">
+            <span class="trend-icon">📈</span> +20%
+          </div>
+        </div>
+        <div class="prod-price-label">Precio:</div>
+        <div class="prod-price">$0</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // ── BAR CHART ──
+  const barCtx = document.getElementById('barChart').getContext('2d');
+  new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels: ['Producto 1', 'Producto 2', 'Producto 3'],
+      datasets: [
+        {
+          label: 'Ventas Diarias',
+          data: [10, 10, 10],
+          backgroundColor: '#d1d5db',
+          borderRadius: 4,
+        },
+        {
+          label: 'Ventas extra',
+          data: [15, 1, 2],
+          backgroundColor: '#a855f7',
+          borderRadius: 4,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: { font: { size: 11 }, boxWidth: 12, padding: 14 }
+        }
+      },
+      scales: {
+        x: { stacked: false, grid: { display: false }, ticks: { font: { size: 11 } } },
+        y: { beginAtZero: true, grid: { color: '#f3f4f6' }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+
+  // ── PIE CHART ──
+  const pieCtx = document.getElementById('pieChart').getContext('2d');
+  new Chart(pieCtx, {
+    type: 'pie',
+    data: {
+      labels: ['PRODUCTO 1', 'PRODUCTO 2', 'PRODUTO 3'],
+      datasets: [{
+        data: [59.5, 11.9, 28.6],
+        backgroundColor: ['#06b6d4', '#0e7490', '#164e63'],
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { font: { size: 11 }, boxWidth: 12, padding: 14 }
+        }
+      }
+    }
+  });
+
+  // ── TAB SWITCH ──
+  function setTab(el, tipo) {
+    document.querySelectorAll('.tab').forEach(t => {
+      t.classList.remove('active');
+      t.classList.add('inactive');
+    });
+    el.classList.remove('inactive');
+    el.classList.add('active');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CAPCOB - Ingreso de Usuario</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #ffffff;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+ 
+    /* ── TOP NAV ── */
+    .topnav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 28px;
+      border-bottom: 1px solid #e5e7eb;
+      background: #fff;
+      flex-shrink: 0;
+    }
+    .topnav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: .95rem;
+      color: #111;
+    }
+    .logo-icon {
+      width: 30px; height: 30px;
+      background: #b8952a;
+      border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-icon svg { width: 18px; height: 18px; fill: #fff; }
+ 
+    .topnav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 10px;
+      padding: 8px 18px;
+      font-size: .88rem;
+      color: #374151;
+      font-weight: 500;
+    }
+    .topnav-right svg {
+      width: 20px; height: 20px;
+      stroke: #6b7280; fill: none; stroke-width: 1.8;
+    }
+ 
+    /* ── MAIN ── */
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 480px 1fr;
+      overflow: hidden;
+    }
+ 
+    /* ── LEFT ── */
+    .left {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 40px 32px 40px 48px;
+      background: #fff;
+    }
+ 
+    .form-box {
+      width: 100%;
+      max-width: 400px;
+      border: 2.5px solid #1a1a1a;
+      border-radius: 18px;
+      padding: 52px 42px 48px;
+    }
+ 
+    .form-title {
+      font-size: 2.1rem;
+      font-weight: 900;
+      color: #e8334a;
+      text-align: center;
+      margin-bottom: 30px;
+      letter-spacing: .03em;
+    }
+ 
+    .field {
+      position: relative;
+      margin-bottom: 14px;
+    }
+    .field input {
+      width: 100%;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      padding: 12px 40px 12px 14px;
+      font-size: .85rem;
+      font-family: 'Inter', sans-serif;
+      color: #374151;
+      outline: none;
+      letter-spacing: .08em;
+      transition: border-color .2s;
+    }
+    .field input::placeholder {
+      color: #9ca3af;
+      font-weight: 500;
+      letter-spacing: .1em;
+    }
+    .field input:focus { border-color: #9ca3af; }
+ 
+    .field .tick {
+      position: absolute;
+      right: 12px; top: 50%;
+      transform: translateY(-50%);
+      width: 18px; height: 18px;
+      stroke: #6b7280; fill: none; stroke-width: 2.2;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .field input:valid:not(:placeholder-shown) ~ .tick { opacity: 1; }
+ 
+    .remember-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 20px 0 22px;
+    }
+    .remember-label {
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      color: #111;
+      text-transform: uppercase;
+    }
+    .cb-box {
+      width: 15px; height: 15px;
+      border: 2px solid #9ca3af;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all .15s;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .cb-box.on {
+      background: #374151;
+      border-color: #374151;
+    }
+    .cb-box.on::after {
+      content: '';
+      position: absolute;
+      left: 2px; top: 0px;
+      width: 8px; height: 5px;
+      border-left: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      transform: rotate(-45deg);
+    }
+ 
+    .btn-login {
+      width: 100%;
+      padding: 13px;
+      background: #111;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: .95rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-login:hover { background: #333; }
+    .btn-login.ok { background: #16a34a; }
+    .btn-login.shake { animation: shake .4s; }
+    @keyframes shake {
+      0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}
+      40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}
+    }
+ 
+    .err {
+      display: none;
+      margin-top: 10px;
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: .78rem;
+      color: #dc2626;
+      text-align: center;
+    }
+ 
+    /* ── RIGHT ── */
+    .right {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 48px;
+      gap: 28px;
+      background: #fff;
+    }
+ 
+    .welcome-text {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #111;
+      text-align: center;
+      max-width: 400px;
+      line-height: 1.45;
+    }
+ 
+    /* barcode card */
+    .bc-card {
+      background: #f3f4f6;
+      border-radius: 14px;
+      padding: 30px 44px;
+    }
+ 
+    .bc-circle {
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      border: 3px solid #1e293b;
+      position: relative;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+ 
+    .scan-line {
+      position: absolute;
+      left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg,transparent 5%,#e8334a 50%,transparent 95%);
+      animation: scan 2s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes scan {
+      0%{top:28px;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:165px;opacity:0}
+    }
+ 
+    .bc-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .bars {
+      display: flex;
+      align-items: stretch;
+      gap: 2.5px;
+      height: 75px;
+    }
+    .b { background: #1e293b; border-radius: 1px; }
+    .bc-num {
+      font-size: .62rem;
+      font-family: 'Courier New', monospace;
+      color: #374151;
+      letter-spacing: .15em;
+      margin-top: 5px;
+    }
+ 
+    /* magnifier + check */
+    .mag {
+      position: absolute;
+      bottom: 20px; right: 14px;
+      width: 54px; height: 54px;
+    }
+    .chk-badge {
+      position: absolute;
+      bottom: 14px; right: 8px;
+      width: 26px; height: 26px;
+      background: #22c55e;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .chk-badge svg { width: 13px; height: 13px; stroke: #fff; fill: none; stroke-width: 2.5; }
+ 
+    /* ── BOTTOM BAR ── */
+    .bottom-bar {
+      height: 50px;
+      background: #e8334a;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+ 
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="topnav-logo"> 
+    <div class="logo-icon">
+      <img src="LOGO_CAPCOB.png" style="width: 200px; height: 32px;"/> 
+    </div>
+    <span>CAPCOB - LOGIN</span>
+  </div>
+  <div class="topnav-right">
+    <span id="roleText">Administrador</span>
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </div>
+</nav>
+ 
+<!-- MAIN GRID -->
+<div class="main">
+ 
+  <!-- LEFT: FORM -->
+  <div class="left">
+    <div class="form-box">
+      <div class="form-title">LOGIN</div>
+ 
+      <div class="field">
+        <input type="text" id="uname" placeholder="USERNAME" required autocomplete="off"/>
+        <svg class="tick" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+ 
+      <div class="field">
+        <input type="password" id="pwd" placeholder="PASSWORD" required/>
+        <svg class="tick" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+ 
+      <div class="remember-row">
+        <span class="remember-label">Recordarme?</span>
+        <div class="cb-box" id="cb" onclick="this.classList.toggle('on')"></div>
+      </div>
+ 
+      <button class="btn-login" id="btnLogin" onclick="doLogin()">Ingresar</button>
+      <div class="err" id="errMsg">Usuario o contraseña incorrectos.</div>
+    </div>
+  </div>
+ 
+  <!-- RIGHT: WELCOME -->
+  <div class="right">
+    <div class="welcome-text">
+      Te damos la bienvenida a CAPCOB, Control y Analisis<br>de Productos por medio de Codigo de Barras..
+    </div>
+ 
+    <div class="bc-card">
+      <div class="bc-circle">
+        <div class="scan-line"></div>
+        <div class="bc-inner">
+          <div class="bars">
+            <div class="b" style="width:3px"></div>
+            <div class="b" style="width:1.5px"></div>
+            <div class="b" style="width:4px"></div>
+            <div class="b" style="width:1.5px"></div>
+            <div class="b" style="width:2px"></div>
+            <div class="b" style="width:3px"></div>
+            <div class="b" style="width:1px"></div>
+            <div class="b" style="width:4px"></div>
+            <div class="b" style="width:1.5px"></div>
+            <div class="b" style="width:2.5px"></div>
+            <div class="b" style="width:3px"></div>
+            <div class="b" style="width:1.5px"></div>
+            <div class="b" style="width:2px"></div>
+            <div class="b" style="width:4px"></div>
+            <div class="b" style="width:1px"></div>
+            <div class="b" style="width:3px"></div>
+            <div class="b" style="width:2px"></div>
+            <div class="b" style="width:1.5px"></div>
+            <div class="b" style="width:3.5px"></div>
+            <div class="b" style="width:1px"></div>
+            <div class="b" style="width:2px"></div>
+            <div class="b" style="width:3px"></div>
+            <div class="b" style="width:4px"></div>
+            <div class="b" style="width:1.5px"></div>
+            <div class="b" style="width:2px"></div>
+          </div>
+          <div class="bc-num">5085565510</div>
+        </div>
+ 
+        <!-- magnifier SVG -->
+        <svg class="mag" viewBox="0 0 54 54">
+          <circle cx="21" cy="21" r="15" stroke="#1e293b" stroke-width="3" fill="rgba(180,210,255,.18)"/>
+          <line x1="32" y1="32" x2="50" y2="50" stroke="#1e293b" stroke-width="3.5" stroke-linecap="round"/>
+        </svg>
+ 
+        <!-- green check -->
+        <div class="chk-badge">
+          <svg viewBox="0 0 13 10"><polyline points="1 5 5 9 12 1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<!-- BOTTOM RED BAR -->
+<div class="bottom-bar"></div>
+ 
+<script>
+  const USERS = {
+    'admin':   { password: '1234', role: 'Administrador' },
+    'usuario': { password: '1234', role: 'Ingreso de usuario' }
+  };
+ 
+  function doLogin() {
+    const u   = document.getElementById('uname').value.trim().toLowerCase();
+    const p   = document.getElementById('pwd').value;
+    const btn = document.getElementById('btnLogin');
+    const err = document.getElementById('errMsg');
+ 
+    if (USERS[u] && USERS[u].password === p) {
+      err.style.display = 'none';
+      btn.textContent = '✓ Bienvenido';
+      btn.classList.add('ok');
+      document.getElementById('roleText').textContent = USERS[u].role;
+      setTimeout(() => { window.location.href = 'inicio.html'; }, 1500);
+    } else {
+      err.style.display = 'block';
+      btn.classList.add('shake');
+      setTimeout(() => btn.classList.remove('shake'), 400);
+    }
+  }
+ 
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>
