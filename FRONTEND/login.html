@@ -293,12 +293,12 @@
       <div class="form-title">LOGIN</div>
  
       <div class="field">
-        <input type="text" id="uname" placeholder="USERNAME" required autocomplete="off"/>
+        <input type="text" id="USERNAME" placeholder="USERNAME" required autocomplete="off"/>
         <svg class="tick" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
  
       <div class="field">
-        <input type="password" id="pwd" placeholder="PASSWORD" required/>
+        <input type="password" id="PASSWORD" placeholder="PASSWORD" required/>
         <svg class="tick" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
  
@@ -355,10 +355,8 @@
     </div>
   </div>
 </div>
- 
-<!-- BOTTOM RED BAR -->
 <div class="bottom-bar"></div>
- 
+
 <script>
   const USERS = {
     'admin':   { password: '1234', role: 'Administrador' },
@@ -366,8 +364,8 @@
   };
  
   function doLogin() {
-    const u   = document.getElementById('uname').value.trim().toLowerCase();
-    const p   = document.getElementById('pwd').value;
+    const u   = document.getElementById('USERNAME').value.trim().toLowerCase();
+    const p   = document.getElementById('PASSWORD').value;
     const btn = document.getElementById('btnLogin');
     const err = document.getElementById('errMsg');
  
@@ -375,12 +373,11 @@
       err.style.display = 'none';
       btn.textContent = '✓ Bienvenido';
       btn.classList.add('ok');
-      document.getElementById('roleText').textContent = USERS[u].role;
-      setTimeout(() => { window.location.href = 'inicio.html'; }, 1500);
+      setTimeout(() => { window.location.href = 'inicio.html'; });
     } else {
       err.style.display = 'block';
       btn.classList.add('shake');
-      setTimeout(() => btn.classList.remove('shake'), 400);
+      setTimeout(() => btn.classList.remove('shake'));
     }
   }
  
