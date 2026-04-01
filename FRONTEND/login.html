@@ -46,25 +46,26 @@
     .main {
       flex: 1;
       display: grid;
-      grid-template-columns: 480px 1fr;
-      overflow: hidden;
+      grid-template-columns: 480px 480px;
+      justify-content: center;
+      gap: 50px; 
     }
  
     /* ── LEFT ── */
     .left {
       display: flex;
-      justify-content: flex-end;
+      justify-content: flex-start;
       align-items: center;
-      padding: 40px 32px 40px 48px;
+      padding: 70px 48px 40px 50px;
       background: #fff;
     }
  
     .form-box {
-      width: 100%;
-      max-width: 400px;
+      width: 500%;
+      max-width: 600px;
       border: 2.5px solid #1a1a1a;
       border-radius: 18px;
-      padding: 52px 42px 48px;
+      padding: 52px 50px 48px;
     }
  
     .form-title {
@@ -101,7 +102,7 @@
  
     .field .tick {
       position: absolute;
-      right: 12px; top: 50%;
+      right: 10px; top: 20%;
       transform: translateY(-50%);
       width: 18px; height: 18px;
       stroke: #6b7280; fill: none; stroke-width: 2.2;
@@ -185,8 +186,11 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 40px 48px;
-      gap: 28px;
+
+      padding: 10px;
+      gap: 15px;
+
+      max-width: 500px;  /* 👈 límite */
       background: #fff;
     }
  
@@ -273,7 +277,6 @@
     <div class="logo-icon">
       <img src="LOGO_CAPCOB.png" style="width: 200px; height: 32px;"/> 
     </div>
-    <br>
     <span>CAPCOB - LOGIN</span>
   </div>
   <div class="topnav-right">
