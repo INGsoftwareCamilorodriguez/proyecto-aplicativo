@@ -275,7 +275,7 @@
 <nav class="topnav">
   <div class="topnav-logo"> 
     <div class="logo-icon">
-      <img src="LOGO_CAPCOB.png" style="width: 200px; height: 32px;"/> 
+      <img src="LOGO_CAPCOB_PROYECTOAP.jpeg" style="width: 200px; height: 32px;"/> 
     </div>
     <span>CAPCOB - LOGIN</span>
   </div>
@@ -373,6 +373,11 @@
       err.style.display = 'none';
       btn.textContent = '✓ Bienvenido';
       btn.classList.add('ok');
+
+      // ── Guardar sesión ──
+      localStorage.setItem('rol', USERS[u].role);
+      localStorage.setItem('username', u);
+
       setTimeout(() => { window.location.href = 'inicio.html'; });
     } else {
       err.style.display = 'block';
