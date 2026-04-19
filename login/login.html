@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CAPCOB - Ingreso de Usuario</title>
+  <link href="/login/login.css" rel="stylesheet"/>
+</head>
+<body>
+ 
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="topnav-logo"> 
+    <div class="logo-icon">
+      <img src="/imagen/LOGO_CAPCOB_PROYECTOAP.png" style="width: 200px; height: 32px;"/> 
+    </div>
+    <span>CAPCOB - LOGIN</span>
+  </div>
+  <div class="topnav-right">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </div>
+</nav>
+ 
+<!-- MAIN GRID -->
+<div class="main">
+ 
+  <!-- LEFT: FORM -->
+  <div class="left">
+    <div class="form-box">
+      <div class="form-title">LOGIN</div>
+ 
+      <div class="field">
+        <input type="text" id="USERNAME" placeholder="USERNAME" required autocomplete="off"/>
+        <svg class="tick" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+ 
+      <div class="field">
+        <input type="password" id="PASSWORD" placeholder="PASSWORD" required/>
+        <svg class="tick" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+ 
+      <div class="remember-row">
+        <span class="remember-label">Recordarme?</span>
+        <div class="cb-box" id="cb" onclick="this.classList.toggle('on')"></div>
+      </div>
+ 
+      <button class="btn-login" id="btnLogin" onclick="doLogin()">Ingresar</button>
+      <div class="err" id="errMsg">Usuario o contraseña incorrectos.</div>
+    </div>
+  </div>
+ 
+  <!-- RIGHT: WELCOME -->
+  <div class="right">
+    <div class="welcome-text">
+      Te damos la bienvenida a CAPCOB, Control y Analisis<br>de Productos por medio de Codigo de Barras..
+    </div>
+ 
+    <div class="bc-card">
+      <div class="bc-circle">
+        <div class="scan-line"></div>
+        <div class="bc-inner">
+          <div class="bars">
+            <div class="b" style="width:3px"></div>
+            <div class="b" style="width:1.5px"></div>
+            <div class="b" style="width:4px"></div>
+            <div class="b" style="width:1.5px"></div>
+            <div class="b" style="width:2px"></div>
+            <div class="b" style="width:3px"></div>
+            <div class="b" style="width:1px"></div>
+            <div class="b" style="width:4px"></div>
+            <div class="b" style="width:1.5px"></div>
+            <div class="b" style="width:2.5px"></div>
+            <div class="b" style="width:3px"></div>
+            <div class="b" style="width:1.5px"></div>
+            <div class="b" style="width:2px"></div>
+            <div class="b" style="width:4px"></div>
+            <div class="b" style="width:1px"></div>
+            <div class="b" style="width:3px"></div>
+            <div class="b" style="width:2px"></div>
+            <div class="b" style="width:1.5px"></div>
+            <div class="b" style="width:3.5px"></div>
+            <div class="b" style="width:1px"></div>
+            <div class="b" style="width:2px"></div>
+            <div class="b" style="width:3px"></div>
+            <div class="b" style="width:4px"></div>
+            <div class="b" style="width:1.5px"></div>
+            <div class="b" style="width:2px"></div>
+          </div>
+          <div class="bc-num">facking Nigga</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="bottom-bar"></div>
+
+<script src="login.js"></script>
+</body>
+</html>
