@@ -1,16 +1,15 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
- 
+
 body {
   font-family: 'Inter', sans-serif;
   background: #ffffff;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;  
+  min-height: 100vh;
 }
 
-
 /* ══════════════════════════
-   HEADER (igual al de la página principal)
+   HEADER
 ══════════════════════════ */
 .container {
   width: 100%;
@@ -76,22 +75,15 @@ nav ul li a::after {
 nav ul li a:hover { color: #00f0ff; }
 nav ul li a:hover::after { width: 100%; }
 
-.logo-icon {
-  width: 30px; height: 30px;
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-}
-.logo-icon svg { width: 18px; height: 18px; fill: #fff; }
-
 /* ── MAIN ── */
 .main {
   flex: 1;
   display: grid;
   grid-template-columns: 480px 480px;
   justify-content: center;
-  gap: 50px; 
+  gap: 50px;
 }
- 
+
 /* ── LEFT ── */
 .left {
   display: flex;
@@ -100,15 +92,15 @@ nav ul li a:hover::after { width: 100%; }
   padding: 70px 48px 40px 50px;
   background: #fff;
 }
- 
+
 .form-box {
-  width: 500%;
+  width: 100%;
   max-width: 600px;
   border: 2.5px solid #1a1a1a;
   border-radius: 18px;
   padding: 52px 50px 48px;
 }
- 
+
 .form-title {
   font-size: 2.1rem;
   font-weight: 900;
@@ -117,7 +109,7 @@ nav ul li a:hover::after { width: 100%; }
   margin-bottom: 30px;
   letter-spacing: .03em;
 }
- 
+
 .field {
   position: relative;
   margin-bottom: 14px;
@@ -140,7 +132,7 @@ nav ul li a:hover::after { width: 100%; }
   letter-spacing: .1em;
 }
 .field input:focus { border-color: #9ca3af; }
- 
+
 .field .tick {
   position: absolute;
   right: 10px; top: 20%;
@@ -151,7 +143,7 @@ nav ul li a:hover::after { width: 100%; }
   transition: opacity .2s;
 }
 .field input:valid:not(:placeholder-shown) ~ .tick { opacity: 1; }
- 
+
 .remember-row {
   display: flex;
   align-items: center;
@@ -187,7 +179,7 @@ nav ul li a:hover::after { width: 100%; }
   border-bottom: 2px solid #fff;
   transform: rotate(-45deg);
 }
- 
+
 .btn-login {
   width: 100%;
   padding: 13px;
@@ -208,7 +200,7 @@ nav ul li a:hover::after { width: 100%; }
   0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}
   40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}
 }
- 
+
 .err {
   display: none;
   margin-top: 10px;
@@ -220,7 +212,7 @@ nav ul li a:hover::after { width: 100%; }
   color: #dc2626;
   text-align: center;
 }
- 
+
 /* ── RIGHT ── */
 .right {
   display: flex;
@@ -232,7 +224,7 @@ nav ul li a:hover::after { width: 100%; }
   max-width: 500px;
   background: #fff;
 }
- 
+
 .welcome-text {
   font-size: 1.4rem;
   font-weight: 800;
@@ -241,12 +233,12 @@ nav ul li a:hover::after { width: 100%; }
   max-width: 400px;
   line-height: 1.45;
 }
- 
+
 .bc-card {
   border-radius: 14px;
   padding: 30px 44px;
 }
- 
+
 .bc-circle {
   width: 200px; height: 200px;
   border-radius: 50%;
@@ -258,7 +250,7 @@ nav ul li a:hover::after { width: 100%; }
   justify-content: center;
   overflow: hidden;
 }
- 
+
 .scan-line {
   position: absolute;
   left: 0; right: 0; height: 2px;
@@ -269,7 +261,7 @@ nav ul li a:hover::after { width: 100%; }
 @keyframes scan {
   0%{top:28px;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:165px;opacity:0}
 }
- 
+
 .bc-inner {
   display: flex;
   flex-direction: column;
@@ -289,18 +281,9 @@ nav ul li a:hover::after { width: 100%; }
   letter-spacing: .15em;
   margin-top: 5px;
 }
-.chk-badge {
-  position: absolute;
-  bottom: 14px; right: 8px;
-  width: 26px; height: 26px;
-  background: #22c55e;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-}
-.chk-badge svg { width: 13px; height: 13px; stroke: #fff; fill: none; stroke-width: 2.5; }
 
 /* ══════════════════════════
-   FOOTER (igual al de la página principal)
+   FOOTER
 ══════════════════════════ */
 footer {
   background: #333;
@@ -315,8 +298,8 @@ footer {
   margin-bottom: 30px;
 }
 
-
 .footer-section h3 { margin-bottom: 20px; font-size: 1.2rem; }
+.footer-section p { color: #ddd; }
 .footer-section ul { list-style: none; }
 .footer-section ul li { margin-bottom: 10px; color: #ddd; }
 .footer-section ul li a { color: #ddd; text-decoration: none; transition: color 0.3s; }
@@ -333,4 +316,3 @@ footer {
   font-size: 0.9rem;
   color: #aaa;
 }
-
