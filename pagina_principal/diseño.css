@@ -12,7 +12,7 @@ body {
 }
 
 .container {
-  width: 90%;
+  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 15px;
@@ -38,20 +38,14 @@ header {
 }
 
 .logo {
-  font-size: 4m;
   font-weight: bold;
   display: flex;
   align-items: center;
+  gap: 8px;
   color: #00d4ff;
   cursor: pointer;
   transition: color 0.3s ease;
   user-select: none;
-}
-
-nav {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
 }
 
 nav ul {
@@ -59,8 +53,6 @@ nav ul {
   align-items: center;
   gap: 1rem;
   list-style: none;
-  margin: 0;
-  padding: 0;
 }
 
 nav ul li {
@@ -101,7 +93,7 @@ nav ul li a:hover::after {
 ══════════════════════════ */
 .hero {
   position: relative;
-  height: 120vh;
+  height: 100vh;
   display: flex;
   align-items: center;
   color: white;
@@ -111,7 +103,7 @@ nav ul li a:hover::after {
 
 .hero-bg {
   position: absolute;
-  top: 10;
+  top: 0;
   left: 0;
   width: 100%;
   height: 100%;
@@ -125,11 +117,11 @@ nav ul li a:hover::after {
   z-index: 1;
   text-align: center;
   width: 100%;
-  margin-top: -160PX;
+  margin-top: -160px;
 }
 
 .hero h1 {
-  font-size: rem;
+  font-size: 3rem;
   margin-bottom: 20px;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
@@ -177,8 +169,13 @@ section {
 }
 
 /* ══════════════════════════
-   IMPRESORAS
+   QUIENES SOMOS
 ══════════════════════════ */
+#tipos {
+  padding: 150px 0;
+  min-height: 300px;
+}
+
 .printers-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -186,7 +183,7 @@ section {
 }
 
 .printer-card {
-  background: rgb(255, 255, 255);
+  background: white;
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 5px 15px rgba(0,0,0,0.1);
@@ -201,71 +198,9 @@ section {
   padding: 20px;
 }
 
-.printer-info h3 {
-  margin-bottom: 10px;
-  color: #1a2a6c;
-}
-
 /* ══════════════════════════
-   SECCIÓN: ¿QUÉ DEBES TENER EN CUENTA?
+   TARJETAS APP
 ══════════════════════════ */
-
-/* Card 2 — Resolución */
-.resolution-desc {
-  font-size: 0.8rem;
-  text-align: center;
-  color: rgba(255,255,255,0.65);
-  margin-bottom: 18px;
-  line-height: 1.55;
-}
-
-.res-item {
-  flex: 1;
-  text-align: center;
-}
-
-.res-item span {
-  display: block;
-  font-size: 0.68rem;
-  color: rgba(255,255,255,0.6);
-  margin-top: 6px;
-}
-
-.stair-wrap {
-  position: relative;
-  width: 100%;
-  padding-top: 85%;
-}
-
-.stair-wrap svg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-/* Tooltip */
-.tooltip {
-  position: fixed;
-  background: rgba(0,0,0,0.82);
-  color: #fff;
-  font-size: 0.72rem;
-  padding: 5px 10px;
-  border-radius: 6px;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.15s;
-  z-index: 9999;
-}
-
-/* ══════════════════════════
-   APLICACIONES
-══════════════════════════ */
-.applications {
-  background-color: #f9f9f9;
-}
-
 .applications-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -377,9 +312,5 @@ footer {
 
   .section-title {
     font-size: 2rem;
-  }
-
-  .card-considera {
-    min-width: 260px;
   }
 }

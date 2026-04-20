@@ -7,19 +7,25 @@
   <link href="/login/login.css" rel="stylesheet"/>
 </head>
 <body>
- 
-<!-- TOP NAV -->
-<nav class="topnav">
-  <div class="topnav-logo"> 
-    <div class="logo-icon">
-      <img src="/imagen/LOGO_CAPCOB_PROYECTOAP.png" style="width: 200px; height: 32px;"/> 
+
+<!-- HEADER -->
+<header>
+  <div class="container">
+    <div class="header-content">
+      <div class="logo">
+        <img src="/imagen/LOGO_CAPCOB_PROYECTOAP.png" height="20"/>
+        <span>CAPCOP</span>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="/pagina_principal/index.html">Pagina Principal</a></li>
+          <li><a href="">Atencion al cliente</a></li>
+          <li><a href="/login/login.html">Inicio Sesion</a></li>
+        </ul>
+      </nav>
     </div>
-    <span>CAPCOB - LOGIN</span>
   </div>
-  <div class="topnav-right">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-  </div>
-</nav>
+</header>
  
 <!-- MAIN GRID -->
 <div class="main">
@@ -92,8 +98,44 @@
     </div>
   </div>
 </div>
-<div class="bottom-bar"></div>
 
-<script src="login.js"></script>
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3>CAPCOP</h3>
+        <p>Gestión inteligente de productos con códigos de barras y QR.</p>
+      </div>
+      <div class="footer-section">
+        <h3>Enlaces Rápidos</h3>
+        <ul>
+          <li><a href="#inicio">Inicio Seccion</a></li>
+          <li><a href="">Atencion al cliente</a></li>
+          <li><a href="/pagina_principal/index.html">Pagina Principal</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h3>Contacto</h3>
+        <ul>
+          <li><i class="fas fa-envelope"></i> camilo_rodriguezva@fet.edu.co</li>
+          <li><i class="fas fa-phone"></i>+57 313 8597041</li>
+          <li><i class="fas fa-map-marker-alt"></i> Neiva Huila</li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h3>Síguenos</h3>
+        <div class="social-links">
+          <a href="https://www.fet.edu.co/" target="_blank">FET</a>
+        </div>
+      </div>
+    </div>
+    <div class="copyright">
+      <p>@ 2024 CAPCOP. Todos los derechos reservados.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="/login/login.js"></script>
 </body>
 </html>
