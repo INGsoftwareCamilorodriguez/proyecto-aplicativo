@@ -1,0 +1,385 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #dadada;
+  color: #333;
+  line-height: 1.6;
+}
+
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+/* ══════════════════════════
+   HEADER
+══════════════════════════ */
+header {
+  background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+  color: white;
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 4m;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  color: #00d4ff;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  user-select: none;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+nav ul {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+nav ul li {
+  margin-left: 20px;
+}
+
+nav ul li a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+  position: relative;
+  display: inline-block;
+  padding-bottom: 4px;
+}
+
+nav ul li a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #00f0ff;
+  transition: width 0.3s ease;
+}
+
+nav ul li a:hover {
+  color: #00f0ff;
+}
+
+nav ul li a:hover::after {
+  width: 100%;
+}
+
+/* ══════════════════════════
+   HERO
+══════════════════════════ */
+.hero {
+  position: relative;
+  height: 120vh;
+  display: flex;
+  align-items: center;
+  color: white;
+  text-align: center;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  top: 10;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  filter: brightness(0.4);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  width: 100%;
+  margin-top: -160PX;
+}
+
+.hero h1 {
+  font-size: rem;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.hero p {
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+}
+
+/* ══════════════════════════
+   BOTÓN GENERAL
+══════════════════════════ */
+.btn {
+  display: inline-block;
+  background: #fdbb2d;
+  color: #333;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background: #f7a900;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* ══════════════════════════
+   SECCIONES GENERALES
+══════════════════════════ */
+section {
+  padding: 80px 0;
+}
+
+.section-title {
+  text-align: center;
+  margin-bottom: 50px;
+  font-size: 2.5rem;
+  color: #1a2a6c;
+}
+
+/* ══════════════════════════
+   IMPRESORAS
+══════════════════════════ */
+.printers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+}
+
+.printer-card {
+  background: rgb(255, 255, 255);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  transition: transform 0.3s;
+}
+
+.printer-card:hover {
+  transform: translateY(-10px);
+}
+
+.printer-info {
+  padding: 20px;
+}
+
+.printer-info h3 {
+  margin-bottom: 10px;
+  color: #1a2a6c;
+}
+
+/* ══════════════════════════
+   SECCIÓN: ¿QUÉ DEBES TENER EN CUENTA?
+══════════════════════════ */
+
+/* Card 2 — Resolución */
+.resolution-desc {
+  font-size: 0.8rem;
+  text-align: center;
+  color: rgba(255,255,255,0.65);
+  margin-bottom: 18px;
+  line-height: 1.55;
+}
+
+.res-item {
+  flex: 1;
+  text-align: center;
+}
+
+.res-item span {
+  display: block;
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.6);
+  margin-top: 6px;
+}
+
+.stair-wrap {
+  position: relative;
+  width: 100%;
+  padding-top: 85%;
+}
+
+.stair-wrap svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Tooltip */
+.tooltip {
+  position: fixed;
+  background: rgba(0,0,0,0.82);
+  color: #fff;
+  font-size: 0.72rem;
+  padding: 5px 10px;
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 9999;
+}
+
+/* ══════════════════════════
+   APLICACIONES
+══════════════════════════ */
+.applications {
+  background-color: #f9f9f9;
+}
+
+.applications-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+}
+
+.app-card {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  transition: transform 0.3s;
+}
+
+.app-card:hover {
+  transform: translateY(-5px);
+}
+
+.app-icon {
+  font-size: 3rem;
+  color: #1a2a6c;
+  margin-bottom: 20px;
+}
+
+/* ══════════════════════════
+   FOOTER
+══════════════════════════ */
+footer {
+  background: #333;
+  color: white;
+  padding: 40px 0 20px;
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.footer-section h3 {
+  margin-bottom: 20px;
+  font-size: 1.2rem;
+}
+
+.footer-section ul {
+  list-style: none;
+}
+
+.footer-section ul li {
+  margin-bottom: 10px;
+}
+
+.footer-section ul li a {
+  color: #ddd;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.footer-section ul li a:hover {
+  color: #fdbb2d;
+}
+
+.social-links {
+  display: flex;
+  gap: 15px;
+}
+
+.social-links a {
+  color: white;
+  font-size: 1.5rem;
+  transition: color 0.3s;
+}
+
+.social-links a:hover {
+  color: #fdbb2d;
+}
+
+.copyright {
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid #444;
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+/* ══════════════════════════
+   RESPONSIVE
+══════════════════════════ */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  nav ul {
+    margin-top: 15px;
+    justify-content: center;
+  }
+
+  nav ul li {
+    margin: 0 10px;
+  }
+
+  .hero h1 {
+    font-size: 2.2rem;
+  }
+
+  .section-title {
+    font-size: 2rem;
+  }
+
+  .card-considera {
+    min-width: 260px;
+  }
+}
