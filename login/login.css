@@ -144,6 +144,19 @@ nav ul li a:hover::after { width: 100%; }
 }
 .field input:valid:not(:placeholder-shown) ~ .tick { opacity: 1; }
 
+.field .eye-toggle {
+  position: absolute;
+  right: 10px; top: 50%;
+  transform: translateY(-50%);
+  width: 19px; height: 19px;
+  stroke: #6b7280; fill: none; stroke-width: 1.8;
+  cursor: pointer;
+  transition: stroke .15s;
+}
+.field .eye-toggle:hover { stroke: #374151; }
+.field .eye-toggle.hidden-state path:first-child { display: none; }
+.field .eye-toggle.hidden-state circle { display: none; }
+
 .remember-row {
   display: flex;
   align-items: center;
@@ -179,6 +192,19 @@ nav ul li a:hover::after { width: 100%; }
   border-bottom: 2px solid #fff;
   transform: rotate(-45deg);
 }
+
+.forgot-row {
+  margin: -12px 0 22px;
+  text-align: right;
+}
+.forgot-link {
+  font-size: .75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-decoration: none;
+  transition: color .15s;
+}
+.forgot-link:hover { color: #e8334a; text-decoration: underline; }
 
 .btn-login {
   width: 100%;

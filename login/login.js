@@ -2,7 +2,25 @@ const USERS = {
     'admin':   { password: '1234', role: 'Administrador' },
     'usuario': { password: '1234', role: 'Ingreso de usuario' }
   };
- 
+
+  // ── Mostrar / ocultar contraseña ──
+  function togglePassword() {
+    const input = document.getElementById('PASSWORD');
+    const icon  = document.getElementById('eyeToggle');
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+    icon.classList.toggle('hidden-state', isHidden);
+  }
+
+  // ── Recordarme: precargar usuario guardado ──
+  (function cargarUsuarioRecordado() {
+    const recordado = localStorage.getItem('usuarioRecordado');
+    if (recordado) {
+      document.getElementById('USERNAME').value = recordado;
+      document.getElementById('cb').classList.add('on');
+    }
+  })();
+
   function doLogin() {
     const u   = document.getElementById('USERNAME').value.trim().toLowerCase();
     const p   = document.getElementById('PASSWORD').value;
@@ -17,6 +35,14 @@ const USERS = {
       // ── Guardar sesión ──
       localStorage.setItem('rol', USERS[u].role);
       localStorage.setItem('username', u);
+
+      // ── Recordarme ──
+      const recordar = document.getElementById('cb').classList.contains('on');
+      if (recordar) {
+        localStorage.setItem('usuarioRecordado', u);
+      } else {
+        localStorage.removeItem('usuarioRecordado');
+      }
 
       setTimeout(() => { window.location.href = "/inicio.html/inicio.html"; });
     } else {

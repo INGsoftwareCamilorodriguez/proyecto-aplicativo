@@ -1,12 +1,12 @@
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --sidebar-bg: #0f1117;
-      --main-bg: #f5f6fa;
+      --sidebar-bg: #ffffff;
+      --main-bg: #F5F3FF;
       --white: #ffffff;
-      --purple: #a855f7;
-      --purple-light: #f3e8ff;
-      --text: #111827;
+      --purple: #7C3AED;
+      --purple-light: #EDE9FE;
+      --text: #1F2937;
       --muted: #6b7280;
       --border: #e5e7eb;
       --green: #22c55e;
@@ -19,40 +19,41 @@
     /* ══ SIDEBAR ══ */
     .sidebar {
       width: 260px; background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
       display: flex; flex-direction: column; flex-shrink: 0;
     }
     .user-block {
       display: flex; align-items: center; gap: 10px;
       padding: 20px 18px 16px;
-      border-bottom: 1px solid rgba(255,255,255,.07); cursor: pointer;
+      border-bottom: 1px solid rgba(31,41,55,.08); cursor: pointer;
     }
     .avatar {
       width: 38px; height: 38px; border-radius: 50%;
-      background: #374151;
+      background: #EDE9FE;
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0; position: relative;
     }
-    .avatar svg { width: 20px; height: 20px; stroke: #9ca3af; fill: none; stroke-width: 1.8; }
+    .avatar svg { width: 20px; height: 20px; stroke: #7C3AED; fill: none; stroke-width: 1.8; }
     .notif-dot {
       position: absolute; top: 1px; right: 1px;
       width: 8px; height: 8px;
       background: var(--purple); border-radius: 50%;
       border: 2px solid var(--sidebar-bg);
     }
-    .user-name { font-size: .85rem; font-weight: 600; color: #f9fafb; }
+    .user-name { font-size: .85rem; font-weight: 600; color: #1F2937; }
     .user-handle { font-size: .72rem; color: #6b7280; }
     .chevron { width: 14px; height: 14px; stroke: #6b7280; fill: none; stroke-width: 2; }
 
     .nav { flex: 1; padding: 12px 0; }
     .nav-item {
       display: flex; align-items: center; gap: 12px;
-      padding: 11px 18px; font-size: .85rem; color: #9ca3af;
+      padding: 11px 18px; font-size: .85rem; color: #6b7280;
       cursor: pointer; border-left: 3px solid transparent;
       transition: all .18s; text-decoration: none;
     }
-    .nav-item:hover { color: #f9fafb; background: rgba(255,255,255,.04); }
+    .nav-item:hover { color: #1F2937; background: rgba(124,58,237,.06); }
     .nav-item.active {
-      background: rgba(255,255,255,.07); color: #f9fafb;
+      background: #EDE9FE; color: #1F2937;
       border-left-color: var(--purple); font-weight: 600;
     }
     .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; flex-shrink: 0; }
@@ -60,7 +61,7 @@
 
     .nav-bottom {
       padding: 12px 18px 20px;
-      border-top: 1px solid rgba(255,255,255,.07);
+      border-top: 1px solid rgba(31,41,55,.08);
       display: flex; flex-direction: column; gap: 4px;
     }
     .nav-bottom a {
@@ -68,7 +69,7 @@
       font-size: .8rem; color: #6b7280;
       text-decoration: none; padding: 7px 0; transition: color .15s;
     }
-    .nav-bottom a:hover { color: #9ca3af; }
+    .nav-bottom a:hover { color: #1F2937; }
     .nav-bottom a svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; }
 
     /* ══ MAIN ══ */
