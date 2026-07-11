@@ -1,10 +1,10 @@
 // ── Data ──
   let usuarios = [
     { id:1, nombre:'Gabriel Márquez', rol:'Administrador', email:'gabriel@example.com', estado:'Activo' },
-    { id:2, nombre:'Melissa Silva',   rol:'Ventas',        email:'melissa@example.com', estado:'Activo' },
-    { id:3, nombre:'Andrés López',    rol:'Ventas',        email:'andres@example.com',  estado:'Activo' },
-    { id:4, nombre:'Laura Garcia',    rol:'Auditor',       email:'laura@example.com',   estado:'Activo' },
-    { id:5, nombre:'Samuel Ruiz',     rol:'Ventas',        email:'samuel@example.com',  estado:'Inactivo' },
+    { id:2, nombre:'Melissa Silva',   rol:'Empleado',       email:'melissa@example.com', estado:'Activo' },
+    { id:3, nombre:'Andrés López',    rol:'Empleado',       email:'andres@example.com',  estado:'Activo' },
+    { id:4, nombre:'Laura Garcia',    rol:'Auditor',        email:'laura@example.com',   estado:'Activo' },
+    { id:5, nombre:'Samuel Ruiz',     rol:'Empleado',       email:'samuel@example.com',  estado:'Inactivo' },
   ];
 
   let editingId = null;
@@ -123,7 +123,7 @@
     } else {
       document.getElementById('fNombre').value = '';
       document.getElementById('fEmail').value  = '';
-      document.getElementById('fRol').value    = 'Ventas';
+      document.getElementById('fRol').value    = 'Empleado';
       document.getElementById('fEstado').value = 'Activo';
     }
     document.getElementById('modalOverlay').classList.add('show');
