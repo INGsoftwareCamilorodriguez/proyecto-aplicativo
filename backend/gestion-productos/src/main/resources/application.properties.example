@@ -1,0 +1,7 @@
+spring.datasource.url=jdbc:mysql://TU_HOST.aivencloud.com:TU_PUERTO/defaultdb?ssl-mode=REQUIRED
+spring.datasource.username=TU_USUARIO
+spring.datasource.password=TU_PASSWORD
+
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
