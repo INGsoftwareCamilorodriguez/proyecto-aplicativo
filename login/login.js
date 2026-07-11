@@ -1,7 +1,14 @@
 const USERS = {
-    'admin':   { password: '1234', role: 'Administrador' },
-    'usuario': { password: '1234', role: 'Ingreso de usuario' }
+    'admin':    { password: '1234', role: 'Administrador' },
+    'usuario':  { password: '1234', role: 'Ingreso de usuario' },
+    'empleado': { password: 'caja2024', role: 'Empleado' }
   };
+
+  // ── A dónde va cada rol después de iniciar sesión ──
+  const REDIRECT_POR_ROL = {
+    'Empleado': '/escanear_codigo_barras/escanear_codigo.html'
+  };
+  const REDIRECT_DEFAULT = '/inicio.html/inicio.html';
 
   // ── Mostrar / ocultar contraseña ──
   function togglePassword() {
@@ -26,14 +33,15 @@ const USERS = {
     const p   = document.getElementById('PASSWORD').value;
     const btn = document.getElementById('btnLogin');
     const err = document.getElementById('errMsg');
- 
+
     if (USERS[u] && USERS[u].password === p) {
       err.style.display = 'none';
       btn.textContent = '✓ Bienvenido';
       btn.classList.add('ok');
 
       // ── Guardar sesión ──
-      localStorage.setItem('rol', USERS[u].role);
+      const rol = USERS[u].role;
+      localStorage.setItem('rol', rol);
       localStorage.setItem('username', u);
 
       // ── Recordarme ──
@@ -44,12 +52,14 @@ const USERS = {
         localStorage.removeItem('usuarioRecordado');
       }
 
-      setTimeout(() => { window.location.href = "/inicio.html/inicio.html"; });
+      // ── Redirigir según el rol ──
+      const destino = REDIRECT_POR_ROL[rol] || REDIRECT_DEFAULT;
+      setTimeout(() => { window.location.href = destino; });
     } else {
       err.style.display = 'block';
       btn.classList.add('shake');
       setTimeout(() => btn.classList.remove('shake'));
     }
   }
- 
+
   document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });

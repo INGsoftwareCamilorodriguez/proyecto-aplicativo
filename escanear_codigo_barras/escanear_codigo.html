@@ -1,194 +1,709 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CAPCOB - Escanear código de barras</title>
-  <link href="escanear_codigo.css" rel="stylesheet"/>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CAPCOB - Punto de escaneo</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --purple: #7C3AED;
+    --purple-dark: #5B21B6;
+    --purple-light: #EDE9FE;
+    --teal: #06b6d4;
+    --teal-light: #e0f7fa;
+    --green: #22c55e;
+    --green-light: #dcfce7;
+    --red: #f43f5e;
+    --red-light: #ffe4e8;
+    --amber: #f59e0b;
+    --amber-light: #fef3c7;
+    --bg: #F5F3FF;
+    --card: #ffffff;
+    --text: #1F2937;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'Segoe UI', 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+  }
+
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 26px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .topbar-left .brand { font-weight: 800; font-size: 1.05rem; }
+  .topbar-left .brand span { color: var(--purple); }
+  .station-tag {
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--purple);
+    background: var(--purple-light);
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: .03em;
+  }
+  .topbar-right { display: flex; align-items: center; gap: 18px; font-size: .82rem; color: var(--muted); }
+  .clock { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--text); }
+  .cashier-chip { display: flex; align-items: center; gap: 8px; }
+  .cashier-avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--purple-light); color: var(--purple);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: .78rem;
+  }
+  .volver-link {
+    font-size: .8rem;
+    font-weight: 600;
+    color: var(--purple);
+    text-decoration: none;
+  }
+  .volver-link:hover { text-decoration: underline; }
+
+  /* ── MAIN SPLIT ── */
+  .main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 18px;
+    padding: 18px 22px;
+    min-height: 0;
+  }
+
+  /* ── LEFT: SCAN PANEL ── */
+  .scan-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 0;
+  }
+
+  .scan-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px 24px;
+    flex-shrink: 0;
+    position: relative;
+    transition: box-shadow .15s;
+  }
+  .scan-box.flash-ok { box-shadow: 0 0 0 3px var(--green); }
+  .scan-box.flash-err { box-shadow: 0 0 0 3px var(--red); }
+
+  .scan-label {
+    font-size: .75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--muted);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .scan-label .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 3px var(--green-light);
+  }
+
+  .scan-input-row { display: flex; gap: 10px; }
+  #codigoInput {
+    flex: 1;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 16px;
+    font-size: 1.3rem;
+    font-family: 'Courier New', monospace;
+    letter-spacing: .1em;
+    outline: none;
+    transition: border-color .15s;
+    background: #fafafa;
+  }
+  #codigoInput:focus { border-color: var(--purple); background: #fff; }
+
+  .manual-btn {
+    border: none;
+    background: var(--purple);
+    color: #fff;
+    border-radius: 10px;
+    padding: 0 22px;
+    font-weight: 700;
+    font-size: .85rem;
+    cursor: pointer;
+    transition: filter .15s;
+  }
+  .manual-btn:hover { filter: brightness(1.08); }
+
+  .scan-hint { margin-top: 10px; font-size: .76rem; color: var(--muted); }
+
+  /* Producto encontrado */
+  .product-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 22px;
+    flex-shrink: 0;
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    min-height: 108px;
+  }
+  .product-card.empty {
+    justify-content: center;
+    color: var(--muted);
+    font-size: .88rem;
+    text-align: center;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .product-thumb {
+    width: 68px; height: 68px;
+    border-radius: 12px;
+    background: var(--purple-light);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--purple);
+  }
+  .product-info { flex: 1; min-width: 0; }
+  .product-name { font-size: 1.02rem; font-weight: 700; margin-bottom: 3px; }
+  .product-meta { font-size: .78rem; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; }
+  .stock-badge {
+    font-size: .7rem; font-weight: 700; padding: 2px 9px; border-radius: 20px;
+  }
+  .stock-ok { background: var(--green-light); color: #16a34a; }
+  .stock-low { background: var(--amber-light); color: #b45309; }
+  .stock-out { background: var(--red-light); color: #be123c; }
+
+  .product-price { font-size: 1.35rem; font-weight: 800; color: var(--purple-dark); flex-shrink: 0; }
+
+  .qty-stepper {
+    display: flex; align-items: center; gap: 8px;
+    flex-shrink: 0;
+  }
+  .qty-stepper button {
+    width: 30px; height: 30px; border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #fafafa;
+    font-size: 1rem; font-weight: 700;
+    cursor: pointer;
+    color: var(--text);
+  }
+  .qty-stepper button:hover { background: var(--purple-light); border-color: var(--purple); }
+  .qty-stepper .qty-val { min-width: 22px; text-align: center; font-weight: 700; }
+
+  /* Accesos rápidos */
+  .quick-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    overflow-y: auto;
+    padding-right: 2px;
+  }
+  .quick-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s, transform .1s;
+  }
+  .quick-item:hover { border-color: var(--purple); transform: translateY(-1px); }
+  .quick-item .qi-icon {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: var(--teal-light); color: var(--teal);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 6px; font-weight: 800; font-size: .9rem;
+  }
+  .quick-item .qi-name { font-size: .72rem; font-weight: 600; line-height: 1.25; }
+  .quick-item .qi-price { font-size: .72rem; color: var(--muted); margin-top: 2px; }
+
+  /* ── RIGHT: TICKET ── */
+  .ticket-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .ticket-header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .ticket-header h2 { font-size: 1rem; font-weight: 800; }
+  .ticket-count {
+    font-size: .74rem; font-weight: 700;
+    background: var(--purple-light); color: var(--purple);
+    padding: 3px 10px; border-radius: 20px;
+  }
+
+  .ticket-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px 10px;
+  }
+  .ticket-empty {
+    height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--muted); font-size: .82rem; gap: 8px; text-align: center; padding: 20px;
+  }
+  .ticket-empty .big-icon { font-size: 2.2rem; opacity: .35; }
+
+  .ticket-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 8px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  .ticket-row:last-child { border-bottom: none; }
+  .tr-name { flex: 1; min-width: 0; }
+  .tr-name .tn { font-size: .85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tr-name .tp { font-size: .72rem; color: var(--muted); }
+  .tr-qty { font-size: .78rem; color: var(--muted); white-space: nowrap; }
+  .tr-sub { font-size: .88rem; font-weight: 700; width: 76px; text-align: right; }
+  .tr-del {
+    width: 26px; height: 26px; border-radius: 7px;
+    border: none; background: transparent; color: var(--muted);
+    cursor: pointer; font-size: 1rem; flex-shrink: 0;
+  }
+  .tr-del:hover { background: var(--red-light); color: var(--red); }
+
+  .ticket-footer {
+    border-top: 1px solid var(--border);
+    padding: 16px 20px 20px;
+    flex-shrink: 0;
+  }
+  .tf-row {
+    display: flex; justify-content: space-between;
+    font-size: .84rem; color: var(--muted); margin-bottom: 6px;
+  }
+  .tf-total {
+    display: flex; justify-content: space-between;
+    align-items: baseline;
+    margin: 10px 0 16px;
+  }
+  .tf-total .label { font-size: .88rem; font-weight: 700; }
+  .tf-total .value { font-size: 1.6rem; font-weight: 800; color: var(--purple-dark); }
+
+  .tf-actions { display: flex; gap: 10px; }
+  .btn {
+    flex: 1;
+    border: none;
+    border-radius: 10px;
+    padding: 13px 10px;
+    font-weight: 700;
+    font-size: .86rem;
+    cursor: pointer;
+    transition: filter .15s, transform .1s;
+  }
+  .btn:hover { filter: brightness(1.07); }
+  .btn:active { transform: translateY(1px); }
+  .btn-cancel { background: #f3f4f6; color: var(--text); }
+  .btn-confirm { background: var(--purple); color: #fff; flex: 2; }
+  .btn-confirm:disabled { background: #d1d5db; cursor: not-allowed; }
+
+  /* Toast confirmación de venta */
+  .toast {
+    position: fixed;
+    bottom: 26px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text);
+    color: #fff;
+    padding: 14px 22px;
+    border-radius: 12px;
+    font-size: .86rem;
+    font-weight: 600;
+    display: flex; align-items: center; gap: 10px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s, transform .25s;
+    z-index: 50;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+  .toast .tick {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--green);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .7rem; flex-shrink: 0;
+  }
+
+  ::-webkit-scrollbar { width: 7px; }
+  ::-webkit-scrollbar-thumb { background: #d8d3f3; border-radius: 4px; }
+</style>
 </head>
 <body>
-<div class="layout">
-  <aside class="sidebar">
+<div class="app">
 
-    <!-- User -->
-
-    <div class="user-block">
-
-      <div class="avatar">
-
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-
-        <div class="notif-dot"></div>
-
-      </div>
-
-      <div class="user-info">
-
-        <div class="user-name">Usuario 1</div>
-
-        <div class="user-handle">@usuarioprueba</div>
-
-      </div>
-
-      <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="brand">CAP<span>COB</span></div>
+      <div class="station-tag">CAJA 01</div>
     </div>
-
-
-
-    <!-- Nav -->
-
-    <nav class="nav">
-
-      <a class="nav-item" href="/inicio.html/inicio.html">
-
-        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-
-        Inicio
-
-      </a>
-
-      <a class="nav-item" href="/producto ventas/productos_venta.html">
-
-        <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-
-        Producto de ventas (graficos)
-
-      </a>
-
-      <a class="nav-item" href="/registro_venta/registro_ventas.html">
-
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-
-        Registro de ventas Anuales
-
-      </a>
-
-      <a class="nav-item" href="/registar_producto/registrar_producto.html">
-
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-
-        Registrar producto
-
-      </a>
-
-      <a class="nav-item active" href="/escanear_codigo_barras/escanear_codigo.html">
-
-        <svg viewBox="0 0 24 24"><rect x="2" y="4" width="3" height="16"/><rect x="7" y="4" width="1.5" height="16"/><rect x="10" y="4" width="3" height="16"/><rect x="15" y="4" width="1.5" height="16"/><rect x="19" y="4" width="3" height="16"/></svg>
-
-        Escanear código de barras
-
-      </a>
-
-      <a class="nav-item" href="/ver_inventario/ver_inventario.html">
-
-        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-
-        Ver inventario
-
-      </a>
-
-      <a class="nav-item" href="/ver_reportes/ver_reportes.html">
-
-        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-
-        Ver reportes
-
-      </a>
-
-      <a class="nav-item" href="/gestion_usuario/getion_usuario.html">
-
-        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-
-        Usuario
-
-      </a>
-
-    </nav>
-
-
-
-    <!-- Bottom links -->
-
-    <div class="nav-bottom">
-
-      <a href="CONFIGURACION.html">
-
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-
-        Configuracion
-
-      </a>
-
-      <a href="/login/login.html" onclick="localStorage.clear()">
-
-        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-
-        Cerrar Sesion
-
-      </a>
-
-    </div>
-
-  </aside>
-
-
-  <!-- ══ MAIN ══ -->
-  <main class="main">
-
-    <!-- Header -->
-    <div class="header-row">
-      <div>
-        <div class="page-title">Escanear código de barras</div>
-        <div class="page-sub">Busca productos escaneando o digitando su código.</div>
+    <div class="topbar-right">
+      <a href="/inicio.html/inicio.html" id="volverPanel" class="volver-link" style="display:none;">← Volver al panel</a>
+      <div class="clock" id="reloj">--:--:--</div>
+      <div class="cashier-chip">
+        <div class="cashier-avatar" id="cajeroInicial">U</div>
+        <span id="cajeroNombre">Usuario 1</span>
       </div>
-      <div class="logo-badge">
-        <div class="licon">
-          <img src="/imagen/LOGO_CAPCOB_PROYECTOAP.png" alt="CAPCOB logo" style="width:38px;height:auto;"/>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- IZQUIERDA: escaneo -->
+    <div class="scan-panel">
+
+      <div class="scan-box" id="scanBox">
+        <div class="scan-label"><span class="dot"></span> Lector activo</div>
+        <div class="scan-input-row">
+          <input type="text" id="codigoInput" placeholder="Escanea o escribe el código..." autofocus autocomplete="off"/>
+          <button class="manual-btn" onclick="procesarCodigo()">Agregar</button>
         </div>
-        CAPCOB
+        <div class="scan-hint">El campo se mantiene enfocado — solo apunta el lector y dispara. Enter también agrega.</div>
+      </div>
+
+      <div class="product-card empty" id="productCard">
+        <div>Aún no has escaneado ningún producto</div>
+        <div style="font-size:.76rem;">El último producto leído aparecerá aquí</div>
+      </div>
+
+      <div class="quick-grid" id="quickGrid"></div>
+    </div>
+
+    <!-- DERECHA: ticket -->
+    <div class="ticket-panel">
+      <div class="ticket-header">
+        <h2>Venta en curso</h2>
+        <div class="ticket-count" id="ticketCount">0 items</div>
+      </div>
+
+      <div class="ticket-list" id="ticketList">
+        <div class="ticket-empty">
+          <div class="big-icon">🧾</div>
+          <div>El ticket está vacío.<br/>Escanea un producto para comenzar.</div>
+        </div>
+      </div>
+
+      <div class="ticket-footer">
+        <div class="tf-row"><span>Subtotal</span><span id="subtotalVal">$0</span></div>
+        <div class="tf-row"><span>IVA (19%)</span><span id="ivaVal">$0</span></div>
+        <div class="tf-total">
+          <span class="label">Total a pagar</span>
+          <span class="value" id="totalVal">$0</span>
+        </div>
+        <div class="tf-actions">
+          <button class="btn btn-cancel" onclick="cancelarVenta()">Cancelar</button>
+          <button class="btn btn-confirm" id="btnCobrar" onclick="cobrarVenta()" disabled>Cobrar venta</button>
+        </div>
       </div>
     </div>
 
-    <div class="card" style="max-width:520px;">
-      <div class="card-title">Escanear producto</div>
-      <p style="font-size:.8rem;color:var(--muted);margin-bottom:16px;">Apunta el lector de código de barras a este campo o ingresa el código manualmente.</p>
-      <div style="display:flex;gap:10px;">
-        <input type="text" id="codigoInput" placeholder="Código de barras" autofocus style="flex:1;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.9rem;font-family:'Courier New',monospace;letter-spacing:.08em;outline:none;"/>
-        <button class="action-btn btn-teal" style="width:auto;padding:10px 20px;" onclick="buscarProducto()">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          Buscar
-        </button>
-      </div>
-      <div id="resultado" style="margin-top:16px;font-size:.82rem;color:var(--muted);"></div>
-    </div>
-    <script>
-      function buscarProducto() {
-        const val = document.getElementById('codigoInput').value.trim();
-        const out = document.getElementById('resultado');
-        out.textContent = val ? `Buscando producto con código ${val}...` : 'Ingresa un código para buscar.';
-      }
-    </script>
-
-  </main>
+  </div>
 </div>
+
+<div class="toast" id="toast"><span class="tick">✓</span><span id="toastMsg">Venta registrada</span></div>
+
 <script>
-  (function() {
+  /* ── Datos de ejemplo — reemplaza esto por tu consulta real al backend/BD ── */
+  const inventario = [
+    { codigo: "7702001001621", nombre: "Coca-Cola 400ml", precio: 2900, stock: 42, cat: "Bebidas" },
+    { codigo: "7702001045502", nombre: "Arroz Diana 500g", precio: 3200, stock: 15, cat: "Abarrotes" },
+    { codigo: "7701234567890", nombre: "Leche Alquería 1L", precio: 4500, stock: 6, cat: "Lácteos" },
+    { codigo: "7709876543210", nombre: "Pan Bimbo Tajado", precio: 6800, stock: 0, cat: "Panadería" },
+    { codigo: "7702090001234", nombre: "Café Sello Rojo 250g", precio: 8900, stock: 23, cat: "Abarrotes" },
+    { codigo: "7701112223330", nombre: "Papas Margarita 150g", precio: 3900, stock: 31, cat: "Snacks" },
+  ];
+
+  let ticket = []; // { codigo, nombre, precio, cantidad }
+  let ultimaCantidad = 1;
+
+  const codigoInput = document.getElementById('codigoInput');
+  const productCard = document.getElementById('productCard');
+  const ticketList = document.getElementById('ticketList');
+  const ticketCount = document.getElementById('ticketCount');
+  const subtotalVal = document.getElementById('subtotalVal');
+  const ivaVal = document.getElementById('ivaVal');
+  const totalVal = document.getElementById('totalVal');
+  const btnCobrar = document.getElementById('btnCobrar');
+  const scanBox = document.getElementById('scanBox');
+
+  function money(n) {
+    return '$' + Math.round(n).toLocaleString('es-CO');
+  }
+
+  function buscarProducto(codigo) {
+    return inventario.find(p => p.codigo === codigo);
+  }
+
+  function procesarCodigo() {
+    const codigo = codigoInput.value.trim();
+    codigoInput.value = '';
+    if (!codigo) return;
+
+    const producto = buscarProducto(codigo);
+    if (!producto) {
+      mostrarNoEncontrado(codigo);
+      flashScanBox(false);
+      return;
+    }
+    if (producto.stock <= 0) {
+      mostrarSinStock(producto);
+      flashScanBox(false);
+      return;
+    }
+    agregarAlTicket(producto, 1);
+    mostrarProducto(producto);
+    flashScanBox(true);
+  }
+
+  function flashScanBox(ok) {
+    scanBox.classList.remove('flash-ok', 'flash-err');
+    void scanBox.offsetWidth; // reinicia la animación
+    scanBox.classList.add(ok ? 'flash-ok' : 'flash-err');
+    setTimeout(() => scanBox.classList.remove('flash-ok', 'flash-err'), 500);
+  }
+
+  function stockBadge(stock) {
+    if (stock <= 0) return '<span class="stock-badge stock-out">Sin stock</span>';
+    if (stock <= 8) return `<span class="stock-badge stock-low">Quedan ${stock}</span>`;
+    return `<span class="stock-badge stock-ok">Disponible</span>`;
+  }
+
+  function mostrarProducto(producto) {
+    const enTicket = ticket.find(i => i.codigo === producto.codigo);
+    const cantidad = enTicket ? enTicket.cantidad : 1;
+    productCard.classList.remove('empty');
+    productCard.innerHTML = `
+      <div class="product-thumb">${producto.nombre.charAt(0)}</div>
+      <div class="product-info">
+        <div class="product-name">${producto.nombre}</div>
+        <div class="product-meta">
+          <span>${producto.cat}</span>
+          <span>Cód. ${producto.codigo}</span>
+          ${stockBadge(producto.stock)}
+        </div>
+      </div>
+      <div class="qty-stepper">
+        <button onclick="cambiarCantidad('${producto.codigo}', -1)">−</button>
+        <span class="qty-val">${cantidad}</span>
+        <button onclick="cambiarCantidad('${producto.codigo}', 1)">+</button>
+      </div>
+      <div class="product-price">${money(producto.precio)}</div>
+    `;
+  }
+
+  function mostrarNoEncontrado(codigo) {
+    productCard.classList.remove('empty');
+    productCard.innerHTML = `
+      <div class="product-thumb" style="background:var(--red-light);color:var(--red);">!</div>
+      <div class="product-info">
+        <div class="product-name">Código no encontrado</div>
+        <div class="product-meta">
+          <span>“${codigo}” no está registrado en el inventario</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function mostrarSinStock(producto) {
+    productCard.classList.remove('empty');
+    productCard.innerHTML = `
+      <div class="product-thumb" style="background:var(--red-light);color:var(--red);">${producto.nombre.charAt(0)}</div>
+      <div class="product-info">
+        <div class="product-name">${producto.nombre}</div>
+        <div class="product-meta">
+          <span>Sin unidades disponibles en este momento</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function agregarAlTicket(producto, cantidad) {
+    const existente = ticket.find(i => i.codigo === producto.codigo);
+    if (existente) {
+      existente.cantidad += cantidad;
+    } else {
+      ticket.push({ codigo: producto.codigo, nombre: producto.nombre, precio: producto.precio, cantidad });
+    }
+    renderTicket();
+  }
+
+  function cambiarCantidad(codigo, delta) {
+    const item = ticket.find(i => i.codigo === codigo);
+    if (!item) return;
+    item.cantidad += delta;
+    if (item.cantidad <= 0) {
+      ticket = ticket.filter(i => i.codigo !== codigo);
+    }
+    renderTicket();
+    const producto = buscarProducto(codigo);
+    if (producto && ticket.find(i => i.codigo === codigo)) mostrarProducto(producto);
+    codigoInput.focus();
+  }
+
+  function eliminarDelTicket(codigo) {
+    ticket = ticket.filter(i => i.codigo !== codigo);
+    renderTicket();
+    codigoInput.focus();
+  }
+
+  function renderTicket() {
+    if (ticket.length === 0) {
+      ticketList.innerHTML = `
+        <div class="ticket-empty">
+          <div class="big-icon">🧾</div>
+          <div>El ticket está vacío.<br/>Escanea un producto para comenzar.</div>
+        </div>`;
+    } else {
+      ticketList.innerHTML = ticket.map(item => `
+        <div class="ticket-row">
+          <div class="tr-name">
+            <div class="tn">${item.nombre}</div>
+            <div class="tp">${money(item.precio)} c/u</div>
+          </div>
+          <div class="tr-qty">x${item.cantidad}</div>
+          <div class="tr-sub">${money(item.precio * item.cantidad)}</div>
+          <button class="tr-del" onclick="eliminarDelTicket('${item.codigo}')" title="Quitar">✕</button>
+        </div>
+      `).join('');
+    }
+
+    const totalItems = ticket.reduce((a, i) => a + i.cantidad, 0);
+    ticketCount.textContent = `${totalItems} item${totalItems === 1 ? '' : 's'}`;
+
+    const subtotal = ticket.reduce((a, i) => a + i.precio * i.cantidad, 0);
+    const iva = subtotal * 0.19;
+    const total = subtotal + iva;
+
+    subtotalVal.textContent = money(subtotal);
+    ivaVal.textContent = money(iva);
+    totalVal.textContent = money(total);
+
+    btnCobrar.disabled = ticket.length === 0;
+  }
+
+  function cancelarVenta() {
+    if (ticket.length === 0) return;
+    if (!confirm('¿Cancelar la venta en curso? Se perderán los productos escaneados.')) return;
+    ticket = [];
+    renderTicket();
+    productCard.classList.add('empty');
+    productCard.innerHTML = `<div>Aún no has escaneado ningún producto</div><div style="font-size:.76rem;">El último producto leído aparecerá aquí</div>`;
+    codigoInput.focus();
+  }
+
+  function cobrarVenta() {
+    if (ticket.length === 0) return;
+    mostrarToast(`Venta registrada — ${totalVal.textContent}`);
+    ticket = [];
+    renderTicket();
+    productCard.classList.add('empty');
+    productCard.innerHTML = `<div>Aún no has escaneado ningún producto</div><div style="font-size:.76rem;">El último producto leído aparecerá aquí</div>`;
+    codigoInput.focus();
+  }
+
+  function mostrarToast(msg) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2600);
+  }
+
+  /* Accesos rápidos (productos frecuentes, sin necesidad de escanear) */
+  function renderQuickGrid() {
+    const grid = document.getElementById('quickGrid');
+    grid.innerHTML = inventario.map(p => `
+      <div class="quick-item" onclick="agregarRapido('${p.codigo}')">
+        <div class="qi-icon">${p.nombre.charAt(0)}</div>
+        <div class="qi-name">${p.nombre}</div>
+        <div class="qi-price">${money(p.precio)}</div>
+      </div>
+    `).join('');
+  }
+
+  function agregarRapido(codigo) {
+    codigoInput.value = codigo;
+    procesarCodigo();
+  }
+
+  /* Enter dispara el agregado — así funciona con cualquier lector físico de código de barras */
+  codigoInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      procesarCodigo();
+    }
+  });
+
+  /* Mantener el foco siempre en el input, como en un punto de venta real */
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('button') && !e.target.closest('.quick-item')) {
+      codigoInput.focus();
+    }
+  });
+  setInterval(() => {
+    if (document.activeElement !== codigoInput) codigoInput.focus();
+  }, 3000);
+
+  /* Reloj */
+  function actualizarReloj() {
+    const now = new Date();
+    document.getElementById('reloj').textContent = now.toLocaleTimeString('es-CO', { hour12: false });
+  }
+  setInterval(actualizarReloj, 1000);
+  actualizarReloj();
+
+  /* ── Sesión y roles ──
+     Si nadie inició sesión, no se puede ver esta pantalla: se manda a login.
+     El rol "Empleado" se queda encerrado aquí (no ve el link de volver al panel);
+     Administrador y Auditor sí pueden volver al dashboard. */
+  (function verificarSesion() {
     const rol = localStorage.getItem('rol');
     const username = localStorage.getItem('username');
-    if (username) {
-      const nameEl = document.querySelector('.user-name');
-      if (nameEl) nameEl.textContent = username;
+
+    if (!rol) {
+      window.location.href = "/login/login.html";
+      return;
     }
-    if (rol !== 'Administrador') {
-      document.querySelectorAll('.nav-item').forEach(item => {
-        if (item.getAttribute('href') && item.getAttribute('href').includes('getion_usuario')) {
-          item.style.display = 'none';
-        }
-      });
+
+    if (username) {
+      document.getElementById('cajeroNombre').textContent = username;
+      document.getElementById('cajeroInicial').textContent = username.charAt(0).toUpperCase();
+    }
+
+    if (rol !== 'Empleado') {
+      document.getElementById('volverPanel').style.display = 'inline';
     }
   })();
-</script>
 
+  renderQuickGrid();
+  codigoInput.focus();
+</script>
 </body>
 </html>
