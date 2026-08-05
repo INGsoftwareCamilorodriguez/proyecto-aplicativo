@@ -1,7 +1,22 @@
+// ══════════════════════════════════════════════════════════════
+// SIDEBAR COMPARTIDO — CAPCOB
+// ══════════════════════════════════════════════════════════════
+// Este archivo es el ÚNICO lugar donde se define el menú lateral.
+// Para agregar, quitar o renombrar una opción del dashboard,
+// modifica el arreglo MENU_ITEMS de abajo — el cambio se refleja
+// automáticamente en TODAS las páginas que usan este script.
+//
+// Cómo se usa en cada página HTML:
+//   1. Deja un <div id="sidebar-root"></div> donde antes estaba
+//      el <aside class="sidebar">...</aside>
+//   2. Agrega <script src="/frontend/assets/js/sidebar.js"></script>
+//      antes de cerrar </body>
+// ══════════════════════════════════════════════════════════════
+
 const MENU_ITEMS = [
   {
     href: "/frontend/paginas/inicio/inicio.html",
-    label: "Puchaina",
+    label: "Inicio",
     icon: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>'
   },
   {
@@ -83,8 +98,4 @@ function renderSidebar() {
     </aside>`;
 }
 
-<<<<<<< HEAD
 document.addEventListener("DOMContentLoaded", renderSidebar);
-=======
-document.addEventListener("DOMContentLoaded", renderSidebar);
->>>>>>> 13a06d92accb020433f2fad068629c31eecf0424
