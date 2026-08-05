@@ -6,9 +6,9 @@ const USERS = {
 
   // ── A dónde va cada rol después de iniciar sesión ──
   const REDIRECT_POR_ROL = {
-    'Empleado': '/escanear_codigo_barras/escanear_codigo.html'
+    'Empleado': '/frontend/paginas/escanear-codigo-barras/escanear-codigo-barras.html'
   };
-  const REDIRECT_DEFAULT = '/inicio.html/inicio.html';
+  const REDIRECT_DEFAULT = '/frontend/paginas/inicio/inicio.html';
 
   // ── Mostrar / ocultar contraseña ──
   function togglePassword() {

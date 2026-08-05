@@ -15,11 +15,11 @@
   const rol = localStorage.getItem('rol');
 
   if (!rol) {
-    window.location.href = "/login/login.html";
+    window.location.href = "/frontend/paginas/login/login.html";
     return;
   }
 
   if (rol === 'Empleado') {
-    window.location.href = "/escanear_codigo_barras/escanear_codigo.html";
+    window.location.href = "/frontend/paginas/escanear-codigo-barras/escanear-codigo-barras.html";
   }
 })();

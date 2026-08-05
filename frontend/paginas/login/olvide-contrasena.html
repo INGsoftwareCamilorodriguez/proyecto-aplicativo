@@ -3,71 +3,63 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CAPCOB - Ingreso de Usuario</title>
-  <link href="/login/login.css" rel="stylesheet"/>
+  <title>CAPCOB - Recuperar contraseña</title>
+  <link href="/frontend/paginas/login/login.css" rel="stylesheet"/>
 </head>
 <body>
-
+ 
 <!-- HEADER -->
 <header>
   <div class="container">
     <div class="header-content">
       <div class="logo">
-        <img src="/imagen/LOGO_CAPCOB_PROYECTOAP.png" height="20"/>
+        <img src="/frontend/assets/imagenes/logo-capcob.png" height="20"/>
         <span>CAPCOP</span>
       </div>
       <nav>
         <ul>
-          <li><a href="/pagina_principal/index.html">Pagina Principal</a></li>
+          <li><a href="/frontend/paginas/pagina-principal/index.html">Pagina Principal</a></li>
           <li><a href="">Atencion al cliente</a></li>
-          <li><a href="/login/login.html">Inicio Sesion</a></li>
+          <li><a href="/frontend/paginas/login/login.html">Inicio Sesion</a></li>
         </ul>
       </nav>
     </div>
   </div>
 </header>
-
+ 
 <!-- MAIN GRID -->
 <div class="main">
-
+ 
   <!-- LEFT: FORM -->
   <div class="left">
     <div class="form-box">
-      <div class="form-title">LOGIN</div>
-
+      <div class="form-title">RECUPERAR CONTRASEÑA</div>
+      <p style="text-align:center;color:#6b7280;font-size:.82rem;margin-bottom:26px;line-height:1.5;">
+        Ingresa tu usuario o correo registrado y te enviaremos las instrucciones para restablecer tu contraseña.
+      </p>
+ 
       <div class="field">
-        <input type="text" id="USERNAME" placeholder="USERNAME" required autocomplete="off"/>
+        <input type="text" id="RECOVERY_INPUT" placeholder="USUARIO O CORREO" required autocomplete="off"/>
         <svg class="tick" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
-
-      <div class="field">
-        <input type="password" id="PASSWORD" placeholder="PASSWORD" required/>
-        <svg class="eye-toggle" id="eyeToggle" viewBox="0 0 24 24" onclick="togglePassword()">
-          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-          <circle cx="12" cy="12" r="3"/>
-        </svg>
+ 
+      <button class="btn-login" id="btnRecovery" onclick="enviarRecuperacion()">Enviar instrucciones</button>
+      <div class="err" id="okMsg" style="display:none;background:#f0fdf4;border-color:#86efac;color:#16a34a;">
+        Si el usuario existe, recibirás un correo con las instrucciones.
       </div>
-
-      <div class="remember-row">
-        <span class="remember-label">Recordarme?</span>
-        <div class="cb-box" id="cb" onclick="this.classList.toggle('on')"></div>
-      </div>
-
-      <div class="forgot-row">
-        <a href="olvide_contraseña.html" class="forgot-link">¿Olvidaste tu contraseña?</a>
-      </div>
-
-      <button class="btn-login" id="btnLogin" onclick="doLogin()">Ingresar</button>
-      <div class="err" id="errMsg">Usuario o contraseña incorrectos.</div>
+ 
+      <p style="text-align:center;margin-top:18px;">
+        <a href="/frontend/paginas/login/login.html" style="font-size:.8rem;color:#6b7280;font-weight:600;text-decoration:none;">← Volver al inicio de sesión</a>
+      </p>
     </div>
   </div>
-
+ 
   <!-- RIGHT: WELCOME -->
   <div class="right">
     <div class="welcome-text">
-      Te damos la bienvenida a CAPCOB, Control y Analisis<br>de Productos por medio de Codigo de Barras..
+      Te ayudamos a recuperar el acceso a tu cuenta CAPCOB de forma rápida y segura.
     </div>
-
+ 
     <div class="bc-card">
       <div class="bc-circle">
         <div class="scan-line"></div>
@@ -105,7 +97,7 @@
     </div>
   </div>
 </div>
-
+ 
 <!-- FOOTER -->
 <footer>
   <div class="container">
@@ -117,9 +109,9 @@
       <div class="footer-section">
         <h3>Enlaces Rápidos</h3>
         <ul>
-          <li><a href="/login/login.html">Inicio Sesion</a></li>
+          <li><a href="/frontend/paginas/login/login.html">Inicio Sesion</a></li>
           <li><a href="">Atencion al cliente</a></li>
-          <li><a href="/pagina_principal/index.html">Pagina Principal</a></li>
+          <li><a href="/frontend/paginas/pagina-principal/index.html">Pagina Principal</a></li>
         </ul>
       </div>
       <div class="footer-section">
@@ -142,7 +134,21 @@
     </div>
   </div>
 </footer>
-
-<script src="/login/login.js"></script>
+ 
+<script>
+  function enviarRecuperacion() {
+    const valor = document.getElementById('RECOVERY_INPUT').value.trim();
+    const okMsg = document.getElementById('okMsg');
+    const btn   = document.getElementById('btnRecovery');
+    if (!valor) return;
+ 
+    // NOTA: esto es solo una simulación de front-end.
+    // Falta conectar con un backend que realmente envíe el correo.
+    btn.textContent = '✓ Enviado';
+    btn.classList.add('ok');
+    okMsg.style.display = 'block';
+  }
+</script>
 </body>
 </html>
+ 

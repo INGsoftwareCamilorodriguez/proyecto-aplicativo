@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CAPCOB - Ver inventario</title>
-  <link href="/ver_inventario/ver_inventario.css" rel="stylesheet"/>
+  <title>CAPCOB - Registrar producto</title>
+  <link href="/frontend/paginas/registrar-producto/registrar-producto.css" rel="stylesheet"/>
 </head>
 <body>
-    <script src="/js/guardian-dashboard.js"></script>
+  <script src="/frontend/assets/js/guardian-dashboard.js"></script>
 <div class="layout">
   <aside class="sidebar">
 
@@ -41,7 +41,7 @@
 
     <nav class="nav">
 
-      <a class="nav-item" href="/inicio.html/inicio.html">
+      <a class="nav-item" href="/frontend/paginas/inicio/inicio.html">
 
         <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
 
@@ -49,7 +49,7 @@
 
       </a>
 
-      <a class="nav-item" href="/producto ventas/productos_venta.html">
+      <a class="nav-item" href="/frontend/paginas/productos-venta/productos-venta.html">
 
         <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
 
@@ -57,7 +57,7 @@
 
       </a>
 
-      <a class="nav-item" href="/registro_venta/registro_ventas.html">
+      <a class="nav-item" href="/frontend/paginas/registro-venta/registro-venta.html">
 
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
 
@@ -65,7 +65,7 @@
 
       </a>
 
-      <a class="nav-item" href="/registar_producto/registrar_producto.html">
+      <a class="nav-item active" href="/frontend/paginas/registrar-producto/registrar-producto.html">
 
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
 
@@ -73,7 +73,7 @@
 
       </a>
 
-      <a class="nav-item" href="/escanear_codigo_barras/escanear_codigo.html">
+      <a class="nav-item" href="/frontend/paginas/escanear-codigo-barras/escanear-codigo-barras.html">
 
         <svg viewBox="0 0 24 24"><rect x="2" y="4" width="3" height="16"/><rect x="7" y="4" width="1.5" height="16"/><rect x="10" y="4" width="3" height="16"/><rect x="15" y="4" width="1.5" height="16"/><rect x="19" y="4" width="3" height="16"/></svg>
 
@@ -81,7 +81,7 @@
 
       </a>
 
-      <a class="nav-item active" href="/ver_inventario/ver_inventario.html">
+      <a class="nav-item" href="/frontend/paginas/ver-inventario/ver-inventario.html">
 
         <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
 
@@ -89,7 +89,7 @@
 
       </a>
 
-      <a class="nav-item" href="/ver_reportes/ver_reportes.html">
+      <a class="nav-item" href="/frontend/paginas/ver-reportes/ver-reportes.html">
 
         <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
 
@@ -97,7 +97,7 @@
 
       </a>
 
-      <a class="nav-item" href="/gestion_usuario/getion_usuario.html">
+      <a class="nav-item" href="/frontend/paginas/gestion-usuario/gestion-usuario.html">
 
         <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
 
@@ -121,7 +121,7 @@
 
       </a>
 
-      <a href="/login/login.html" onclick="localStorage.clear()">
+      <a href="/frontend/paginas/login/login.html" onclick="localStorage.clear()">
 
         <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
 
@@ -140,30 +140,41 @@
     <!-- Header -->
     <div class="header-row">
       <div>
-        <div class="page-title">Ver inventario</div>
-        <div class="page-sub">Consulta el inventario actual de productos.</div>
+        <div class="page-title">Registrar producto</div>
+        <div class="page-sub">Añade nuevos productos al inventario.</div>
       </div>
       <div class="logo-badge">
         <div class="licon">
-          <img src="/imagen/LOGO_CAPCOB_PROYECTOAP.png" alt="CAPCOB logo" style="width:38px;height:auto;"/>
+          <img src="/frontend/assets/imagenes/logo-capcob.png" alt="CAPCOB logo" style="width:38px;height:auto;"/>
         </div>
         CAPCOB
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-title">Inventario actual</div>
-      <table class="act-table">
-        <thead>
-          <tr><th>Producto</th><th>Código</th><th>Cantidad</th><th>Precio</th><th>Estado</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Coca Cola</td><td>770213456</td><td>48</td><td>$3,500</td><td><span class="badge badge-green">Disponible</span></td></tr>
-          <tr><td>Pan Bimbo</td><td>770567880</td><td>5</td><td>$7,200</td><td><span class="badge badge-purple">Bajo stock</span></td></tr>
-          <tr><td>Leche Alpina</td><td>770112233</td><td>30</td><td>$4,100</td><td><span class="badge badge-green">Disponible</span></td></tr>
-        </tbody>
-      </table>
+    <div class="card" style="max-width:640px;">
+      <div class="card-title">Datos del producto</div>
+      <form onsubmit="return false;" style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label style="font-size:.75rem;font-weight:600;color:var(--muted);display:block;margin-bottom:6px;">NOMBRE DEL PRODUCTO</label>
+          <input type="text" placeholder="Ej: Coca Cola 400ml" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.85rem;font-family:'Inter',sans-serif;outline:none;"/>
+        </div>
+        <div style="display:flex;gap:14px;">
+          <div style="flex:1;">
+            <label style="font-size:.75rem;font-weight:600;color:var(--muted);display:block;margin-bottom:6px;">PRECIO</label>
+            <input type="number" placeholder="$0" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.85rem;font-family:'Inter',sans-serif;outline:none;"/>
+          </div>
+          <div style="flex:1;">
+            <label style="font-size:.75rem;font-weight:600;color:var(--muted);display:block;margin-bottom:6px;">CANTIDAD</label>
+            <input type="number" placeholder="0" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.85rem;font-family:'Inter',sans-serif;outline:none;"/>
+          </div>
+        </div>
+        <button class="action-btn btn-purple" style="margin-top:6px;">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Guardar producto
+        </button>
+      </form>
     </div>
+    <p style="font-size:.78rem;color:var(--muted);max-width:640px;">Próximamente: código de barras autogenerado, categorías (unitario / conjunto) y creación de nuevas categorías.</p>
 
   </main>
 </div>
