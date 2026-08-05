@@ -47,7 +47,8 @@ const MENU_ITEMS = [
   {
     href: "/frontend/paginas/gestion-usuario/gestion-usuario.html",
     label: "Usuario",
-    icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'
+    icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+    requiereRol: "Administrador" // solo el Administrador ve esta opción en el menú
   }
 ];
 
@@ -56,8 +57,11 @@ function renderSidebar() {
   if (!root) return; // esta página no usa el sidebar compartido
 
   const currentPath = window.location.pathname;
+  const rol = localStorage.getItem("rol");
 
-  const navHtml = MENU_ITEMS.map(item => {
+  const itemsVisibles = MENU_ITEMS.filter(item => !item.requiereRol || item.requiereRol === rol);
+
+  const navHtml = itemsVisibles.map(item => {
     const isActive = currentPath === item.href;
     return `
       <a class="nav-item${isActive ? " active" : ""}" href="${item.href}">

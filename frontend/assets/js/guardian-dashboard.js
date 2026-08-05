@@ -13,10 +13,12 @@
    - Si el rol NO es "Administrador" y la página actual es la de
      Gestión de Usuarios, lo saca de ahí — esa pantalla es
      exclusiva del Administrador.
-   - Para cualquier rol que no sea Empleado, oculta el link
-     "Escanear código de barras" del sidebar.
-   - Para cualquier rol que no sea Administrador, oculta el link
-     "Usuario" del sidebar.
+
+   Nota: ocultar la opción "Usuario" del menú para quien no sea
+   Administrador ya no se hace aquí — se hace en sidebar.js
+   (propiedad "requiereRol" de cada item), porque ese script arma
+   el menú DESPUÉS de que este se ejecuta, y hacerlo aquí no
+   alcanzaba a ocultar nada.
    ══════════════════════════════════════════════════════════ */
 (function guardianAcceso() {
   const rol = localStorage.getItem('rol');
@@ -36,16 +38,4 @@
     window.location.href = "/frontend/paginas/inicio/inicio.html";
     return;
   }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.nav-item').forEach(item => {
-      const href = (item.getAttribute('href') || '').toLowerCase();
-      if (href.includes('escanear')) {
-        item.style.display = 'none';
-      }
-      if (href.includes('gestion-usuario') && rol !== 'Administrador') {
-        item.style.display = 'none';
-      }
-    });
-  });
 })();
