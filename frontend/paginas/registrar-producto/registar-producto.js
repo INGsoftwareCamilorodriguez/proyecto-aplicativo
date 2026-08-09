@@ -70,6 +70,30 @@ function formatearPrecio(valor) {
   return '$' + Number(valor).toLocaleString('es-CO', { maximumFractionDigits: 2 });
 }
 
+// Convierte texto escrito por el usuario a número, aceptando AMBOS formatos:
+// "12000" -> 12000   |   "12.000" -> 12000   |   "12.000,50" -> 12000.5
+// Si permitirDecimales=true y el último grupo después del punto NO tiene
+// 3 dígitos (ej: "2.5"), se interpreta ese punto como decimal real.
+function parseNumeroCO(valor, permitirDecimales) {
+  if (valor === null || valor === undefined) return NaN;
+  let s = String(valor).trim().replace(/\$/g, '').replace(/\s/g, '');
+  if (s === '') return NaN;
+
+  if (s.includes(',')) {
+    // Punto = miles, coma = decimales -> "12.000,50"
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else if (s.includes('.')) {
+    const partes = s.split('.');
+    const ultimo = partes[partes.length - 1];
+    if (!permitirDecimales || ultimo.length === 3) {
+      // Punto usado como separador de miles -> se quita
+      s = partes.join('');
+    }
+    // si no, se deja el punto como decimal real (ej: "2.5" kg)
+  }
+  return Number(s);
+}
+
 // ── Cargar paquetes ─────────────────────────────────────────
 async function cargarPaquetes() {
   try {
@@ -175,6 +199,8 @@ function renderProductos() {
     btnEliminar.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
     btnEliminar.addEventListener('click', () => eliminarProducto(prod.id));
     rowActions.appendChild(btnEliminar);
+
+    productosBody.appendChild(tr);
   });
 }
 
@@ -202,15 +228,25 @@ optPeso.addEventListener('click', () => seleccionarTipoPrecio('PESO'));
 // ── Guardar producto (crear o editar) ───────────────────────
 document.getElementById('btnGuardar').addEventListener('click', async () => {
   const nombre = document.getElementById('nombre').value.trim();
-  const precio = document.getElementById('precio').value;
-  const cantidad = document.getElementById('cantidad').value;
+  const precioTexto = document.getElementById('precio').value;
+  const cantidadTexto = document.getElementById('cantidad').value;
 
   if (!paqueteSeleccionadoId) {
     mostrarMsg(formMsg, 'Selecciona un paquete primero.', 'error');
     return;
   }
-  if (!nombre || !precio || cantidad === '') {
+  if (!nombre || !precioTexto || cantidadTexto === '') {
     mostrarMsg(formMsg, 'Completa nombre, precio y cantidad.', 'error');
+    return;
+  }
+
+  // El precio en pesos colombianos no maneja decimales -> el punto siempre es de miles.
+  const precio = parseNumeroCO(precioTexto, false);
+  // La cantidad sí puede llevar decimales si el producto se vende por peso (kg).
+  const cantidad = parseNumeroCO(cantidadTexto, tipoPrecioActual === 'PESO');
+
+  if (isNaN(precio) || isNaN(cantidad)) {
+    mostrarMsg(formMsg, 'Revisa el precio y la cantidad, tienen un formato no válido.', 'error');
     return;
   }
 
@@ -218,8 +254,8 @@ document.getElementById('btnGuardar').addEventListener('click', async () => {
     paqueteId: paqueteSeleccionadoId,
     nombre: nombre,
     tipoPrecio: tipoPrecioActual,
-    precio: Number(precio),
-    cantidad: Number(cantidad)
+    precio: precio,
+    cantidad: cantidad
   };
 
   try {

@@ -36,7 +36,7 @@ public class PaqueteService {
     }
 
     public PaqueteResponse crear(PaqueteRequest request) {
-        if (paqueteRepository.findByNombre(request.getNombre()).isPresent()) {
+        if (paqueteRepository.findByNombreAndActivoTrue(request.getNombre()).isPresent()) {
             throw new IllegalArgumentException("Ya existe un paquete con ese nombre");
         }
         Paquete paquete = new Paquete();
