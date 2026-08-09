@@ -11,7 +11,6 @@
 <div class="layout">
   <div id="sidebar-root"></div>
 
-
   <!-- ══ MAIN ══ -->
   <main class="main">
 
@@ -19,7 +18,7 @@
     <div class="header-row">
       <div>
         <div class="page-title">Ver inventario</div>
-        <div class="page-sub">Consulta el inventario actual de productos.</div>
+        <div class="page-sub">Consulta el inventario actual de productos por paquete.</div>
       </div>
       <div class="logo-badge">
         <div class="licon">
@@ -29,24 +28,45 @@
       </div>
     </div>
 
+    <!-- Paquetes -->
     <div class="card">
-      <div class="card-title">Inventario actual</div>
-      <table class="act-table">
+      <div class="card-title">Paquetes</div>
+      <div class="paquetes-row" id="paquetesRow">
+        <span class="empty-hint">Cargando paquetes...</span>
+      </div>
+    </div>
+
+    <!-- Inventario -->
+    <div class="card">
+      <div class="card-title" id="inventarioTitle">Inventario actual</div>
+      <p class="empty-hint" id="sinPaqueteHint">Selecciona un paquete arriba para ver su inventario.</p>
+      <table class="act-table" id="inventarioTable" style="display:none;">
         <thead>
-          <tr><th>Producto</th><th>Código</th><th>Cantidad</th><th>Precio</th><th>Estado</th></tr>
+          <tr><th>Producto</th><th>Tipo</th><th>Cantidad</th><th>Precio</th><th>Estado</th><th></th></tr>
         </thead>
-        <tbody>
-          <tr><td>Coca Cola</td><td>770213456</td><td>48</td><td>$3,500</td><td><span class="badge badge-green">Disponible</span></td></tr>
-          <tr><td>Pan Bimbo</td><td>770567880</td><td>5</td><td>$7,200</td><td><span class="badge badge-purple">Bajo stock</span></td></tr>
-          <tr><td>Leche Alpina</td><td>770112233</td><td>30</td><td>$4,100</td><td><span class="badge badge-green">Disponible</span></td></tr>
-        </tbody>
+        <tbody id="inventarioBody"></tbody>
       </table>
+      <p class="empty-hint" id="sinProductosHint" style="display:none;">Este paquete todavía no tiene productos.</p>
     </div>
 
   </main>
 </div>
-<script src="/frontend/paginas/ver-inventario/ver-inventario.js"></script>
 
-  <script src="/frontend/assets/js/sidebar.js"></script>
+<!-- Modal código de barras -->
+<div class="modal-overlay hidden" id="modalCodigo">
+  <div class="modal-box">
+    <div class="card-title" id="modalCodigoNombre">Código de barras</div>
+    <span class="barcode-tipo" id="modalCodigoTipo"></span>
+    <div class="barcode-visual" id="modalCodigoValor"></div>
+    <div id="modalCodigoPrecio" style="font-size:.82rem;color:var(--muted);"></div>
+    <div class="modal-actions">
+      <button class="modal-confirm" id="btnCerrarModalCodigo">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script src="/frontend/assets/js/api-config.js"></script>
+<script src="/frontend/paginas/ver-inventario/ver-inventario.js"></script>
+<script src="/frontend/assets/js/sidebar.js"></script>
 </body>
 </html>

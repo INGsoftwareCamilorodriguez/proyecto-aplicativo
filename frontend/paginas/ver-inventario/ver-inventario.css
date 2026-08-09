@@ -363,4 +363,174 @@
       cursor: pointer;
       text-decoration: none;
     }
-    .ver-link:hover { text-decoration: underline; }
+    .ver-link:hover { text-decoration: underline; }    .ver-link:hover { text-decoration: underline; }
+/* ══════════════════════════════
+   PAQUETES / PRODUCTOS (CAPCOB)
+══════════════════════════════ */
+.paquetes-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.paquete-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: all .15s;
+}
+.paquete-pill:hover { border-color: var(--purple); }
+.paquete-pill.active {
+  background: var(--purple);
+  border-color: var(--purple);
+  color: #fff;
+}
+.paquete-pill .count {
+  font-size: .7rem;
+  font-weight: 700;
+  background: rgba(0,0,0,.08);
+  padding: 1px 7px;
+  border-radius: 10px;
+}
+.paquete-pill.active .count { background: rgba(255,255,255,.25); }
+.paquete-pill-nueva {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 20px;
+  border: 1.5px dashed var(--purple);
+  background: var(--purple-light);
+  color: var(--purple);
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.paquete-pill-nueva:hover { filter: brightness(0.97); }
+
+.form-label {
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 6px;
+}
+.form-input, .form-select {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: .85rem;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  background: #fff;
+}
+.form-input:focus, .form-select:focus { border-color: var(--purple); }
+
+.tipo-precio-row {
+  display: flex;
+  gap: 10px;
+}
+.tipo-precio-opt {
+  flex: 1;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+  cursor: pointer;
+  transition: all .15s;
+}
+.tipo-precio-opt.active {
+  border-color: var(--purple);
+  background: var(--purple-light);
+  color: var(--purple);
+}
+
+.form-msg { font-size: .8rem; font-weight: 600; min-height: 18px; }
+.form-msg.ok { color: #16a34a; }
+.form-msg.error { color: var(--red); }
+
+.empty-hint {
+  font-size: .82rem;
+  color: var(--muted);
+  text-align: center;
+  padding: 24px 0;
+}
+
+.row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.icon-btn {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.icon-btn svg { width: 14px; height: 14px; stroke: var(--muted); fill: none; stroke-width: 2; }
+.icon-btn:hover { border-color: var(--purple); }
+.icon-btn:hover svg { stroke: var(--purple); }
+.icon-btn.danger:hover { border-color: var(--red); }
+.icon-btn.danger:hover svg { stroke: var(--red); }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(17,24,39,.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50;
+}
+.modal-overlay.hidden { display: none; }
+.modal-box {
+  background: #fff;
+  border-radius: 14px;
+  padding: 22px 24px;
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.modal-box .card-title { margin-bottom: 0; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
+.modal-actions button {
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+.modal-cancel { background: #f3f4f6; color: var(--text); }
+.modal-confirm { background: var(--purple); color: #fff; }
+
+.barcode-visual {
+  font-family: 'Courier New', monospace;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-align: center;
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1.5px dashed var(--border);
+}
+.barcode-tipo {
+  display: inline-block;
+  font-size: .7rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: var(--purple-light);
+  color: var(--purple);
+}

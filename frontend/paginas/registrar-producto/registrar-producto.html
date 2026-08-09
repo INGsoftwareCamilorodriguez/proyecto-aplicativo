@@ -11,7 +11,6 @@
 <div class="layout">
   <div id="sidebar-root"></div>
 
-
   <!-- ══ MAIN ══ -->
   <main class="main">
 
@@ -19,7 +18,7 @@
     <div class="header-row">
       <div>
         <div class="page-title">Registrar producto</div>
-        <div class="page-sub">Añade nuevos productos al inventario.</div>
+        <div class="page-sub">Añade nuevos productos al inventario, organizados por paquetes.</div>
       </div>
       <div class="logo-badge">
         <div class="licon">
@@ -29,35 +28,98 @@
       </div>
     </div>
 
-    <div class="card" style="max-width:640px;">
-      <div class="card-title">Datos del producto</div>
-      <form onsubmit="return false;" style="display:flex;flex-direction:column;gap:14px;">
+    <!-- Paquetes -->
+    <div class="card">
+      <div class="card-title">Paquetes</div>
+      <div class="paquetes-row" id="paquetesRow">
+        <span class="empty-hint">Cargando paquetes...</span>
+      </div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="card" style="max-width:640px;" id="formCard">
+      <div class="card-title" id="formTitle">Datos del producto</div>
+      <p class="empty-hint" id="sinPaqueteHint">Selecciona o crea un paquete arriba para empezar a registrar productos.</p>
+
+      <form id="productoForm" onsubmit="return false;" style="display:none;flex-direction:column;gap:14px;">
+        <input type="hidden" id="productoId" value=""/>
+
         <div>
-          <label style="font-size:.75rem;font-weight:600;color:var(--muted);display:block;margin-bottom:6px;">NOMBRE DEL PRODUCTO</label>
-          <input type="text" placeholder="Ej: Coca Cola 400ml" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.85rem;font-family:'Inter',sans-serif;outline:none;"/>
+          <label class="form-label">NOMBRE DEL PRODUCTO</label>
+          <input type="text" id="nombre" class="form-input" placeholder="Ej: Arroz Diana 500g"/>
         </div>
+
+        <div>
+          <label class="form-label">TIPO DE VENTA</label>
+          <div class="tipo-precio-row">
+            <div class="tipo-precio-opt active" data-tipo="FIJO" id="optFijo">Precio fijo</div>
+            <div class="tipo-precio-opt" data-tipo="PESO" id="optPeso">Por peso (kg)</div>
+          </div>
+        </div>
+
         <div style="display:flex;gap:14px;">
           <div style="flex:1;">
-            <label style="font-size:.75rem;font-weight:600;color:var(--muted);display:block;margin-bottom:6px;">PRECIO</label>
-            <input type="number" placeholder="$0" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.85rem;font-family:'Inter',sans-serif;outline:none;"/>
+            <label class="form-label" id="precioLabel">PRECIO ($)</label>
+            <input type="number" id="precio" class="form-input" placeholder="$0" min="0" step="0.01"/>
           </div>
           <div style="flex:1;">
-            <label style="font-size:.75rem;font-weight:600;color:var(--muted);display:block;margin-bottom:6px;">CANTIDAD</label>
-            <input type="number" placeholder="0" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.85rem;font-family:'Inter',sans-serif;outline:none;"/>
+            <label class="form-label" id="cantidadLabel">CANTIDAD (UNIDADES)</label>
+            <input type="number" id="cantidad" class="form-input" placeholder="0" min="0" step="0.01"/>
           </div>
         </div>
-        <button class="action-btn btn-purple" style="margin-top:6px;">
-          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Guardar producto
-        </button>
+
+        <div style="display:flex;gap:10px;">
+          <button class="action-btn btn-purple" id="btnGuardar" style="flex:1;">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Guardar producto
+          </button>
+          <button class="action-btn btn-light" id="btnCancelarEdicion" style="display:none;flex:0 0 auto;">
+            Cancelar edición
+          </button>
+        </div>
+
+        <div class="form-msg" id="formMsg"></div>
       </form>
     </div>
-    <p style="font-size:.78rem;color:var(--muted);max-width:640px;">Próximamente: código de barras autogenerado, categorías (unitario / conjunto) y creación de nuevas categorías.</p>
+
+    <!-- Productos del paquete seleccionado -->
+    <div class="card" id="productosCard" style="display:none;">
+      <div class="card-title" id="productosTitle">Productos del paquete</div>
+      <table class="act-table">
+        <thead>
+          <tr><th>Producto</th><th>Tipo</th><th>Precio</th><th>Cantidad</th><th>Código</th><th></th></tr>
+        </thead>
+        <tbody id="productosBody"></tbody>
+      </table>
+      <p class="empty-hint" id="sinProductosHint" style="display:none;">Este paquete todavía no tiene productos.</p>
+      <a class="ver-link" id="btnEliminarPaquete" style="color:var(--red);">Eliminar este paquete completo</a>
+    </div>
 
   </main>
 </div>
-<script src="/frontend/paginas/registrar-producto/registar-producto.js"></script>
 
-  <script src="/frontend/assets/js/sidebar.js"></script>
+<!-- Modal nuevo paquete -->
+<div class="modal-overlay hidden" id="modalPaquete">
+  <div class="modal-box">
+    <div class="card-title">Nuevo paquete</div>
+    <div>
+      <label class="form-label">NOMBRE DEL PAQUETE</label>
+      <input type="text" id="nuevoPaqueteNombre" class="form-input" placeholder="Ej: Arroz"/>
+    </div>
+    <div>
+      <label class="form-label">DESCRIPCIÓN (OPCIONAL)</label>
+      <input type="text" id="nuevoPaqueteDescripcion" class="form-input" placeholder="Ej: Todas las marcas de arroz"/>
+    </div>
+    <div class="form-msg" id="modalPaqueteMsg"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" id="btnCancelarPaquete">Cancelar</button>
+      <button class="modal-confirm" id="btnConfirmarPaquete">Crear paquete</button>
+    </div>
+  </div>
+</div>
+
+<script src="/frontend/assets/js/api-config.js"></script>
+<script src="/frontend/paginas/registrar-producto/registar-producto.js"></script>
+<script src="/frontend/assets/js/sidebar.js"></script>
 </body>
 </html>
