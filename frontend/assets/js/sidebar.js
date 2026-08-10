@@ -82,7 +82,7 @@ function renderSidebar() {
           <div class="user-name">Usuario 1</div>
           <div class="user-handle">@usuarioprueba</div>
         </div>
-        <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        <svg class="chevron" viewBox="0 0 24 24"></svg>
       </div>
 
       <!-- Nav -->

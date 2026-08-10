@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "GenerarContrasena",
+            "request": "launch",
+            "mainClass": "com.capcob.gestionproductos.GenerarContrasena",
+            "projectName": "gestion-productos"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-GestionProductosApplication<gestion-productos>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.capcob.gestionproductos.GestionProductosApplication",
+            "projectName": "gestion-productos",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=63492 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=gestion-productos"
+        }
+    ]
+}
