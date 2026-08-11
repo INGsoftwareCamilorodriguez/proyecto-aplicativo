@@ -69,6 +69,17 @@ public class ProductoService {
         return toResponse(productoRepository.save(producto));
     }
 
+    // Usado por la caja: busca un producto activo por su código de barras
+    // escaneado (lector físico, cámara o tecleado manual).
+    public ProductoResponse buscarPorCodigoBarras(String codigoBarras) {
+        Producto producto = productoRepository.findByCodigoBarras(codigoBarras)
+                .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
+        if (!producto.getActivo()) {
+            throw new IllegalArgumentException("El producto no está activo");
+        }
+        return toResponse(producto);
+    }
+
     public void eliminar(Integer id) {
         Producto producto = obtenerActivo(id);
         producto.setActivo(false);

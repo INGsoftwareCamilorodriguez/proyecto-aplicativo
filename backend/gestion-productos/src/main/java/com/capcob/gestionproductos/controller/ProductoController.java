@@ -26,6 +26,17 @@ public class ProductoController {
         return ResponseEntity.ok(productoService.listarTodos());
     }
 
+    // Usado por la pantalla de caja (escanear-codigo-barras) para buscar
+    // el producto justo al escanear el código, con precio y stock actuales.
+    @GetMapping("/codigo/{codigoBarras}")
+    public ResponseEntity<?> buscarPorCodigo(@PathVariable String codigoBarras) {
+        try {
+            return ResponseEntity.ok(productoService.buscarPorCodigoBarras(codigoBarras));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(Map.of("mensaje", e.getMessage()));
+        }
+    }
+
     @PostMapping
     public ResponseEntity<?> crear(@Valid @RequestBody ProductoRequest request) {
         try {

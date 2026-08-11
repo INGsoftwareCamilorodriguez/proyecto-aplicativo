@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>CAPCOB - Punto de escaneo</title>
 <link rel="stylesheet" href="/frontend/paginas/escanear-codigo-barras/escanear-codigo-barras.css">
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
 <div class="app">
@@ -15,7 +16,6 @@
       <div class="station-tag">CAJA 01</div>
     </div>
     <div class="topbar-right">
-      <div class="clock" id="reloj">--:--:--</div>
       <div class="cashier-chip">
         <div class="cashier-avatar" id="cajeroInicial">U</div>
         <span id="cajeroNombre">Usuario 1</span>
@@ -33,8 +33,12 @@
         <div class="scan-input-row">
           <input type="text" id="codigoInput" placeholder="Escanea o escribe el código..." autofocus autocomplete="off"/>
           <button class="manual-btn" onclick="procesarCodigo()">Agregar</button>
+          <button class="camera-btn" id="btnCamara" onclick="toggleCamara()">📷 Cámara</button>
         </div>
-        <div class="scan-hint">El campo se mantiene enfocado — solo apunta el lector y dispara. Enter también agrega.</div>
+        <div class="camera-wrap" id="camaraWrap" style="display:none;">
+          <div id="camaraReader"></div>
+          <div class="camera-hint">Apunta la cámara al código de barras — se agrega automáticamente al detectarlo.</div>
+        </div>
       </div>
 
       <div class="product-card empty" id="productCard">
@@ -42,6 +46,7 @@
         <div style="font-size:.76rem;">El último producto leído aparecerá aquí</div>
       </div>
 
+      <div class="quick-grid-label" id="quickGridLabel"></div>
       <div class="quick-grid" id="quickGrid"></div>
     </div>
 
@@ -55,7 +60,7 @@
       <div class="ticket-list" id="ticketList">
         <div class="ticket-empty">
           <div class="big-icon">🧾</div>
-          <div>El ticket está vacío.<br/>Escanea un producto para comenzar.</div>
+          <div>La factura esta vacío.<br/>Escanea un producto para comenzar.</div>
         </div>
       </div>
 
@@ -78,6 +83,34 @@
 
 <div class="toast" id="toast"><span class="tick">✓</span><span id="toastMsg">Venta registrada</span></div>
 
+<!-- Modal: confirmar cobro -->
+<div class="modal-overlay" id="modalConfirmar">
+  <div class="modal-box">
+    <h3>¿Confirmar la venta?</h3>
+    <p id="confirmarTexto">Vas a cobrar esta venta.</p>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="cerrarModalConfirmar()">Cancelar</button>
+      <button class="btn btn-confirm" onclick="confirmarCobro()">Sí, cobrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: ticket / recibo -->
+<div class="modal-overlay" id="modalTicket">
+  <div class="modal-box modal-box-ticket">
+    <div class="no-print">
+      <h3>✓ Venta registrada</h3>
+      <p>Puedes imprimir el ticket o cerrar.</p>
+    </div>
+    <div id="reciboContenido" class="recibo"></div>
+    <div class="modal-actions no-print">
+      <button class="btn btn-cancel" onclick="cerrarModalTicket()">Cerrar</button>
+      <button class="btn btn-confirm" onclick="window.print()">Imprimir ticket</button>
+    </div>
+  </div>
+</div>
+
+<script src="/frontend/assets/js/api-config.js"></script>
 <script src="/frontend/paginas/escanear-codigo-barras/escanear-codigo-barras.js"></script>
 </body>
 </html>
