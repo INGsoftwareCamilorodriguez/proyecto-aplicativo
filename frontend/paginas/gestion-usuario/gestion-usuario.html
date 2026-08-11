@@ -35,9 +35,9 @@
       </div>
       <select class="select-rol" id="rolFilter" onchange="filtrarUsuarios()">
         <option value="">Todos los roles</option>
-        <option value="Administrador">Administrador</option>
         <option value="Empleado">Empleado</option>
-        <option value="Auditor">Auditor</option>
+        <option value="Administrador" disabled>Administrador (próximamente)</option>
+        <option value="Auditor" disabled>Auditor (próximamente)</option>
       </select>
       <button class="btn-add" onclick="abrirModal()">
         <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -78,15 +78,20 @@
       <input type="text" id="fNombre" placeholder="Ej: Gabriel Márquez"/>
     </div>
     <div class="form-group">
-      <label>Email</label>
+      <label>Correo (usuario de acceso)</label>
       <input type="email" id="fEmail" placeholder="usuario@example.com"/>
+    </div>
+    <div class="form-group">
+      <label>Contraseña</label>
+      <input type="password" id="fPassword" placeholder="Escribe una contraseña"/>
+      <small id="fPasswordHint" style="display:none;color:var(--muted, #888);">Déjalo en blanco para no cambiar la contraseña actual.</small>
     </div>
     <div class="form-group">
       <label>Rol</label>
       <select id="fRol">
-        <option>Administrador</option>
-        <option>Empleado</option>
-        <option>Auditor</option>
+        <option disabled>Administrador (próximamente)</option>
+        <option selected>Empleado</option>
+        <option disabled>Auditor (próximamente)</option>
       </select>
     </div>
     <div class="form-group">
@@ -102,6 +107,7 @@
     </div>
   </div>
 </div>
+<script src="/frontend/assets/js/api-config.js"></script>
 <script src="/frontend/paginas/gestion-usuario/gestion-usuario.js"></script>
   <script src="/frontend/assets/js/sidebar.js"></script>
 </body>
