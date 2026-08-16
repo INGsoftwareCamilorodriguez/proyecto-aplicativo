@@ -58,13 +58,9 @@ function filtrarUsuarios() {
 
 function renderTable() {
   const search = document.getElementById('searchInput').value.toLowerCase();
-  const rol    = document.getElementById('rolFilter').value;
 
-  // Solo existe el rol Empleado por ahora: si filtran por otro rol, la lista queda vacía.
   let filtrados = usuarios.filter(u => {
-    const matchSearch = u.nombre.toLowerCase().includes(search) || u.usuario.toLowerCase().includes(search);
-    const matchRol     = rol === '' || rol === 'Empleado';
-    return matchSearch && matchRol;
+    return u.nombre.toLowerCase().includes(search) || u.usuario.toLowerCase().includes(search);
   });
 
   const total  = filtrados.length;

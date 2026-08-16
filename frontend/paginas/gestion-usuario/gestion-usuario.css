@@ -113,15 +113,6 @@
     }
     .search-box input::placeholder { color: #9ca3af; }
 
-    .select-rol {
-      border: 1.5px solid var(--border);
-      border-radius: 10px; padding: 9px 14px;
-      font-size: .85rem; font-family: 'Inter', sans-serif;
-      color: var(--text); background: var(--white);
-      cursor: pointer; outline: none;
-      font-weight: 600;
-    }
-
     .btn-add {
       display: flex; align-items: center; gap: 8px;
       padding: 10px 20px;
