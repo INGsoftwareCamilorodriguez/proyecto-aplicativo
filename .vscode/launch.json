@@ -4,7 +4,7 @@
             "type": "java",
             "name": "GenerarContrasena",
             "request": "launch",
-            "mainClass": "com.capcob.gestionproductos.GenerarContrasena",
+            "mainClass": "com.capcob.gestionproductos.herramientas.GenerarContrasena",
             "projectName": "gestion-productos"
         },
         {
