@@ -6,6 +6,7 @@
   <title>CAPCOB - Producto de ventas</title>
   <link href="/frontend/paginas/productos-venta/productos-venta.css" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="/frontend/assets/js/api-config.js"></script>
 </head>
 <body>
 <script src="/frontend/assets/js/guardian-dashboard.js"></script>
@@ -37,98 +38,96 @@
         <button class="tab active" onclick="setTab(this,'todas')">TODAS LAS VENTAS</button>
         <button class="tab inactive" onclick="setTab(this,'semana')">ESTA SEMANA</button>
         <button class="tab inactive" onclick="setTab(this,'mes')">ESTE MES</button>
+        <button class="tab inactive tab-anual" onclick="setTab(this,'anual')">REGISTRO ANUAL</button>
       </div>
     </div>
- 
-    <!-- Charts row -->
-    <div class="charts-grid">
-      <!-- Bar chart -->
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-          <span class="section-label">TODAS LAS VENTAS</span>
-        </div>
-        <div class="chart-wrap">
-          <canvas id="barChart"></canvas>
-        </div>
-      </div>
- 
-      <!-- Pie chart -->
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-          <span class="section-label" style="background:var(--teal);">TODAS LAS VENTAS</span>
-          <div class="pagination">
-            <div class="pg-btn"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
-            <div class="pg-btn">1</div>
-            <div class="pg-btn active">2</div>
-            <div class="pg-btn">3</div>
-            <div class="pg-btn"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+
+    <!-- ══ VISTA: GRAFICOS (todas/semana/mes) ══ -->
+    <div id="vistaGraficos">
+
+      <!-- Charts row -->
+      <div class="charts-grid">
+        <!-- Bar chart -->
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <span class="section-label" id="chartLabelBar">TODAS LAS VENTAS</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="barChart"></canvas>
           </div>
         </div>
-        <div class="chart-wrap" style="height:200px;">
-          <canvas id="pieChart"></canvas>
-        </div>
-      </div>
-    </div>
- 
-    <!-- Date range -->
-    <div class="date-row">
-      <div class="date-pill">
-        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        10 FEB 2026
-      </div>
-      <span>a</span>
-      <div class="date-pill">
-        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        18 FEB 2026
-        <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:var(--muted);fill:none;stroke-width:2"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-    </div>
- 
-    <!-- Section label -->
-    <div>
-      <span class="section-label">cantidad y porcentaje de venta</span>
-    </div>
- 
-    <!-- Product cards -->
-    <div class="products-grid">
-      <div class="product-card">
-        <div class="prod-label">Producto 1 - Cantidad:</div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div class="prod-qty">25</div>
-          <div class="prod-trend trend-up">
-            <span class="trend-icon">📈</span> +150%
+
+        <!-- Pie chart -->
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <span class="section-label" id="chartLabelPie" style="background:var(--teal);">TODAS LAS VENTAS</span>
+          </div>
+          <div class="chart-wrap" style="height:200px;">
+            <canvas id="pieChart"></canvas>
           </div>
         </div>
-        <div class="prod-price-label">Precio:</div>
-        <div class="prod-price">$0</div>
       </div>
- 
-      <div class="product-card">
-        <div class="prod-label">Producto 2 - Cantidad:</div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div class="prod-qty">5</div>
-          <div class="prod-trend trend-down">
-            <span class="trend-icon">📉</span> -50%
-          </div>
+
+      <!-- Date range -->
+      <div class="date-row">
+        <div class="date-pill">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span id="fechaInicioLabel">--</span>
         </div>
-        <div class="prod-price-label">Precio:</div>
-        <div class="prod-price">$0</div>
-      </div>
- 
-      <div class="product-card">
-        <div class="prod-label">Producto 3 - Cantidad:</div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div class="prod-qty">12</div>
-          <div class="prod-trend trend-up">
-            <span class="trend-icon">📈</span> +20%
-          </div>
+        <span>a</span>
+        <div class="date-pill">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span id="fechaFinLabel">--</span>
         </div>
-        <div class="prod-price-label">Precio:</div>
-        <div class="prod-price">$0</div>
       </div>
+
+      <!-- Section label -->
+      <div>
+        <span class="section-label">cantidad y porcentaje de venta</span>
+      </div>
+
+      <!-- Product cards (generadas por JS con datos reales) -->
+      <div class="products-grid" id="productsGrid">
+        <div style="padding:20px;color:var(--muted);font-size:.85rem;">Cargando ventas...</div>
+      </div>
+
     </div>
- 
+
+    <!-- ══ VISTA: REGISTRO DE VENTAS ANUALES (misma tabla/diseño de registro-venta) ══ -->
+    <div id="vistaAnual" style="display:none;">
+
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>MES</th>
+              <th>VENTAS</th>
+              <th>CRECIMIENTO</th>
+              <th>%FRENTE AL<br>MES ANTERIOR</th>
+            </tr>
+          </thead>
+          <tbody id="tableBodyAnual">
+            <!-- filas inyectadas por JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <button class="btn-generar" onclick="generarRecibo()">Generar Recibo</button>
+
+    </div>
+
   </main>
+
+  <!-- Modal recibo anual -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+      <h3>🧾 Recibo Anual</h3>
+      <p>Resumen de ventas del año actual</p>
+      <div id="modalContent"></div>
+      <button class="modal-btn" onclick="window.print()">Imprimir / Guardar PDF</button>
+    </div>
+  </div>
 </div>
  
 <script src="/frontend/paginas/productos-venta/productos-venta.js"></script>

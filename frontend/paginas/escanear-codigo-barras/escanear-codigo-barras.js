@@ -46,6 +46,7 @@ async function apiFetch(path, options) {
 // Normaliza la respuesta del backend (ProductoResponse) al formato que usa la caja
 function normalizarProducto(p) {
   return {
+    id: p.id,
     codigo: p.codigoBarras,
     nombre: p.nombre,
     precio: Number(p.precio),
@@ -218,7 +219,7 @@ function agregarAlTicket(producto, cantidad) {
   if (existente) {
     existente.cantidad += cantidad;
   } else {
-    ticket.push({ codigo: producto.codigo, nombre: producto.nombre, precio: producto.precio, cantidad });
+    ticket.push({ productoId: producto.id, codigo: producto.codigo, nombre: producto.nombre, precio: producto.precio, cantidad });
   }
   renderTicket();
 }
@@ -303,11 +304,36 @@ function cerrarModalConfirmar() {
   document.getElementById('modalConfirmar').classList.remove('show');
 }
 
-function confirmarCobro() {
-  cerrarModalConfirmar();
-  generarRecibo();
-  document.getElementById('modalTicket').classList.add('show');
-  mostrarToast(`Venta registrada — ${totalVal.textContent}`);
+async function confirmarCobro() {
+  const btnConfirmar = document.getElementById('btnConfirmarCobro');
+  if (btnConfirmar) {
+    btnConfirmar.disabled = true;
+    btnConfirmar.textContent = 'Registrando...';
+  }
+
+  const usuarioId = Number(localStorage.getItem('userId'));
+  const items = ticket.map(item => ({ productoId: item.productoId, cantidad: item.cantidad }));
+
+  try {
+    await apiFetch('/ventas', {
+      method: 'POST',
+      body: JSON.stringify({ usuarioId, items })
+    });
+
+    cerrarModalConfirmar();
+    generarRecibo();
+    document.getElementById('modalTicket').classList.add('show');
+    mostrarToast(`Venta registrada — ${totalVal.textContent}`);
+    cargarCatalogo(); // refresca el stock en memoria (se descontó en el backend)
+  } catch (e) {
+    cerrarModalConfirmar();
+    alert('No se pudo registrar la venta: ' + e.message);
+  } finally {
+    if (btnConfirmar) {
+      btnConfirmar.disabled = false;
+      btnConfirmar.textContent = 'Sí, cobrar';
+    }
+  }
 }
 
 function generarRecibo() {

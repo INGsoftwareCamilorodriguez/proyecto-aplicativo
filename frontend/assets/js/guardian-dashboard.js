@@ -2,8 +2,7 @@
    GUARDIÁN DE ACCESO — pegar justo después de <body> (o al
    inicio del <script> principal) en TODAS las páginas del
    dashboard que el Empleado NO debe poder ver:
-   inicio.html, productos-venta.html, registro-venta.html,
-   registrar-producto.html, ver-inventario.html, ver-reportes.html,
+   inicio.html, productos-venta.html, registrar-producto.html, ver-inventario.html,
    gestion-usuario.html, CONFIGURACION.html, etc.
 
    Qué hace:

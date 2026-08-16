@@ -25,11 +25,6 @@ const MENU_ITEMS = [
     icon: '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>'
   },
   {
-    href: "/frontend/paginas/registro-venta/registro-venta.html",
-    label: "Registro de ventas Anuales",
-    icon: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>'
-  },
-  {
     href: "/frontend/paginas/registrar-producto/registrar-producto.html",
     label: "Registrar producto",
     icon: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>'
@@ -38,11 +33,6 @@ const MENU_ITEMS = [
     href: "/frontend/paginas/ver-inventario/ver-inventario.html",
     label: "Ver inventario",
     icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>'
-  },
-  {
-    href: "/frontend/paginas/ver-reportes/ver-reportes.html",
-    label: "Ver reportes",
-    icon: '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>'
   },
   {
     href: "/frontend/paginas/gestion-usuario/gestion-usuario.html",
