@@ -318,7 +318,6 @@
     }
     .bar-col:hover { filter: brightness(1.12); }
     .bar-col.purple { background: var(--purple); }
-    .bar-col.gray   { background: #d1d5db; }
     .bar-label { font-size: .7rem; color: var(--muted); }
 
     /* ── ACTIVITY TABLE ── */
@@ -350,7 +349,6 @@
       font-size: .7rem;
       font-weight: 600;
     }
-    .badge-purple { background: var(--purple-light); color: var(--purple); }
     .badge-green  { background: var(--green-light);  color: #16a34a; }
 
     .ver-link {

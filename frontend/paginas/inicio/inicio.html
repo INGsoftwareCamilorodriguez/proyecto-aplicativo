@@ -39,7 +39,7 @@
           </div>
           <div class="stat-label">Productos<br>registrados</div>
         </div>
-        <div class="stat-value">1,245 <span class="stat-unit">productos</span></div>
+        <div class="stat-value"><span id="statProductos">--</span> <span class="stat-unit">productos</span></div>
       </div>
 
       <div class="stat-card">
@@ -47,9 +47,9 @@
           <div class="stat-icon ic-teal">
             <svg viewBox="0 0 24 24"><rect x="2" y="4" width="3" height="16"/><rect x="7" y="4" width="1.5" height="16"/><rect x="10" y="4" width="3" height="16"/><rect x="15" y="4" width="1.5" height="16"/><rect x="19" y="4" width="3" height="16"/></svg>
           </div>
-          <div class="stat-label">Códigos<br>escaneados hoy</div>
+          <div class="stat-label">Ventas<br>registradas hoy</div>
         </div>
-        <div class="stat-value">328 <span class="stat-unit">escaneos</span></div>
+        <div class="stat-value"><span id="statVentasHoy">--</span> <span class="stat-unit">ventas</span></div>
       </div>
 
       <div class="stat-card">
@@ -59,7 +59,7 @@
           </div>
           <div class="stat-label">Productos<br>con bajo stock</div>
         </div>
-        <div class="stat-value">12 <span class="stat-unit">productos</span></div>
+        <div class="stat-value"><span id="statBajoStock">--</span> <span class="stat-unit">productos</span></div>
       </div>
 
       <div class="stat-card">
@@ -69,7 +69,7 @@
           </div>
           <div class="stat-label">Ventas del dia</div>
         </div>
-        <div class="stat-value">$1,250,000</div>
+        <div class="stat-value" id="statTotalHoy">--</div>
       </div>
     </div>
 
@@ -78,31 +78,25 @@
 
       <!-- Bar chart -->
       <div class="card">
-        <div class="card-title">Actividad de escaneo semanal</div>
+        <div class="card-title">Ventas de los últimos 7 días</div>
         <div class="chart-legend">
           <div class="legend-item">
             <div class="legend-dot" style="background:var(--purple)"></div>
-            Escaneos Hoy
-          </div>
-          <div class="legend-item">
-            <div class="legend-dot" style="background:#d1d5db"></div>
-            Escaneos Totales
+            Total vendido por día
           </div>
         </div>
         <div class="bar-chart" id="barChart">
-          <!-- bars injected by JS -->
+          <!-- barras generadas por inicio.js con datos reales de /api/ventas -->
         </div>
         <!-- x labels -->
-        <div style="display:flex;gap:18px;margin-top:8px;">
-          <div style="flex:1;text-align:center;font-size:.7rem;color:var(--muted)">Lunes</div>
-          <div style="flex:1;text-align:center;font-size:.7rem;color:var(--muted)">Martes</div>
-          <div style="flex:1;text-align:center;font-size:.7rem;color:var(--muted)">Miércoles</div>
-          <div style="flex:1;text-align:center;font-size:.7rem;color:var(--muted)">Viernes</div>
+        <div id="barChartLabels" style="display:flex;gap:18px;margin-top:8px;">
+          <!-- etiquetas generadas por inicio.js -->
         </div>
       </div>
 
       <!-- Activity table RIGHT -->
       <div class="card">
+        <div class="card-title">Actividad reciente</div>
         <table class="act-table">
           <thead>
             <tr>
@@ -112,71 +106,20 @@
               <th>Acción</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>Coca Cola</td>
-              <td>770213456</td>
-              <td>10:21</td>
-              <td><span class="badge badge-purple">Escaneado</span></td>
-            </tr>
-            <tr>
-              <td>Pan Bimbo</td>
-              <td>770567880</td>
-              <td>10:10</td>
-              <td><span class="badge badge-green">Vendido</span></td>
-            </tr>
-            <tr>
-              <td>Leche Alpina</td>
-              <td>770112233</td>
-              <td>09:45</td>
-              <td><span class="badge badge-purple">Escaneado</span></td>
-            </tr>
+          <tbody id="actividadBody">
+            <tr><td colspan="4" style="color:var(--muted)">Cargando actividad...</td></tr>
           </tbody>
         </table>
-        <a class="ver-link" href="#">Ver toda la actividad</a>
+        <a class="ver-link" href="/frontend/paginas/productos-venta/productos-venta.html">Ver toda la actividad</a>
       </div>
 
-    </div>
-
-    <!-- Actividad reciente (bottom table) -->
-    <div class="card">
-      <div class="card-title">Actividad reciente</div>
-      <table class="act-table">
-        <thead>
-          <tr>
-            <th>Producto</th>
-            <th>Código</th>
-            <th>Hora</th>
-            <th>Acción</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Coca Cola</td>
-            <td>770213456</td>
-            <td>10:21</td>
-            <td><span class="badge badge-purple">Escaneado</span></td>
-          </tr>
-          <tr>
-            <td>Pan Bimbo</td>
-            <td>770567880</td>
-            <td>10:10</td>
-            <td><span class="badge badge-green">Vendido</span></td>
-          </tr>
-          <tr>
-            <td>Leche Alpina</td>
-            <td>770112233</td>
-            <td>09:46</td>
-            <td><span class="badge badge-purple">Escaneado</span></td>
-          </tr>
-        </tbody>
-      </table>
     </div>
 
   </main>
 </div>
 
+<script src="/frontend/assets/js/api-config.js"></script>
 <script src="/frontend/paginas/inicio/inicio.js"></script>
-  <script src="/frontend/assets/js/sidebar.js"></script>
+<script src="/frontend/assets/js/sidebar.js"></script>
 </body>
 </html>

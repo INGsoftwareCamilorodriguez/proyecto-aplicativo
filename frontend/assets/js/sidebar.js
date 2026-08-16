@@ -48,6 +48,7 @@ function renderSidebar() {
 
   const currentPath = window.location.pathname;
   const rol = localStorage.getItem("rol");
+  const nombreUsuario = localStorage.getItem("username") || "Usuario";
 
   const itemsVisibles = MENU_ITEMS.filter(item => !item.requiereRol || item.requiereRol === rol);
 
@@ -69,8 +70,8 @@ function renderSidebar() {
           <div class="notif-dot"></div>
         </div>
         <div class="user-info">
-          <div class="user-name">Usuario 1</div>
-          <div class="user-handle">@usuarioprueba</div>
+          <div class="user-name">${nombreUsuario}</div>
+          <div class="user-handle">${rol || ""}</div>
         </div>
         <svg class="chevron" viewBox="0 0 24 24"></svg>
       </div>
