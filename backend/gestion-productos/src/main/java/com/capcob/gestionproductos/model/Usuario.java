@@ -20,6 +20,11 @@ public class Usuario {
     @Column(nullable = false, length = 100)
     private String nombre;
 
+    // Foto de perfil en base64 (data:image/...;base64,....). Puede ser null.
+    @Lob
+    @Column(name = "foto_perfil", columnDefinition = "LONGTEXT")
+    private String fotoPerfil;
+
     @Column(nullable = false, unique = true, length = 50)
     private String usuario;
 

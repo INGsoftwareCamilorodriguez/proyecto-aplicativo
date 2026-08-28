@@ -49,6 +49,7 @@ function renderSidebar() {
   const currentPath = window.location.pathname;
   const rol = localStorage.getItem("rol");
   const nombreUsuario = localStorage.getItem("username") || "Usuario";
+  const fotoPerfil = localStorage.getItem("fotoPerfil");
 
   const itemsVisibles = MENU_ITEMS.filter(item => !item.requiereRol || item.requiereRol === rol);
 
@@ -61,12 +62,17 @@ function renderSidebar() {
       </a>`;
   }).join("");
 
+  const configActive = currentPath === "/frontend/paginas/configuracion/configuracion.html";
+  const avatarContenido = fotoPerfil
+    ? `<img src="${fotoPerfil}" alt="Foto de perfil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`
+    : `<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`;
+
   root.outerHTML = `
     <aside class="sidebar">
       <!-- User -->
-      <div class="user-block">
+      <div class="user-block" onclick="window.location.href='/frontend/paginas/configuracion/configuracion.html'" title="Ir a Configuración">
         <div class="avatar">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          ${avatarContenido}
           <div class="notif-dot"></div>
         </div>
         <div class="user-info">
@@ -81,7 +87,7 @@ function renderSidebar() {
 
       <!-- Bottom links -->
       <div class="nav-bottom">
-        <a href="CONFIGURACION.html">
+        <a href="/frontend/paginas/configuracion/configuracion.html"${configActive ? ' style="color:#1F2937;font-weight:600;"' : ""}>
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           Configuracion
         </a>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CAPCOB - Configuración</title>
+  <link rel="stylesheet" href="/frontend/paginas/configuracion/configuracion.css">
+</head>
+<body>
+<script src="/frontend/assets/js/guardian-dashboard.js"></script>
+<div class="layout">
+
+  <!-- ══ SIDEBAR ══ -->
+  <div id="sidebar-root"></div>
+
+  <!-- ══ MAIN ══ -->
+  <main class="main">
+
+    <!-- Header -->
+    <div class="header-row">
+      <div class="title-wrap">
+        <div class="page-title">Configuración</div>
+        <div class="page-sub">Personaliza la apariencia, tu perfil y la marca del sistema.</div>
+      </div>
+      <div class="logo-badge">
+        <img src="/frontend/assets/imagenes/logo-capcob.png" alt="CAPCOB logo"/>
+        CAPCOB
+      </div>
+    </div>
+
+    <div id="alertBox" class="alert-box"></div>
+
+    <div class="settings-grid">
+
+      <!-- ══ APARIENCIA ══ -->
+      <section class="setting-card">
+        <div class="setting-card-head">
+          <h3>Apariencia</h3>
+          <p>Elige el fondo del panel. El cambio se aplica a todas las pantallas.</p>
+        </div>
+
+        <div class="theme-options">
+          <button type="button" class="theme-swatch" id="swatchClaro" onclick="seleccionarTema('claro')">
+            <span class="swatch-preview swatch-claro"></span>
+            Blanco
+          </button>
+          <button type="button" class="theme-swatch" id="swatchOscuro" onclick="seleccionarTema('oscuro')">
+            <span class="swatch-preview swatch-oscuro"></span>
+            Negro
+          </button>
+        </div>
+
+        <div class="setting-card-actions">
+          <button class="btn-save" onclick="guardarApariencia()" id="btnGuardarTema">Guardar apariencia</button>
+        </div>
+      </section>
+
+      <!-- ══ PERFIL ══ -->
+      <section class="setting-card">
+        <div class="setting-card-head">
+          <h3>Mi perfil</h3>
+          <p>Actualiza tu foto y el nombre con el que apareces en el panel.</p>
+        </div>
+
+        <div class="profile-editor">
+          <div class="upload-avatar" id="perfilPreviewWrap" onclick="document.getElementById('perfilFile').click()">
+            <img id="perfilPreview" src="" alt="Foto de perfil" style="display:none;"/>
+            <svg id="perfilPlaceholder" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            <div class="upload-badge">Cambiar</div>
+          </div>
+          <input type="file" id="perfilFile" accept="image/*" style="display:none;" onchange="onPerfilFileChange(event)"/>
+
+          <div class="form-group" style="flex:1;">
+            <label>Nombre para mostrar</label>
+            <input type="text" id="perfilNombre" placeholder="Tu nombre"/>
+          </div>
+        </div>
+
+        <div class="setting-card-actions">
+          <button class="btn-cancel" onclick="quitarFotoPerfil()" id="btnQuitarFoto" style="display:none;">Quitar foto</button>
+          <button class="btn-save" onclick="guardarPerfil()" id="btnGuardarPerfil">Guardar perfil</button>
+        </div>
+      </section>
+
+      <!-- ══ MARCA DEL SISTEMA ══ -->
+      <section class="setting-card" id="cardMarca">
+        <div class="setting-card-head">
+          <h3>Marca del sistema</h3>
+          <p>El logo y el nombre que se muestran en todas las páginas del panel.</p>
+        </div>
+
+        <div class="profile-editor">
+          <div class="upload-avatar upload-logo" id="logoPreviewWrap" onclick="document.getElementById('logoFile').click()">
+            <img id="logoPreview" src="/frontend/assets/imagenes/logo-capcob.png" alt="Logo"/>
+            <div class="upload-badge">Cambiar</div>
+          </div>
+          <input type="file" id="logoFile" accept="image/*" style="display:none;" onchange="onLogoFileChange(event)"/>
+
+          <div class="form-group" style="flex:1;">
+            <label>Nombre de la empresa</label>
+            <input type="text" id="marcaNombre" placeholder="Ej: CAPCOB"/>
+          </div>
+        </div>
+
+        <div class="setting-card-actions">
+          <button class="btn-cancel" onclick="quitarLogo()" id="btnQuitarLogo" style="display:none;">Quitar logo</button>
+          <button class="btn-save" onclick="guardarMarca()" id="btnGuardarMarca">Guardar marca</button>
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+</div>
+
+<script src="/frontend/assets/js/api-config.js"></script>
+<script src="/frontend/assets/js/tema-marca.js"></script>
+<script src="/frontend/paginas/configuracion/configuracion.js"></script>
+<script src="/frontend/assets/js/sidebar.js"></script>
+</body>
+</html>

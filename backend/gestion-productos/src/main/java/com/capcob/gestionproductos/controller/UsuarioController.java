@@ -1,5 +1,6 @@
 package com.capcob.gestionproductos.controller;
 
+import com.capcob.gestionproductos.dto.PerfilRequest;
 import com.capcob.gestionproductos.dto.UsuarioRequest;
 import com.capcob.gestionproductos.service.UsuarioService;
 import jakarta.validation.Valid;
@@ -46,6 +47,26 @@ public class UsuarioController {
         try {
             usuarioService.eliminarEmpleado(id);
             return ResponseEntity.ok(Map.of("mensaje", "Usuario eliminado"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", e.getMessage()));
+        }
+    }
+
+    // ── Perfil (autoservicio: el propio usuario logueado, cualquier rol) ──
+
+    @GetMapping("/perfil/{id}")
+    public ResponseEntity<?> obtenerPerfil(@PathVariable Integer id) {
+        try {
+            return ResponseEntity.ok(usuarioService.obtenerPerfil(id));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/perfil/{id}")
+    public ResponseEntity<?> actualizarPerfil(@PathVariable Integer id, @RequestBody PerfilRequest request) {
+        try {
+            return ResponseEntity.ok(usuarioService.actualizarPerfil(id, request));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("mensaje", e.getMessage()));
         }

@@ -1,5 +1,7 @@
 package com.capcob.gestionproductos.service;
 
+import com.capcob.gestionproductos.dto.PerfilRequest;
+import com.capcob.gestionproductos.dto.PerfilResponse;
 import com.capcob.gestionproductos.dto.UsuarioRequest;
 import com.capcob.gestionproductos.dto.UsuarioResponse;
 import com.capcob.gestionproductos.model.Usuario;
@@ -12,6 +14,11 @@ import java.util.List;
 // Por ahora este servicio SOLO administra usuarios con rol EMPLEADO.
 // La gestión de Administrador/Auditor queda pendiente de definir con
 // el equipo, así que ni el listado ni la creación/edición tocan esos roles.
+//
+// Los métodos de "perfil" (obtenerPerfil/actualizarPerfil) son la
+// excepción: son de autoservicio (cualquier usuario, sin importar el
+// rol, edita SU PROPIO nombre y foto desde Configuración), por eso no
+// pasan por obtenerEmpleado() ni están restringidos a EMPLEADO.
 @Service
 public class UsuarioService {
 
@@ -82,6 +89,34 @@ public class UsuarioService {
         usuarioRepository.delete(usuario);
     }
 
+    // ── Perfil (autoservicio, cualquier rol) ──────────────────────
+
+    public PerfilResponse obtenerPerfil(Integer id) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+        return toPerfilResponse(usuario);
+    }
+
+    public PerfilResponse actualizarPerfil(Integer id, PerfilRequest request) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        if (request.getNombre() != null) {
+            String nombre = request.getNombre().trim();
+            if (nombre.isBlank()) {
+                throw new IllegalArgumentException("El nombre no puede estar vacío");
+            }
+            usuario.setNombre(nombre);
+        }
+
+        // Cadena vacía = quitar la foto actual
+        if (request.getFotoPerfil() != null) {
+            usuario.setFotoPerfil(request.getFotoPerfil().isBlank() ? null : request.getFotoPerfil());
+        }
+
+        return toPerfilResponse(usuarioRepository.save(usuario));
+    }
+
     private Usuario obtenerEmpleado(Integer id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
@@ -102,6 +137,16 @@ public class UsuarioService {
                 usuario.getUsuario(),
                 usuario.getRol().name(),
                 usuario.getActivo()
+        );
+    }
+
+    private PerfilResponse toPerfilResponse(Usuario usuario) {
+        return new PerfilResponse(
+                usuario.getId(),
+                usuario.getNombre(),
+                usuario.getUsuario(),
+                usuario.getRol().name(),
+                usuario.getFotoPerfil()
         );
     }
 }
