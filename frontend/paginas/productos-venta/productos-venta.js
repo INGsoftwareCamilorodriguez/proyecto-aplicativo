@@ -7,6 +7,7 @@
 
 let barChartInstance = null;
 let pieChartInstance = null;
+let barChartTodasInstance = null;
 let tabActivo = 'todas';
 
 async function apiFetch(path) {
@@ -43,15 +44,34 @@ function formatFechaISO(d) {
   return d.toISOString().slice(0, 19);
 }
 
-function formatFechaLabel(d) {
-  return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+function formatFechaInput(d) {
+  // formato yyyy-MM-dd que entiende <input type="date">
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 // ── Carga los datos reales de ventas para el rango del tab activo ──
-async function cargarDatosVentas(tipo) {
-  const { inicio, fin } = calcularRango(tipo);
-  document.getElementById('fechaInicioLabel').textContent = formatFechaLabel(inicio);
-  document.getElementById('fechaFinLabel').textContent = formatFechaLabel(fin);
+// rangoManual (opcional): { inicio, fin } cuando el usuario busca por fecha
+async function cargarDatosVentas(tipo, rangoManual) {
+  const { inicio, fin } = rangoManual || calcularRango(tipo);
+
+  const dateRow = document.getElementById('dateRow');
+  const cardBarTodas = document.getElementById('cardBarTodas');
+
+  if (tipo === 'todas') {
+    dateRow.style.display = 'none';
+    cardBarTodas.style.display = '';
+  } else {
+    cardBarTodas.style.display = 'none';
+    dateRow.style.display = 'flex';
+    // solo prellenamos los inputs si el usuario no está en medio de una búsqueda manual
+    if (!rangoManual) {
+      document.getElementById('fechaInicioInput').value = formatFechaInput(inicio);
+      document.getElementById('fechaFinInput').value = formatFechaInput(fin);
+    }
+  }
 
   const etiquetaTab = tipo === 'semana' ? 'ESTA SEMANA' : tipo === 'mes' ? 'ESTE MES' : 'TODAS LAS VENTAS';
   document.getElementById('chartLabelBar').textContent = etiquetaTab;
@@ -71,24 +91,54 @@ async function cargarDatosVentas(tipo) {
   }
 }
 
-// ── Gráficas (barras: cantidad vendida por producto | pastel: % del total) ──
+// ── Búsqueda manual por fecha (solo activa en Esta semana / Este mes) ──
+function buscarPorFecha() {
+  const inicioVal = document.getElementById('fechaInicioInput').value;
+  const finVal = document.getElementById('fechaFinInput').value;
+
+  if (!inicioVal || !finVal) {
+    alert('Selecciona ambas fechas para buscar.');
+    return;
+  }
+
+  const inicio = new Date(inicioVal + 'T00:00:00');
+  const fin = new Date(finVal + 'T23:59:59');
+
+  if (inicio > fin) {
+    alert('La fecha de inicio no puede ser mayor que la fecha final.');
+    return;
+  }
+
+  cargarDatosVentas(tabActivo, { inicio, fin });
+}
+
+// ── Gráficas (semana/mes: barras | todas las ventas: líneas | siempre: pastel con % del total) ──
 function renderGraficas(resumen) {
   const top = resumen.slice(0, 8); // hasta 8 productos para que no se amontone
   const labels = top.map(r => r.nombreProducto);
   const cantidades = top.map(r => Number(r.cantidadVendida));
   const porcentajes = top.map(r => Number(r.porcentajeDelTotal));
 
+  // "todas las ventas" -> gráfico de líneas | "esta semana" / "este mes" -> gráfico de barras
+  const tipoGrafico = tabActivo === 'todas' ? 'line' : 'bar';
+
   if (barChartInstance) barChartInstance.destroy();
   const barCtx = document.getElementById('barChart').getContext('2d');
   barChartInstance = new Chart(barCtx, {
-    type: 'bar',
+    type: tipoGrafico,
     data: {
       labels: labels.length ? labels : ['Sin ventas'],
       datasets: [{
         label: 'Unidades vendidas',
         data: cantidades.length ? cantidades : [0],
-        backgroundColor: '#a855f7',
-        borderRadius: 4,
+        backgroundColor: tipoGrafico === 'line' ? 'rgba(124,58,237,.15)' : '#a855f7',
+        borderColor: '#7C3AED',
+        borderWidth: tipoGrafico === 'line' ? 2 : 0,
+        borderRadius: tipoGrafico === 'bar' ? 4 : 0,
+        fill: tipoGrafico === 'line',
+        tension: .3,
+        pointBackgroundColor: '#7C3AED',
+        pointRadius: tipoGrafico === 'line' ? 4 : 0,
       }]
     },
     options: {
@@ -124,6 +174,34 @@ function renderGraficas(resumen) {
       }
     }
   });
+
+  // ── Gráfico de barras adicional: SOLO se dibuja en "Todas las ventas" ──
+  if (barChartTodasInstance) { barChartTodasInstance.destroy(); barChartTodasInstance = null; }
+  if (tabActivo === 'todas') {
+    document.getElementById('chartLabelBarTodas').textContent = 'TODAS LAS VENTAS';
+    const barTodasCtx = document.getElementById('barChartTodas').getContext('2d');
+    barChartTodasInstance = new Chart(barTodasCtx, {
+      type: 'bar',
+      data: {
+        labels: labels.length ? labels : ['Sin ventas'],
+        datasets: [{
+          label: 'Unidades vendidas',
+          data: cantidades.length ? cantidades : [0],
+          backgroundColor: '#a855f7',
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+          y: { beginAtZero: true, grid: { color: '#f3f4f6' }, ticks: { font: { size: 11 } } }
+        }
+      }
+    });
+  }
 }
 
 // ── Tarjetas: top 3 productos por monto vendido ──
@@ -165,7 +243,7 @@ function setTab(el, tipo) {
 
   if (tipo === 'anual') {
     vistaGraficos.style.display = 'none';
-    vistaAnual.style.display = 'flex';
+    vistaAnual.style.display = 'block';
     cargarResumenMensual();
   } else {
     vistaGraficos.style.display = '';
