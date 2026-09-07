@@ -1,11 +1,13 @@
 const ROL_BACKEND_A_FRONTEND = {
   'ADMIN': 'Administrador',
-  'EMPLEADO': 'Empleado'
+  'EMPLEADO': 'Empleado',
+  'DESARROLLADOR': 'Desarrollador'
 };
 
 // ── A dónde va cada rol después de iniciar sesión ──
 const REDIRECT_POR_ROL = {
-  'Empleado': '/frontend/paginas/escanear-codigo-barras/escanear-codigo-barras.html'
+  'Empleado': '/frontend/paginas/escanear-codigo-barras/escanear-codigo-barras.html',
+  'Desarrollador': '/frontend/paginas/gestion-administradores/gestion-administradores.html'
 };
 const REDIRECT_DEFAULT = '/frontend/paginas/inicio/inicio.html';
 

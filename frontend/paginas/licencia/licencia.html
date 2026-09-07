@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CAPCOB - Licencia del software</title>
+  <link rel="stylesheet" href="/frontend/paginas/licencia/licencia.css">
+</head>
+<body>
+<script src="/frontend/assets/js/guardian-dashboard.js"></script>
+<div class="layout">
+
+  <!-- ══ SIDEBAR ══ -->
+  <div id="sidebar-root"></div>
+
+  <!-- ══ MAIN ══ -->
+  <main class="main">
+
+    <!-- Header -->
+    <div class="header-row">
+      <div class="title-wrap">
+        <div class="page-title">Licencia del software</div>
+        <div class="page-sub">Administra el precio y las condiciones de la licencia que se ofrece a los clientes.</div>
+      </div>
+      <div class="logo-badge">
+        <img src="/frontend/assets/imagenes/logo-capcob.png" alt="CAPCOB logo"/>
+        CAPCOB
+      </div>
+    </div>
+
+    <div id="alertBox" class="alert-box"></div>
+
+    <div class="settings-grid">
+
+      <!-- ══ PRECIO DE LA LICENCIA ══ -->
+      <section class="setting-card">
+        <div class="setting-card-head">
+          <h3>Precio de la licencia</h3>
+          <p>Define cuánto le cuesta el software a cada nueva empresa cliente.</p>
+        </div>
+
+        <div class="form-group">
+          <label>Precio mensual (COP)</label>
+          <input type="text" id="fPrecioMensual" placeholder="Ej: 150.000" disabled/>
+        </div>
+        <div class="form-group">
+          <label>Precio anual (COP)</label>
+          <input type="text" id="fPrecioAnual" placeholder="Ej: 1.500.000" disabled/>
+        </div>
+
+        <div class="setting-card-actions">
+          <button class="btn-save" onclick="mostrarMuyPronto()">Guardar cambios</button>
+        </div>
+      </section>
+
+      <!-- ══ PLAN Y VIGENCIA (placeholder) ══ -->
+      <section class="setting-card">
+        <div class="setting-card-head">
+          <h3>Planes y vigencia</h3>
+          <p>Próximamente podrás crear distintos planes de licencia y su duración.</p>
+        </div>
+        <div class="proximamente-box">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Muy pronto</span>
+        </div>
+        <div class="setting-card-actions">
+          <button class="btn-save" onclick="mostrarMuyPronto()">Configurar</button>
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+</div>
+
+<script src="/frontend/assets/js/api-config.js"></script>
+<script src="/frontend/assets/js/session-heartbeat.js"></script>
+<script src="/frontend/assets/js/tema-marca.js"></script>
+<script src="/frontend/paginas/licencia/licencia.js"></script>
+<script src="/frontend/assets/js/sidebar.js"></script>
+</body>
+</html>

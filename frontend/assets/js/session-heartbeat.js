@@ -18,6 +18,10 @@
   const HEARTBEAT_INTERVALO_MS = 5 * 60 * 1000; // 5 minutos
 
   // Minutos de inactividad permitidos antes de cerrar sesión sola, por rol.
+  // El rol 'Desarrollador' NO se agrega aquí a propósito: como no tiene
+  // límite configurado, revisarInactividad() no le cierra la sesión sola
+  // (más abajo). Sigue aplicando el login único (un solo dispositivo a la
+  // vez), controlado por el backend en AuthController, sin importar el rol.
   const INACTIVIDAD_MINUTOS_POR_ROL = {
     'Administrador': 15,
     'Empleado': 5

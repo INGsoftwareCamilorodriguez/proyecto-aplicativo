@@ -1,5 +1,6 @@
 package com.capcob.gestionproductos.controller;
 
+import com.capcob.gestionproductos.dto.AdministradorRequest;
 import com.capcob.gestionproductos.dto.PerfilRequest;
 import com.capcob.gestionproductos.dto.UsuarioRequest;
 import com.capcob.gestionproductos.service.UsuarioService;
@@ -47,6 +48,41 @@ public class UsuarioController {
         try {
             usuarioService.eliminarEmpleado(id);
             return ResponseEntity.ok(Map.of("mensaje", "Usuario eliminado"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", e.getMessage()));
+        }
+    }
+
+    // ── Administradores (uso exclusivo del Desarrollador) ──────────
+
+    @GetMapping("/administradores")
+    public ResponseEntity<?> listarAdministradores() {
+        return ResponseEntity.ok(usuarioService.listarAdministradores());
+    }
+
+    @PostMapping("/administradores")
+    public ResponseEntity<?> crearAdministrador(@Valid @RequestBody AdministradorRequest request) {
+        try {
+            return ResponseEntity.ok(usuarioService.crearAdministrador(request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/administradores/{id}")
+    public ResponseEntity<?> actualizarAdministrador(@PathVariable Integer id, @Valid @RequestBody AdministradorRequest request) {
+        try {
+            return ResponseEntity.ok(usuarioService.actualizarAdministrador(id, request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/administradores/{id}")
+    public ResponseEntity<?> eliminarAdministrador(@PathVariable Integer id) {
+        try {
+            usuarioService.eliminarAdministrador(id);
+            return ResponseEntity.ok(Map.of("mensaje", "Administrador eliminado"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("mensaje", e.getMessage()));
         }

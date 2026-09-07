@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CAPCOB - Clientes (Administradores)</title>
+  <link rel="stylesheet" href="/frontend/paginas/gestion-administradores/gestion-administradores.css">
+</head>
+<body>
+<script src="/frontend/assets/js/guardian-dashboard.js"></script>
+<div class="layout">
+
+  <!-- ══ SIDEBAR ══ -->
+  <div id="sidebar-root"></div>
+
+  <!-- ══ MAIN ══ -->
+  <main class="main">
+
+    <!-- Header -->
+    <div class="header-row">
+      <div class="title-wrap">
+        <div class="page-title">Clientes (Administradores)</div>
+        <div class="page-sub">Crea y administra las cuentas de Administrador de cada empresa que usa el software.</div>
+      </div>
+      <div class="logo-badge">
+        <img src="/frontend/assets/imagenes/logo-capcob.png" alt="CAPCOB logo"/>
+        CAPCOB
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Buscar por empresa, administrador o correo..." oninput="filtrarAdministradores()"/>
+      </div>
+      <button class="btn-add" onclick="abrirModal()">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Añadir cliente (Administrador)
+      </button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Empresa</th>
+            <th>Administrador</th>
+            <th>Contacto</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div class="table-footer">
+        <div class="footer-info" id="footerInfo"></div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Modal añadir/editar -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="cerrarModal()">✕</button>
+    <h3 id="modalTitle">Añadir cliente (Administrador)</h3>
+
+    <div class="modal-section-label">Datos de la empresa</div>
+
+    <div class="profile-editor">
+      <div class="upload-avatar upload-logo" id="logoPreviewWrap" onclick="document.getElementById('logoFile').click()">
+        <img id="logoPreview" src="" alt="Logo de la empresa" style="display:none;"/>
+        <svg id="logoPlaceholder" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+        <div class="upload-badge">Subir logo</div>
+      </div>
+      <input type="file" id="logoFile" accept="image/*" style="display:none;" onchange="onLogoFileChange(event)"/>
+      <div class="form-group" style="flex:1;">
+        <label>Nombre de la empresa</label>
+        <input type="text" id="fEmpresaNombre" placeholder="Ej: Panadería Don José"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Identificación / NIT de la empresa</label>
+      <input type="text" id="fEmpresaIdentidad" placeholder="Ej: 900123456-7"/>
+    </div>
+
+    <div class="modal-section-label">Datos del administrador</div>
+
+    <div class="form-group">
+      <label>Nombre completo</label>
+      <input type="text" id="fNombre" placeholder="Ej: María Gómez"/>
+    </div>
+    <div class="form-group">
+      <label>Correo (usuario de acceso)</label>
+      <input type="email" id="fEmail" placeholder="usuario@example.com"/>
+    </div>
+    <div class="form-group">
+      <label>Contraseña</label>
+      <input type="password" id="fPassword" placeholder="Escribe una contraseña"/>
+      <small id="fPasswordHint" style="display:none;color:var(--muted, #888);">Déjalo en blanco para no cambiar la contraseña actual.</small>
+    </div>
+    <div class="form-group">
+      <label>Teléfono</label>
+      <input type="text" id="fTelefono" placeholder="Ej: 3001234567"/>
+    </div>
+    <div class="form-group">
+      <label>Estado</label>
+      <select id="fEstado">
+        <option>Activo</option>
+        <option>Inactivo</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-save" onclick="guardarAdministrador()">Guardar</button>
+    </div>
+  </div>
+</div>
+<script src="/frontend/assets/js/api-config.js"></script>
+<script src="/frontend/assets/js/session-heartbeat.js"></script>
+<script src="/frontend/assets/js/tema-marca.js"></script>
+<script src="/frontend/paginas/gestion-administradores/gestion-administradores.js"></script>
+<script src="/frontend/assets/js/sidebar.js"></script>
+</body>
+</html>

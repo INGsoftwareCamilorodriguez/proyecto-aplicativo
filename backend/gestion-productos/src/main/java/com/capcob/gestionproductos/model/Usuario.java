@@ -52,7 +52,25 @@ public class Usuario {
     @Column(name = "fecha_creacion", updatable = false, insertable = false)
     private LocalDateTime fechaCreacion;
 
+    // ── Datos de la empresa cliente (solo aplican a usuarios con rol ADMIN,
+    // capturados por el Desarrollador al crear la cuenta del administrador).
+    // Quedan en null para EMPLEADO y DESARROLLADOR. ──
+    @Column(name = "telefono", length = 30)
+    private String telefono;
+
+    @Column(name = "empresa_nombre", length = 150)
+    private String empresaNombre;
+
+    // Identificación / NIT de la empresa cliente.
+    @Column(name = "empresa_identidad", length = 50)
+    private String empresaIdentidad;
+
+    // Logo de la empresa cliente en base64 (data:image/...;base64,....).
+    @Lob
+    @Column(name = "empresa_logo", columnDefinition = "LONGTEXT")
+    private String empresaLogo;
+
     public enum Rol {
-        ADMIN, EMPLEADO
+        ADMIN, EMPLEADO, DESARROLLADOR
     }
 }

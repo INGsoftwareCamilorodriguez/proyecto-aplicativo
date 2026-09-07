@@ -42,6 +42,23 @@ const MENU_ITEMS = [
   }
 ];
 
+// ── Menú exclusivo del rol Desarrollador ──
+// Este rol no usa el menú de arriba (esas opciones son del panel de
+// cada empresa cliente): tiene su propio panel para crear/administrar
+// las cuentas de Administrador y para la licencia del software.
+const MENU_ITEMS_DESARROLLADOR = [
+  {
+    href: "/frontend/paginas/gestion-administradores/gestion-administradores.html",
+    label: "Clientes (Administradores)",
+    icon: '<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>'
+  },
+  {
+    href: "/frontend/paginas/licencia/licencia.html",
+    label: "Licencia del software",
+    icon: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'
+  }
+];
+
 // ── Cerrar sesión: libera el token en el backend (para que el usuario
 // pueda volver a iniciar sesión) y luego limpia la sesión local ──
 async function cerrarSesion() {
@@ -73,7 +90,8 @@ function renderSidebar() {
   const nombreUsuario = sessionStorage.getItem("username") || "Usuario";
   const fotoPerfil = sessionStorage.getItem("fotoPerfil");
 
-  const itemsVisibles = MENU_ITEMS.filter(item => !item.requiereRol || item.requiereRol === rol);
+  const itemsBase = rol === "Desarrollador" ? MENU_ITEMS_DESARROLLADOR : MENU_ITEMS;
+  const itemsVisibles = itemsBase.filter(item => !item.requiereRol || item.requiereRol === rol);
 
   const navHtml = itemsVisibles.map(item => {
     const isActive = currentPath === item.href;
