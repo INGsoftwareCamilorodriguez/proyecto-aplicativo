@@ -215,8 +215,8 @@ document.getElementById('modalOverlay').addEventListener('click', function(e) {
 
 // ── Control de roles ──
 (function() {
-  const rol = localStorage.getItem('rol');
-  const username = localStorage.getItem('username');
+  const rol = sessionStorage.getItem('rol');
+  const username = sessionStorage.getItem('username');
 
   // Si no es admin, redirigir a inicio (protección directa)
   if (rol !== 'Administrador') {

@@ -20,7 +20,7 @@
    alcanzaba a ocultar nada.
    ══════════════════════════════════════════════════════════ */
 (function guardianAcceso() {
-  const rol = localStorage.getItem('rol');
+  const rol = sessionStorage.getItem('rol');
 
   if (!rol) {
     window.location.href = "/frontend/paginas/login/login.html";

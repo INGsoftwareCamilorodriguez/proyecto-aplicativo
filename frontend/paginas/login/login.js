@@ -71,9 +71,10 @@ async function doLogin() {
 
     // ── Guardar sesión ──
     const rol = ROL_BACKEND_A_FRONTEND[data.rol] || data.rol;
-    localStorage.setItem('rol', rol);
-    localStorage.setItem('username', data.nombre || data.usuario);
-    localStorage.setItem('userId', data.id);
+    sessionStorage.setItem('rol', rol);
+    sessionStorage.setItem('username', data.nombre || data.usuario);
+    sessionStorage.setItem('userId', data.id);
+    sessionStorage.setItem('token', data.token);
 
     // ── Recordarme ──
     const recordar = document.getElementById('cb').classList.contains('on');

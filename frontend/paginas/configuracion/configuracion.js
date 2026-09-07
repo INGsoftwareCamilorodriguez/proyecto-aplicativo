@@ -3,7 +3,7 @@
 // ══════════════════════════════════════════════════════════════
 const MAX_IMG_BYTES = 1.5 * 1024 * 1024; // 1.5 MB, límite razonable para guardar como base64
 
-const userId = localStorage.getItem("userId");
+const userId = sessionStorage.getItem("userId");
 
 let temaSeleccionado = "claro";
 let nuevaFotoPerfil = undefined; // undefined = sin cambios, "" = quitar, "data:..." = nueva
@@ -160,11 +160,11 @@ async function guardarPerfil() {
     if (!res.ok) throw new Error(data.mensaje || "No se pudo guardar el perfil.");
 
     // Actualizar sesión local para que el nombre/foto se vean en el sidebar de inmediato
-    localStorage.setItem("username", data.nombre);
+    sessionStorage.setItem("username", data.nombre);
     if (data.fotoPerfil) {
-      localStorage.setItem("fotoPerfil", data.fotoPerfil);
+      sessionStorage.setItem("fotoPerfil", data.fotoPerfil);
     } else {
-      localStorage.removeItem("fotoPerfil");
+      sessionStorage.removeItem("fotoPerfil");
     }
     nuevaFotoPerfil = undefined;
     if (typeof renderSidebar === "function") renderSidebar();

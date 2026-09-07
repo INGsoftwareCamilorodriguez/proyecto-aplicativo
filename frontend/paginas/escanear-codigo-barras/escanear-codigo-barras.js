@@ -311,7 +311,7 @@ async function confirmarCobro() {
     btnConfirmar.textContent = 'Registrando...';
   }
 
-  const usuarioId = Number(localStorage.getItem('userId'));
+  const usuarioId = Number(sessionStorage.getItem('userId'));
   const items = ticket.map(item => ({ productoId: item.productoId, cantidad: item.cantidad }));
 
   try {
@@ -465,8 +465,8 @@ setInterval(() => {
    El rol "Empleado" se queda encerrado aquí (no ve el link de volver al panel);
    Administrador y Auditor sí pueden volver al dashboard. */
 (function verificarSesion() {
-  const rol = localStorage.getItem('rol');
-  const username = localStorage.getItem('username');
+  const rol = sessionStorage.getItem('rol');
+  const username = sessionStorage.getItem('username');
 
   if (!rol) {
     window.location.href = "/frontend/paginas/login/login.html";

@@ -38,6 +38,17 @@ public class Usuario {
     @Column(nullable = false)
     private Boolean activo = true;
 
+    // Token de la sesión activa. Null = sin sesión abierta en ningún lado.
+    // Mientras tenga un valor Y no haya expirado, un nuevo login para este usuario es rechazado.
+    @Column(name = "sesion_token", length = 100)
+    private String sesionToken;
+
+    // Momento en que la sesión actual deja de considerarse activa si no llega
+    // otro "latido" (heartbeat) antes. Así, si alguien cierra la pestaña sin
+    // usar "Cerrar Sesión", el token queda libre solo cuando pasa este tiempo.
+    @Column(name = "sesion_expira_en")
+    private LocalDateTime sesionExpiraEn;
+
     @Column(name = "fecha_creacion", updatable = false, insertable = false)
     private LocalDateTime fechaCreacion;
 

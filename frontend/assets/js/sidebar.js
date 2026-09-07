@@ -42,14 +42,36 @@ const MENU_ITEMS = [
   }
 ];
 
+// ── Cerrar sesión: libera el token en el backend (para que el usuario
+// pueda volver a iniciar sesión) y luego limpia la sesión local ──
+async function cerrarSesion() {
+  const userId = sessionStorage.getItem("userId");
+  const token = sessionStorage.getItem("token");
+
+  try {
+    if (userId) {
+      await fetch(API_BASE_URL + "/auth/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: Number(userId), token })
+      });
+    }
+  } catch (e) {
+    // Si el backend no responde, igual dejamos salir al usuario localmente.
+  } finally {
+    sessionStorage.clear();
+    window.location.href = "/frontend/paginas/login/login.html";
+  }
+}
+
 function renderSidebar() {
   const root = document.getElementById("sidebar-root");
   if (!root) return; // esta página no usa el sidebar compartido
 
   const currentPath = window.location.pathname;
-  const rol = localStorage.getItem("rol");
-  const nombreUsuario = localStorage.getItem("username") || "Usuario";
-  const fotoPerfil = localStorage.getItem("fotoPerfil");
+  const rol = sessionStorage.getItem("rol");
+  const nombreUsuario = sessionStorage.getItem("username") || "Usuario";
+  const fotoPerfil = sessionStorage.getItem("fotoPerfil");
 
   const itemsVisibles = MENU_ITEMS.filter(item => !item.requiereRol || item.requiereRol === rol);
 
@@ -91,7 +113,7 @@ function renderSidebar() {
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           Configuracion
         </a>
-        <a href="/frontend/paginas/login/login.html" onclick="localStorage.clear()">
+        <a href="/frontend/paginas/login/login.html" onclick="event.preventDefault(); cerrarSesion();">
           <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           Cerrar Sesion
         </a>

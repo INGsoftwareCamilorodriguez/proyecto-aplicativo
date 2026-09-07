@@ -10,4 +10,5 @@ public class LoginResponse {
     private String nombre;
     private String usuario;
     private String rol;
+    private String token;
 }
