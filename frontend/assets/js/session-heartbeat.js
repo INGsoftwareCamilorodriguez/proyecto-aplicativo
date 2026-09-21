@@ -3,8 +3,10 @@
 // ══════════════════════════════════════════════════════════════
 // 1) LATIDO: mientras esta pestaña siga abierta con una sesión iniciada,
 //    avisa cada cierto tiempo al backend para que la sesión no expire
-//    (protege contra cierres de pestaña abruptos, ver SESION_TIMEOUT_MINUTOS
-//    en AuthController.java).
+//    (red de seguridad si el navegador no alcanza a avisar; ver
+//    SESION_TIMEOUT_SEGUNDOS en AuthController.java).
+//    Además, al cerrar/abandonar la pestaña se avisa a /auth/cerrando para
+//    liberar la sesión al instante (ver "pagehide" al final del archivo).
 // 2) INACTIVIDAD: si nadie mueve el mouse ni toca el teclado durante el
 //    tiempo permitido para su rol, se cierra la sesión de una vez (llamando
 //    a /auth/logout), para que la persona pueda volver a entrar al momento,
@@ -15,7 +17,9 @@
 // ══════════════════════════════════════════════════════════════
 
 (function () {
-  const HEARTBEAT_INTERVALO_MS = 5 * 60 * 1000; // 5 minutos
+  // Cada cuánto avisa la pestaña "sigo aquí". Debe ser bastante menor que
+  // SESION_TIMEOUT_SEGUNDOS del backend (AuthController.java, 60 s).
+  const HEARTBEAT_INTERVALO_MS = 20 * 1000; // 20 segundos
 
   // Minutos de inactividad permitidos antes de cerrar sesión sola, por rol.
   // El rol 'Desarrollador' NO se agrega aquí a propósito: como no tiene
@@ -118,6 +122,56 @@
       cerrarSesionPorInactividad();
     }
   }
+
+  // Al cerrar la pestaña (o navegar a otra página) avisa al backend. El backend
+  // marca la sesión como vencida pero conserva el token: si era solo un cambio de
+  // pantalla, el latido inmediato de la página nueva la renueva; si era un cierre
+  // real, la persona puede volver a entrar de inmediato.
+  // Si se cerró con "Cerrar Sesión" o por inactividad, sessionStorage ya está
+  // vacío y no se envía nada.
+  function avisarCierreDePagina() {
+    const userId = sessionStorage.getItem('userId');
+    const token = sessionStorage.getItem('token');
+    if (!userId || !token) return;
+
+    // Se manda como formulario (no JSON) para que sea una petición "simple" y el
+    // navegador no necesite la consulta previa de CORS, que se pierde al cerrar.
+    const url = API_BASE_URL + '/auth/cerrando';
+    const datos = new URLSearchParams({ id: String(Number(userId)), token });
+
+    try {
+      // sendBeacon está hecho justo para esto: el navegador lo termina de enviar
+      // aunque la pestaña ya se haya cerrado.
+      const enviado = navigator.sendBeacon && navigator.sendBeacon(url, datos);
+      if (!enviado) {
+        fetch(url, { method: 'POST', body: datos, keepalive: true });
+      }
+    } catch (e) {
+      // Si no alcanza a salir, el vencimiento por falta de latidos lo cubre.
+    }
+  }
+  window.addEventListener('pagehide', avisarCierreDePagina);
+
+  // Responde a la pantalla de login de este mismo navegador cuando pregunta si esta
+  // pestaña sigue viva con la sesión de un usuario. Así el login sabe distinguir una
+  // sesión realmente abierta en otra pestaña de una abandonada (pestaña cerrada de
+  // golpe, se fue la luz, se apagó el PC...) y, en ese caso, deja entrar de inmediato.
+  if ('BroadcastChannel' in window) {
+    const canalSesion = new BroadcastChannel('capcob-sesion');
+    canalSesion.onmessage = function (e) {
+      if (!e.data || e.data.tipo !== 'preguntar') return;
+      const miId = sessionStorage.getItem('userId');
+      if (miId && String(e.data.usuarioId) === String(miId)) {
+        canalSesion.postMessage({ tipo: 'presente', usuarioId: Number(miId) });
+      }
+    };
+  }
+
+  // Si el navegador restaura la página desde caché (botón "atrás"), la sesión
+  // pudo quedar marcada como vencida por el pagehide: se renueva enseguida.
+  window.addEventListener('pageshow', function (e) {
+    if (e.persisted) enviarLatido();
+  });
 
   enviarLatido();
   setInterval(enviarLatido, HEARTBEAT_INTERVALO_MS);
