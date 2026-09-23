@@ -1,0 +1,293 @@
+/* ══════════════════════════════════════════════════════════════
+   TEMA VERDE DEL PANEL — CAPCOB
+   ──────────────────────────────────────────────────────────────
+   Un solo diseño de colores para TODO el panel (Administrador y
+   Desarrollador): menú lateral verde, encabezado de tabla verde
+   claro, Editar azul y Eliminar rojo, y gráficas en verde y azul.
+   Sin animaciones: solo los cambios de color al pasar el mouse
+   que ya tenían las pantallas.
+
+   Lo activa tema-panel.js (le pone la clase "tema-panel" al <html>).
+   Páginas que lo usan: inicio, productos-venta, registrar-producto,
+   ver-inventario, gestion-usuario, gestion-administradores,
+   licencia y configuracion. La pantalla de caja del Empleado, el
+   login y la página principal NO lo usan.
+
+   ► Para cambiar la paleta edita solo el primer bloque (--dev-*).
+   ► Colores de las gráficas: constante PALETA_GRAFICAS al inicio de
+     renderGraficas() en productos-venta.js.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── 1. PALETA (claro) ── */
+html.tema-panel {
+  --dev-accent: #1F8A2B;        /* botones, página activa */
+  --dev-accent-hover: #187022;
+  --dev-deep: #1B6B24;          /* texto de encabezados de tabla y etiquetas */
+  --dev-marca: #B9F0B4;         /* barra del ítem activo en el menú */
+  --dev-tint: #E8F5E9;          /* fondo de encabezado de tabla, chips */
+  --dev-tint-soft: #F3FAF3;     /* hover de filas */
+  --dev-line: #E5E7EB;          /* bordes y divisores */
+  --dev-ok-bg: #E3F3E3;  --dev-ok-fg: #2E7D32;
+  --dev-off-bg: #FDE2E2; --dev-off-fg: #B42318;
+  --dev-side-top: #1B6B1E;      /* degradado del menú lateral */
+  --dev-side-bottom: #2A8F2E;
+  --dev-edit: #1E73D2;          /* botón Editar */
+  --dev-edit-hover: #175CAB;
+  --dev-del: #D32F2F;           /* botón Eliminar */
+  --dev-del-hover: #B71C1C;
+  --dev-shadow: 0 1px 3px rgba(0, 0, 0, .06), 0 4px 14px rgba(0, 0, 0, .04);
+  --dev-ring: 0 0 0 3px rgba(31, 138, 43, .18);
+
+  /* Variables originales de cada página, redirigidas a la paleta verde */
+  --purple: var(--dev-accent);
+  --purple-light: var(--dev-tint);
+  --green-light: var(--dev-ok-bg);
+  --red: var(--dev-del);
+  --red-light: var(--dev-off-bg);
+  --teal: #2563EB;              /* el turquesa original pasa a azul */
+  --teal-light: #DBEAFE;
+  --green: var(--dev-accent);
+
+  /* Estas las escribe tema-marca.js en línea, por eso llevan !important */
+  --main-bg: #F5F5F5 !important;
+  --bg: #F5F5F5 !important;
+  --sidebar-bg: #22802A !important;
+  --white: #FFFFFF !important;
+  --card: #FFFFFF !important;
+  --text: #1A1A1A !important;
+  --muted: #5F6B63 !important;
+  --border: #E5E7EB !important;
+  --gray-light: #F1F3F1 !important;
+}
+
+/* ── 2. PALETA (tema "Negro" de Configuración → verde muy oscuro) ── */
+html.tema-panel[data-tema="oscuro"] {
+  --dev-deep: #8FD694;
+  --dev-tint: #1F3322;
+  --dev-tint-soft: #1A2B1D;
+  --dev-line: #2A3B2C;
+  --dev-ok-bg: #1F3A22;  --dev-ok-fg: #9BE0A0;
+  --dev-off-bg: #4A2020; --dev-off-fg: #F5A0A0;
+  --dev-side-top: #12481A;
+  --dev-side-bottom: #1C6323;
+  --dev-shadow: 0 1px 3px rgba(0, 0, 0, .4);
+
+  --main-bg: #0F1A10 !important;
+  --bg: #0F1A10 !important;
+  --sidebar-bg: #175A1F !important;
+  --white: #17231A !important;
+  --card: #17231A !important;
+  --text: #EAF3EA !important;
+  --muted: #A5B8A6 !important;
+  --border: #2A3B2C !important;
+  --gray-light: #1F2E21 !important;
+}
+
+/* ── 3. BASE ── */
+html.tema-panel,
+html.tema-panel body {
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: var(--text);
+}
+html.tema-panel button,
+html.tema-panel input,
+html.tema-panel select { font-family: inherit; }
+
+html.tema-panel .main::-webkit-scrollbar-thumb { background: #BFD3C0; }
+html.tema-panel[data-tema="oscuro"] .main::-webkit-scrollbar-thumb { background: #3A5040; }
+
+html.tema-panel .main :focus-visible { outline: 2px solid var(--dev-accent); outline-offset: 2px; }
+html.tema-panel .sidebar :focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* ── 4. MENÚ LATERAL ── */
+html.tema-panel .sidebar {
+  background: linear-gradient(180deg, var(--dev-side-top), var(--dev-side-bottom));
+  border-right: none;
+}
+html.tema-panel .user-block { border-bottom: 1px solid rgba(255, 255, 255, .16); }
+html.tema-panel .avatar {
+  background: rgba(255, 255, 255, .22);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, .35);
+}
+html.tema-panel .avatar svg { stroke: #fff; }
+html.tema-panel .notif-dot { background: var(--dev-marca); border-color: var(--sidebar-bg); }
+html.tema-panel .user-info {
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: 3px; min-width: 0;
+}
+html.tema-panel .user-name { color: #fff; font-weight: 700; }
+html.tema-panel .user-handle {
+  color: #fff; background: rgba(255, 255, 255, .2);
+  padding: 1px 10px; border-radius: 999px;
+  font-size: .7rem; font-weight: 600;
+}
+html.tema-panel .user-handle:empty { display: none; }
+html.tema-panel .chevron { stroke: rgba(255, 255, 255, .8); }
+
+html.tema-panel .nav-item {
+  color: rgba(255, 255, 255, .9);
+  border-left: 3px solid transparent;
+}
+html.tema-panel .nav-item:hover { color: #fff; background: rgba(255, 255, 255, .1); }
+html.tema-panel .nav-item.active {
+  color: #fff; font-weight: 700;
+  background: rgba(255, 255, 255, .18);
+  border-left-color: var(--dev-marca);
+}
+html.tema-panel .nav-item.active svg { stroke: #fff; }
+
+html.tema-panel .nav-bottom { border-top: 1px solid rgba(255, 255, 255, .16); }
+html.tema-panel .nav-bottom a { color: rgba(255, 255, 255, .9); }
+html.tema-panel .nav-bottom a:hover { color: #fff; }
+/* "Configuración" cuando es la página actual (sidebar.js le pone un color en línea) */
+html.tema-panel .nav-bottom a[style] { color: #fff !important; font-weight: 700 !important; }
+/* "Cerrar sesión" como botón translúcido */
+html.tema-panel .nav-bottom a:last-child {
+  background: rgba(255, 255, 255, .14);
+  border-radius: 8px; padding: 10px 12px; margin-top: 6px;
+}
+html.tema-panel .nav-bottom a:last-child:hover { background: rgba(255, 255, 255, .25); }
+
+/* ── 5. ENCABEZADO ── */
+html.tema-panel .page-title { color: var(--text); }
+html.tema-panel .page-sub { color: var(--muted); }
+html.tema-panel .logo-badge { color: var(--text); }
+
+/* ── 6. BARRA DE HERRAMIENTAS ── */
+html.tema-panel .search-box { background: var(--white); border-color: var(--dev-line); }
+html.tema-panel .search-box:focus-within { border-color: var(--dev-accent); box-shadow: var(--dev-ring); }
+html.tema-panel .search-box svg { stroke: var(--muted); }
+html.tema-panel .search-box input { color: var(--text); }
+html.tema-panel .search-box input::placeholder { color: #8A948C; }
+
+html.tema-panel .btn-add,
+html.tema-panel .btn-save { background: var(--dev-accent); color: #fff; }
+html.tema-panel .btn-add:hover,
+html.tema-panel .btn-save:hover { background: var(--dev-accent-hover); }
+
+html.tema-panel .btn-cancel { background: var(--white); border-color: var(--dev-line); color: var(--text); }
+html.tema-panel .btn-cancel:hover { background: var(--dev-tint); }
+
+/* ── 7. TABLA ── */
+html.tema-panel .table-card {
+  background: var(--card); border-color: var(--dev-line);
+  box-shadow: var(--dev-shadow);
+}
+html.tema-panel thead tr { background: var(--dev-tint); border-bottom: 1px solid var(--dev-line); }
+html.tema-panel th {
+  color: var(--dev-deep); font-size: .8rem; font-weight: 700;
+  letter-spacing: 0; text-transform: none;
+}
+html.tema-panel tbody tr { border-bottom-color: var(--dev-line); }
+html.tema-panel tbody tr:hover { background: var(--dev-tint-soft); }
+html.tema-panel td { color: var(--text); }
+
+html.tema-panel .user-avatar { background: var(--dev-tint); color: var(--dev-deep); }
+html.tema-panel .user-cell-name { color: var(--text); }
+html.tema-panel .user-cell-role { color: var(--muted); }
+
+html.tema-panel .status-active   { background: var(--dev-ok-bg);  color: var(--dev-ok-fg); }
+html.tema-panel .status-inactive { background: var(--dev-off-bg); color: var(--dev-off-fg); }
+
+/* Editar azul y Eliminar rojo, sólidos, como en la referencia */
+html.tema-panel .btn-edit {
+  background: var(--dev-edit); border-color: var(--dev-edit); color: #fff;
+}
+html.tema-panel .btn-edit:hover { background: var(--dev-edit-hover); border-color: var(--dev-edit-hover); }
+html.tema-panel .btn-delete { background: var(--dev-del); border-color: var(--dev-del); }
+html.tema-panel .btn-delete:hover { background: var(--dev-del-hover); border-color: var(--dev-del-hover); }
+html.tema-panel .btn-delete svg { stroke: #fff; }
+
+html.tema-panel .table-footer { background: transparent; border-top-color: var(--dev-line); }
+html.tema-panel .footer-info { color: var(--muted); }
+html.tema-panel .pg-btn { background: var(--white); border-color: var(--dev-line); color: var(--muted); }
+html.tema-panel .pg-btn svg { stroke: var(--muted); }
+html.tema-panel .pg-btn:hover { background: var(--dev-tint); }
+html.tema-panel .pg-btn.active { background: var(--dev-accent); border-color: var(--dev-accent); color: #fff; }
+
+/* ── 8. VENTANA (modal) ── */
+html.tema-panel .modal { background: var(--card); }
+html.tema-panel .modal h3 { color: var(--text); }
+html.tema-panel .modal-section-label {
+  color: var(--dev-deep); font-size: .82rem; text-transform: none; letter-spacing: 0;
+  border-top-color: var(--dev-line);
+}
+html.tema-panel .modal-close { color: var(--muted); }
+html.tema-panel .modal-close:hover { color: var(--dev-accent); }
+
+/* ── 9. FORMULARIOS ── */
+html.tema-panel .form-group label {
+  color: var(--muted); font-size: .8rem; font-weight: 600;
+  letter-spacing: 0; text-transform: none;
+}
+html.tema-panel .form-group input,
+html.tema-panel .form-group select {
+  background: var(--white); color: var(--text); border-color: var(--dev-line);
+}
+html.tema-panel .form-group input:focus,
+html.tema-panel .form-group select:focus { border-color: var(--dev-accent); box-shadow: var(--dev-ring); }
+html.tema-panel .form-group input:disabled { background: var(--gray-light); color: var(--muted); }
+
+html.tema-panel .upload-avatar { background: var(--dev-tint); border-color: var(--dev-line); }
+html.tema-panel .upload-avatar svg { stroke: var(--dev-accent); }
+html.tema-panel .upload-logo { background: var(--gray-light); }
+
+/* ── 10. TARJETAS DE LICENCIA Y CONFIGURACIÓN ── */
+html.tema-panel .setting-card {
+  background: var(--card); border-color: var(--dev-line);
+  box-shadow: var(--dev-shadow);
+}
+html.tema-panel .setting-card-head h3 { color: var(--text); }
+html.tema-panel .setting-card-head p { color: var(--muted); }
+
+html.tema-panel .theme-swatch { background: var(--white); border-color: var(--dev-line); color: var(--text); }
+html.tema-panel .theme-swatch:hover { border-color: #A9D3AC; }
+html.tema-panel .theme-swatch.selected { border-color: var(--dev-accent); background: var(--dev-tint); }
+html.tema-panel .swatch-preview { border-color: var(--dev-line); }
+html.tema-panel .swatch-claro { background: #F5F5F5; }
+html.tema-panel .swatch-oscuro { background: #0F1A10; }
+
+html.tema-panel .proximamente-box { background: var(--dev-tint); color: var(--dev-deep); }
+html.tema-panel .proximamente-box svg { stroke: var(--dev-accent); }
+
+html.tema-panel .alert-box.ok { background: var(--dev-ok-bg); color: var(--dev-ok-fg); }
+html.tema-panel .alert-box.error { background: var(--dev-off-bg); color: var(--dev-off-fg); }
+
+/* ── 11. PÁGINAS DEL ADMINISTRADOR (inicio, ventas, productos, inventario, usuarios) ── */
+html.tema-panel .card,
+html.tema-panel .stat-card,
+html.tema-panel .product-card {
+  border-color: var(--dev-line);
+  box-shadow: var(--dev-shadow);
+}
+html.tema-panel .btn-teal { background: var(--teal); }
+
+/* Insignias: "Por peso" en azul, "Bajo stock" en rojo, "Fijo/Disponible" en verde */
+html.tema-panel .badge-green  { background: var(--dev-ok-bg);  color: var(--dev-ok-fg); }
+html.tema-panel .badge-purple { background: var(--teal-light); color: #1E40AF; }
+html.tema-panel .badge-red    { background: var(--dev-off-bg); color: var(--dev-off-fg); }
+html.tema-panel[data-tema="oscuro"] .badge-purple { color: #93C5FD; }
+html.tema-panel .form-msg.ok { color: var(--dev-ok-fg); }
+
+/* Ventas: botones con hover morado fijo y tabla anual con bordes lavanda */
+html.tema-panel .modal-btn { background: var(--dev-accent); }
+html.tema-panel .modal-btn:hover,
+html.tema-panel .btn-buscar-fecha:hover { background: var(--dev-accent-hover); }
+html.tema-panel .btn-buscar-fecha { background: var(--dev-accent); }
+html.tema-panel .tab.inactive,
+html.tema-panel .tab-anual.inactive { background: var(--gray-light); color: var(--muted); }
+html.tema-panel .tab.inactive:hover,
+html.tema-panel .tab-anual.inactive:hover { background: var(--dev-tint); }
+html.tema-panel .table-card th,
+html.tema-panel .table-card td {
+  border-bottom-color: var(--dev-line);
+  border-right-color: var(--dev-line);
+}
+html.tema-panel .table-card td,
+html.tema-panel .table-card td.ventas-col { background: var(--dev-tint-soft); }
+html.tema-panel .table-card td.mes-col { background: var(--white); }
+html.tema-panel .trend-cell.trend-up,
+html.tema-panel .trend-up { color: var(--dev-ok-fg); }
+
+/* Usuarios: el chip del rol y el estado */
+html.tema-panel .role-admin { background: var(--dev-tint); color: var(--dev-deep); }

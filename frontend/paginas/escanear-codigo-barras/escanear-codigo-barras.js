@@ -486,3 +486,25 @@ setInterval(() => {
 
 cargarCatalogo();
 codigoInput.focus();
+
+// ── Cerrar sesión (botón "Salir"): libera el token en el backend para poder volver
+// a iniciar sesión (login de un solo dispositivo) y limpia la sesión local. Es la misma
+// lógica de cerrarSesion() de sidebar.js, que esta página no carga.
+async function cerrarSesion() {
+  const userId = sessionStorage.getItem('userId');
+  const token = sessionStorage.getItem('token');
+  try {
+    if (userId) {
+      await fetch(API_BASE_URL + '/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: Number(userId), token })
+      });
+    }
+  } catch (e) {
+    // Si el backend no responde, igual dejamos salir al usuario localmente.
+  } finally {
+    sessionStorage.clear();
+    window.location.href = '/frontend/paginas/login/login.html';
+  }
+}

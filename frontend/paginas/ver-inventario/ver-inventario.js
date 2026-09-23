@@ -121,7 +121,7 @@ function renderInventario(productos) {
       '<td><span class="badge ' + (esPeso ? 'badge-purple' : 'badge-green') + '">' + (esPeso ? 'Por peso' : 'Fijo') + '</span></td>' +
       '<td>' + cantidadTexto + '</td>' +
       '<td>' + precioTexto + '</td>' +
-      '<td><span class="badge ' + (bajoStock ? 'badge-purple' : 'badge-green') + '">' + (bajoStock ? 'Bajo stock' : 'Disponible') + '</span></td>' +
+      '<td><span class="badge ' + (bajoStock ? 'badge-red' : 'badge-green') + '">' + (bajoStock ? 'Bajo stock' : 'Disponible') + '</span></td>' +
       '<td></td>';
 
     const btnVerCodigo = document.createElement('div');

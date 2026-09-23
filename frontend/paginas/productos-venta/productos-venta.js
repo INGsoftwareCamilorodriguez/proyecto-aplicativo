@@ -115,6 +115,13 @@ function buscarPorFecha() {
 // ── Gráficas (semana/mes: barras | todas las ventas: líneas | siempre: pastel con % del total) ──
 function renderGraficas(resumen) {
   const top = resumen.slice(0, 8); // hasta 8 productos para que no se amontone
+
+  // Paleta de las gráficas (verde y azul del diseño). Cada producto conserva el mismo
+  // color en las tres gráficas porque se asigna según su posición en la lista.
+  const PALETA_GRAFICAS = ['#1F8A2B', '#2563EB', '#8BC48F', '#60A5FA', '#1B6B24', '#1E40AF', '#E0A030', '#9CA3AF'];
+  const coloresProductos = top.length
+    ? top.map((_, i) => PALETA_GRAFICAS[i % PALETA_GRAFICAS.length])
+    : [PALETA_GRAFICAS[0]];
   const labels = top.map(r => r.nombreProducto);
   const cantidades = top.map(r => Number(r.cantidadVendida));
   const porcentajes = top.map(r => Number(r.porcentajeDelTotal));
@@ -131,13 +138,13 @@ function renderGraficas(resumen) {
       datasets: [{
         label: 'Unidades vendidas',
         data: cantidades.length ? cantidades : [0],
-        backgroundColor: tipoGrafico === 'line' ? 'rgba(124,58,237,.15)' : '#a855f7',
-        borderColor: '#7C3AED',
+        backgroundColor: tipoGrafico === 'line' ? 'rgba(31,138,43,.15)' : coloresProductos,
+        borderColor: '#1F8A2B',
         borderWidth: tipoGrafico === 'line' ? 2 : 0,
         borderRadius: tipoGrafico === 'bar' ? 4 : 0,
         fill: tipoGrafico === 'line',
         tension: .3,
-        pointBackgroundColor: '#7C3AED',
+        pointBackgroundColor: '#1F8A2B',
         pointRadius: tipoGrafico === 'line' ? 4 : 0,
       }]
     },
@@ -154,14 +161,13 @@ function renderGraficas(resumen) {
 
   if (pieChartInstance) pieChartInstance.destroy();
   const pieCtx = document.getElementById('pieChart').getContext('2d');
-  const coloresPie = ['#06b6d4', '#0e7490', '#164e63', '#a855f7', '#7c3aed', '#c084fc', '#22d3ee', '#0891b2'];
   pieChartInstance = new Chart(pieCtx, {
     type: 'pie',
     data: {
       labels: labels.length ? labels.map(l => l.toUpperCase()) : ['SIN VENTAS'],
       datasets: [{
         data: porcentajes.length ? porcentajes : [100],
-        backgroundColor: coloresPie,
+        backgroundColor: coloresProductos,
         borderWidth: 2,
         borderColor: '#fff'
       }]
@@ -187,7 +193,7 @@ function renderGraficas(resumen) {
         datasets: [{
           label: 'Unidades vendidas',
           data: cantidades.length ? cantidades : [0],
-          backgroundColor: '#a855f7',
+          backgroundColor: coloresProductos,
           borderRadius: 4,
         }]
       },
@@ -321,7 +327,7 @@ function generarRecibo() {
   if (!html) html = `<div class="modal-row"><span>Sin ventas registradas</span><span>$0</span></div>`;
   html += `<div class="modal-row" style="margin-top:8px;border-top:2px solid #e5e7eb;padding-top:10px;">
              <span style="font-weight:700">TOTAL ANUAL</span>
-             <span style="color:#a855f7;font-size:1rem">${formatCurrency(total)}</span>
+             <span style="color:#1F8A2B;font-size:1rem">${formatCurrency(total)}</span>
            </div>`;
   document.getElementById('modalContent').innerHTML = html;
   document.getElementById('modalOverlay').classList.add('show');

@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.UUID;
 
@@ -44,6 +45,14 @@ public class AuthController {
                 ? dispositivoId : null;
     }
 
+    // Hora de referencia para TODA la lógica de sesión. Se usa UTC (y no la hora local del PC)
+    // porque cada persona corre su propio backend contra la MISMA base de datos: si los
+    // PCs tienen zonas horarias o configuraciones distintas, "sesion_expira_en" se
+    // interpretaba mal y la sesión parecía activa por horas aunque ya estuviera cerrada.
+    private static LocalDateTime ahoraUtc() {
+        return LocalDateTime.now(ZoneOffset.UTC);
+    }
+
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -67,7 +76,7 @@ public class AuthController {
 
         // Solo se permite UNA sesión activa por usuario. Hay sesión vigente si hay token
         // guardado y todavía no venció (no ha dejado de llegar el latido).
-        LocalDateTime ahora = LocalDateTime.now();
+        LocalDateTime ahora = ahoraUtc();
         boolean haySesionVigente = usuario.getSesionToken() != null
                 && usuario.getSesionExpiraEn() != null
                 && ahora.isBefore(usuario.getSesionExpiraEn());
@@ -154,7 +163,7 @@ public class AuthController {
         log.info("[CERRANDO] llegó el aviso de cierre: id={} tokenCoincide={}",
                 id, usuario != null && token.equals(usuario.getSesionToken()));
         if (usuario != null && token.equals(usuario.getSesionToken())) {
-            LocalDateTime nuevoVencimiento = LocalDateTime.now().plusSeconds(GRACIA_CIERRE_SEGUNDOS);
+            LocalDateTime nuevoVencimiento = ahoraUtc().plusSeconds(GRACIA_CIERRE_SEGUNDOS);
             // Solo se acorta, nunca se alarga.
             if (usuario.getSesionExpiraEn() == null || nuevoVencimiento.isBefore(usuario.getSesionExpiraEn())) {
                 usuario.setSesionExpiraEn(nuevoVencimiento);
@@ -184,7 +193,7 @@ public class AuthController {
             return ResponseEntity.status(409).body(Map.of("mensaje", "Tu sesión ya no está activa."));
         }
 
-        usuario.setSesionExpiraEn(LocalDateTime.now().plusSeconds(SESION_TIMEOUT_SEGUNDOS));
+        usuario.setSesionExpiraEn(ahoraUtc().plusSeconds(SESION_TIMEOUT_SEGUNDOS));
         usuarioRepository.save(usuario);
 
         return ResponseEntity.ok().build();

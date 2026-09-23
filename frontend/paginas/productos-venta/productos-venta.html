@@ -9,6 +9,8 @@
   <script src="/frontend/assets/js/api-config.js"></script>
 <script src="/frontend/assets/js/session-heartbeat.js"></script>
   <script src="/frontend/assets/js/tema-marca.js"></script>
+  <link rel="stylesheet" href="/frontend/assets/css/tema-panel.css">
+  <script src="/frontend/assets/js/tema-panel.js"></script>
 </head>
 <body>
 <script src="/frontend/assets/js/guardian-dashboard.js"></script>
@@ -72,7 +74,7 @@
       <!-- Bar chart extra: SOLO visible en "Todas las ventas" (a todo el ancho, debajo de las 2 gráficas) -->
       <div class="card" id="cardBarTodas" style="display:none;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-          <span class="section-label" id="chartLabelBarTodas" style="background:#a855f7;">TODAS LAS VENTAS</span>
+          <span class="section-label" id="chartLabelBarTodas" style="background:var(--purple);">TODAS LAS VENTAS</span>
         </div>
         <div class="chart-wrap">
           <canvas id="barChartTodas"></canvas>
