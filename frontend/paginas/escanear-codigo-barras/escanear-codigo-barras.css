@@ -58,7 +58,7 @@
     color: #fff;
     letter-spacing: .01em;
   }
-  .topbar-left .brand span { color: var(--yellow); }
+  .topbar-left { color: var(--yellow); }
   .station-tag {
     font-size: .74rem;
     font-weight: 800;
@@ -142,16 +142,15 @@
     min-height: 0;
   }
 
-  /* Caja de escaneo estilo "hero": foto oscurecida + texto blanco */
+  /* Caja de escaneo: fondo blanco liso (sin foto) */
   .scan-box {
-    background:
-      linear-gradient(rgba(10,25,10,.68), rgba(10,25,10,.78)),
-      var(--hero-img) center 35% / cover no-repeat;
+    background: var(--card);
+    border: 1px solid var(--border);
     border-radius: 16px;
     padding: 28px 30px 30px;
     flex-shrink: 0;
     position: relative;
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-soft);
     transition: box-shadow .15s;
   }
   .scan-box.flash-ok { box-shadow: 0 0 0 4px var(--green-light), 0 0 0 7px #22c55e; }
@@ -162,12 +161,11 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .08em;
-    color: #fff;
+    color: var(--muted);
     margin-bottom: 14px;
     display: flex;
     align-items: center;
     gap: 9px;
-    text-shadow: 1px 1px 3px rgba(0,0,0,.5);
   }
   .scan-label .dot {
     width: 8px; height: 8px; border-radius: 50%;
@@ -179,7 +177,7 @@
   #codigoInput {
     flex: 1;
     min-width: 0;
-    border: 3px solid #fff;
+    border: 3px solid #d1d5db;
     border-radius: 40px;
     padding: 14px 24px;
     font-size: 1.25rem;
@@ -206,7 +204,7 @@
   }
   .manual-btn:hover { background: var(--orange-dark); transform: translateY(-2px); box-shadow: 0 5px 14px rgba(0,0,0,.3); }
 
-  .scan-hint { margin-top: 10px; font-size: .76rem; color: #e5e7eb; }
+  .scan-hint { margin-top: 10px; font-size: .76rem; color: var(--muted); }
 
   .camera-btn {
     border: none;
@@ -232,7 +230,7 @@
     border: 3px solid var(--yellow);
     background: #fff;
   }
-  .camera-hint { text-align: center; font-size: .8rem; color: #fff; margin-top: 10px; text-shadow: 1px 1px 3px rgba(0,0,0,.5); }
+  .camera-hint { text-align: center; font-size: .8rem; color: var(--muted); margin-top: 10px; }
 
   /* ── Modales (confirmar cobro / ticket) ── */
   .modal-overlay {
