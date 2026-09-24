@@ -1,0 +1,197 @@
+/* ══════════════════════════════════════════════════════════════
+   ASISTENTE FLOTANTE — CAPCOB
+   ──────────────────────────────────────────────────────────────
+   Estilos del chat con opciones cerradas (asistente.js).
+   Usa las variables del tema del panel (tema-panel.css), así que
+   sigue solo el tema claro / oscuro y la paleta verde. Cada
+   variable trae un color de respaldo por si no está definida.
+   Sin animaciones: solo cambios de color al pasar el mouse.
+   z-index 40: queda POR DEBAJO de los modales (50 y 100).
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Botón redondo abajo a la derecha ── */
+.asistente-lanzador {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 66px;
+  height: 66px;
+  padding: 5px;
+  border-radius: 50%;
+  border: 3px solid var(--dev-accent, #1F8A2B);
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .22);
+  cursor: pointer;
+  z-index: 40;
+  transition: background .15s, box-shadow .15s;
+}
+.asistente-lanzador img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.asistente-lanzador:hover { background: var(--dev-tint, #E8F5E9); box-shadow: 0 8px 22px rgba(0, 0, 0, .3); }
+.asistente-lanzador:focus-visible { outline: 3px solid var(--dev-marca, #B9F0B4); outline-offset: 2px; }
+
+/* ── Ventana del chat ── */
+.asistente-panel {
+  position: fixed;
+  right: 24px;
+  bottom: 102px;
+  width: 372px;
+  max-width: calc(100vw - 32px);
+  height: 540px;
+  max-height: calc(100vh - 126px);
+  display: none;
+  flex-direction: column;
+  background: var(--card, #fff);
+  color: var(--text, #1A1A1A);
+  border: 1px solid var(--border, #E5E7EB);
+  border-radius: 16px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, .28);
+  overflow: hidden;
+  z-index: 40;
+  font-size: .88rem;
+}
+.asistente-panel.abierto { display: flex; }
+
+.asistente-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--dev-side-top, #1B6B1E), var(--dev-side-bottom, #2A8F2E));
+}
+.asistente-cabecera .av {
+  width: 40px; height: 40px; flex-shrink: 0;
+  border-radius: 50%;
+  background: #fff;
+  padding: 3px;
+}
+.asistente-cabecera .av img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.asistente-cabecera .titulos { flex: 1; min-width: 0; }
+.asistente-cabecera .nombre { font-weight: 800; font-size: .98rem; }
+.asistente-cabecera .sub { font-size: .72rem; opacity: .85; }
+.asistente-cerrar {
+  width: 30px; height: 30px;
+  border: none; border-radius: 8px;
+  background: rgba(255, 255, 255, .15);
+  color: #fff;
+  font-size: 1.2rem; line-height: 1;
+  cursor: pointer;
+  transition: background .15s;
+}
+.asistente-cerrar:hover { background: rgba(255, 255, 255, .3); }
+
+/* ── Conversación ── */
+.asistente-cuerpo {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--bg, #F5F5F5);
+}
+.asistente-fila { display: flex; gap: 8px; align-items: flex-end; }
+.asistente-fila.usuario { justify-content: flex-end; }
+.asistente-fila .mini {
+  width: 28px; height: 28px; flex-shrink: 0;
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid var(--dev-accent, #1F8A2B);
+  padding: 2px;
+}
+.asistente-fila .mini img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+.asistente-burbuja {
+  max-width: 82%;
+  padding: 9px 12px;
+  border-radius: 14px;
+  line-height: 1.45;
+  word-wrap: break-word;
+}
+.asistente-fila.bot .asistente-burbuja {
+  background: var(--card, #fff);
+  border: 1px solid var(--border, #E5E7EB);
+  border-bottom-left-radius: 4px;
+}
+.asistente-fila.usuario .asistente-burbuja {
+  background: var(--dev-accent, #1F8A2B);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.asistente-burbuja p { margin: 0; }
+.asistente-burbuja p + p, .asistente-burbuja p + ul, .asistente-burbuja p + ol,
+.asistente-burbuja ul + p, .asistente-burbuja ol + p { margin-top: 6px; }
+.asistente-burbuja ul, .asistente-burbuja ol { margin: 0; padding-left: 18px; }
+.asistente-burbuja li { margin: 2px 0; }
+.asistente-burbuja strong { font-weight: 700; }
+.asistente-burbuja .tenue { color: var(--muted, #5F6B63); font-size: .8rem; }
+
+/* ── Opciones (botones) ── */
+.asistente-menu { display: flex; flex-direction: column; gap: 6px; padding-left: 36px; }
+.asistente-cat {
+  margin-top: 4px;
+  font-size: .68rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--muted, #5F6B63);
+}
+.asistente-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.asistente-grupo { padding-left: 36px; }
+.asistente-chip {
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1.5px solid var(--dev-accent, #1F8A2B);
+  background: var(--card, #fff);
+  color: var(--dev-deep, #1B6B24);
+  font-size: .8rem; font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.asistente-chip:hover:not(:disabled) { background: var(--dev-tint, #E8F5E9); }
+.asistente-chip:focus-visible { outline: 2px solid var(--dev-accent, #1F8A2B); outline-offset: 2px; }
+.asistente-chip:disabled { opacity: .5; cursor: not-allowed; }
+.asistente-chip.elegida:disabled { background: var(--dev-accent, #1F8A2B); color: #fff; opacity: .85; }
+
+/* Aviso para el rol que aún no tiene el asistente activo */
+.asistente-aviso {
+  margin-top: 6px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--dev-tint, #E8F5E9);
+  color: var(--dev-deep, #1B6B24);
+  font-size: .78rem;
+}
+
+/* ── Campo de texto (solo aparece en "Buscar un producto") ── */
+.asistente-entrada {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--border, #E5E7EB);
+  background: var(--card, #fff);
+}
+.asistente-entrada[hidden] { display: none; }
+.asistente-entrada input {
+  flex: 1; min-width: 0;
+  padding: 9px 12px;
+  border: 1.5px solid var(--border, #E5E7EB);
+  border-radius: 10px;
+  background: var(--card, #fff);
+  color: var(--text, #1A1A1A);
+  font-size: .88rem;
+}
+.asistente-entrada input:focus { outline: none; border-color: var(--dev-accent, #1F8A2B); box-shadow: var(--dev-ring, 0 0 0 3px rgba(31, 138, 43, .18)); }
+.asistente-entrada button {
+  padding: 0 16px;
+  border: none; border-radius: 10px;
+  background: var(--dev-accent, #1F8A2B);
+  color: #fff;
+  font-weight: 700; font-size: .85rem;
+  cursor: pointer;
+  transition: background .15s;
+}
+.asistente-entrada button:hover { background: var(--dev-accent-hover, #187022); }
+
+/* ── Pantallas pequeñas ── */
+@media (max-width: 520px) {
+  .asistente-lanzador { right: 14px; bottom: 14px; }
+  .asistente-panel { right: 8px; bottom: 90px; width: calc(100vw - 16px); height: calc(100vh - 110px); }
+}
