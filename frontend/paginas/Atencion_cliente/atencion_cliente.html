@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CAPCOB - Atención al cliente</title>
+  <link href="/frontend/paginas/Atencion_cliente/atencion_cliente.css" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="container">
+    <div class="header-content">
+      <div class="logo">
+        <img src="/frontend/assets/imagenes/logo-capcob.png" height="20"/>
+        <span>CAPCOP</span>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="/frontend/paginas/pagina-principal/index.html">Pagina Principal</a></li>
+          <li><a href="/frontend/paginas/login/login.html">Inicio Sesion</a></li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="ac-hero">
+  <img src="/frontend/assets/imagenes/fondo-pagina-principal.jpg" alt="fondo hero" class="ac-hero-bg">
+  <div class="ac-hero-content">
+    <h1>¿En qué te podemos ayudar?</h1>
+    <p>Escríbenos y cuéntanos qué necesitas. Nuestro equipo te responde directo a tu correo.</p>
+    <div class="ac-hero-actions">
+      <a href="#contacto" class="btn">Escríbenos</a>
+    </div>
+  </div>
+</section>
+
+<!-- TARJETAS DE CONTACTO RÁPIDO -->
+<section class="ac-quick">
+  <div class="container">
+    <div class="ac-quick-grid">
+      <div class="ac-quick-card">
+        <div class="ac-quick-icon">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z" opacity="0"/><path d="M22 6 12 13 2 6"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+        </div>
+        <h3>Correo</h3>
+        <p><a href="mailto:camilo_rodriguezva@fet.edu.co">camilo_rodriguezva@fet.edu.co</a></p>
+      </div>
+      <div class="ac-quick-card">
+        <div class="ac-quick-icon">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </div>
+        <h3>Teléfono</h3>
+        <p><a href="tel:+573138597041">+57 313 8597041</a></p>
+      </div>
+      <div class="ac-quick-card">
+        <div class="ac-quick-icon">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <h3>Ubicación</h3>
+        <p>Neiva, Huila</p>
+      </div>
+      <div class="ac-quick-card">
+        <div class="ac-quick-icon">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <h3>Horario</h3>
+        <p>Lun. a Vie. · 8:00 a.m. – 5:00 p.m.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FORMULARIO DE CONTACTO -->
+<section id="contacto" class="ac-contact">
+  <div class="container ac-contact-grid">
+    <div class="ac-contact-info">
+      <h2 class="section-title section-title-left">Escríbenos</h2>
+      <p class="ac-contact-text">
+        Cuéntanos qué pasó o qué necesitas &mdash; un producto que no aparece,
+        un error al escanear, una duda sobre tu cuenta &mdash; y te respondemos
+        directo a tu correo.
+      </p>
+    </div>
+
+    <form class="ac-form" id="formContacto" novalidate>
+      <div class="field">
+        <input type="text" id="acNombre" placeholder="NOMBRE COMPLETO" autocomplete="off"/>
+      </div>
+      <div class="field">
+        <input type="email" id="acCorreo" placeholder="CORREO ELECTRÓNICO" autocomplete="off"/>
+      </div>
+      <div class="field">
+        <select id="acMotivo">
+          <option value="" disabled selected>MOTIVO DE CONTACTO</option>
+          <option value="Soporte con el escaneo">Soporte con el escaneo</option>
+          <option value="Problema con mi cuenta">Problema con mi cuenta</option>
+          <option value="Producto o inventario">Producto o inventario</option>
+          <option value="Sugerencia">Sugerencia</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+      <div class="field field-textarea">
+        <textarea id="acMensaje" rows="5" placeholder="CUÉNTANOS QUÉ NECESITAS..."></textarea>
+      </div>
+      <button type="submit" class="btn-login" id="acEnviar">Enviar mensaje</button>
+      <p class="ac-form-note" id="acNota">Al enviar, se abrirá tu cliente de correo con el mensaje ya redactado para <strong>camilo_rodriguezva@fet.edu.co</strong>.</p>
+      <div class="err" id="acErr">Por favor completa todos los campos.</div>
+
+      <div class="ac-fallback" id="acFallback">
+        <p class="ac-fallback-title">✅ Tu mensaje quedó listo</p>
+        <p class="ac-fallback-text">
+          Si no se abrió automáticamente tu programa de correo (Outlook, Mail, etc.),
+          es porque tu computador no tiene uno configurado. No hay problema: copia el
+          mensaje y pégalo en tu correo web (Gmail, Outlook.com...) dirigido a
+          <strong>camilo_rodriguezva@fet.edu.co</strong>.
+        </p>
+        <textarea class="ac-fallback-box" id="acFallbackTexto" readonly rows="7"></textarea>
+        <div class="ac-fallback-actions">
+          <button type="button" class="btn-copiar" id="acCopiar">Copiar mensaje</button>
+          <span class="ac-copiado" id="acCopiado">¡Copiado!</span>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- EQUIPO -->
+<section class="ac-team">
+  <div class="container">
+    <h2 class="section-title">¿Quién está detrás de CAPCOB?</h2>
+    <p class="ac-team-intro">Un proyecto hecho por dos estudiantes que querían que llevar el inventario fuera tan fácil como escanear un código.</p>
+    <div class="ac-team-grid">
+
+      <div class="ac-team-card">
+        <div class="ac-team-avatar">S</div>
+        <h3>Sebastián</h3>
+        <span class="ac-team-role">Desarrollador</span>
+        <p>Encargado del diseño de la interfaz y de que cada pantalla de CAPCOB se vea y se sienta parte de una sola aplicación.</p>
+      </div>
+
+      <div class="ac-team-card">
+        <div class="ac-team-avatar">C</div>
+        <h3>Camilo</h3>
+        <span class="ac-team-role">Desarrollador</span>
+        <p>Encargado de la lógica del sistema: el escaneo de códigos, el inventario y el registro de ventas.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3>CAPCOP</h3>
+        <p>Gestión inteligente de productos con códigos de barras y QR.</p>
+      </div>
+      <div class="footer-section">
+        <h3>Enlaces Rápidos</h3>
+        <ul>
+          <li><a href="/frontend/paginas/pagina-principal/index.html">Pagina Principal</a></li>
+          <li><a href="/frontend/paginas/login/login.html">Inicio Sesion</a></li>
+          <li><a href="#contacto">Escríbenos</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h3>Contacto</h3>
+        <ul>
+          <li>camilo_rodriguezva@fet.edu.co</li>
+          <li>+57 313 8597041</li>
+          <li>Neiva Huila</li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h3>Síguenos</h3>
+        <div class="social-links">
+          <a href="https://www.fet.edu.co/" target="_blank">FET</a>
+        </div>
+      </div>
+    </div>
+    <div class="copyright">
+      <p>@ 2024 CAPCOP. Todos los derechos reservados.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="/frontend/paginas/atencion-al-cliente/atencion-al-cliente.js"></script>
+</body>
+</html>
