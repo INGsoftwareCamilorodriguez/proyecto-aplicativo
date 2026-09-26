@@ -60,6 +60,7 @@ header {
   color: #fff;
   cursor: pointer;
   user-select: none;
+  margin-left: 40px;
 }
 .logo img { height: 34px; width: auto; }
 

@@ -50,15 +50,18 @@ header {
 }
 
 .logo {
-  font-weight: bold;
+  font-weight: 800;
+  font-size: 1.4rem;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   color: #fff;
   cursor: pointer;
   transition: color 0.3s ease;
   user-select: none;
+  margin-left: 40px;
 }
+.logo img { height: 34px; width: auto; }
 
 nav ul {
   display: flex;
