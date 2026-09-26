@@ -15,7 +15,7 @@ public class GenerarContrasena {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         // Si se pasa un argumento por línea de comandos se usa ese; si no,
         // se usa el valor de abajo (cámbialo por la contraseña que quieras).
-        String passwordPlano = args.length > 0 ? args[0] : "51millones2024";
+        String passwordPlano = args.length > 0 ? args[0] : "elingeniero";
         String hash = encoder.encode(passwordPlano);
         System.out.println("Contraseña: " + passwordPlano);
         System.out.println("Hash generado: " + hash);
