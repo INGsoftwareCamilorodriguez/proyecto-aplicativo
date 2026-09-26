@@ -27,10 +27,24 @@
   // (más abajo). Sigue aplicando el login único (un solo dispositivo a la
   // vez), controlado por el backend en AuthController, sin importar el rol.
   const INACTIVIDAD_MINUTOS_POR_ROL = {
-    'Administrador': 15,
-    'Empleado': 5
+    'Administrador': 30,
+    'Empleado': 15
   };
   const REVISAR_INACTIVIDAD_CADA_MS = 30 * 1000; // revisa cada 30 segundos
+
+  // Cuántos minutos antes de cerrar la sesión se muestra el aviso obligatorio
+  // (aplica igual para Administrador y Empleado).
+  const MINUTOS_AVISO_ANTES_DE_CERRAR = 5;
+
+  // true mientras el aviso está en pantalla esperando respuesta. Mientras esté
+  // en true: (1) ningún evento de "actividad" cuenta (ni siquiera hacer clic
+  // en el aviso), y (2) revisarInactividad() no cierra la sesión sola, para
+  // darle tiempo a la persona a responder.
+  let avisoActivo = false;
+  // Evita volver a mostrar el aviso repetidas veces mientras siguen faltando
+  // 5 minutos o menos (solo se vuelve a mostrar tras "Continuar conectado"
+  // o tras un cierre/reinicio de sesión).
+  let avisoYaMostrado = false;
 
   // Qué cuenta como "actividad" según el rol. Al Empleado (caja de escaneo)
   // solo le cuentan clics y teclas — mover el mouse o hacer scroll NO reinicia
@@ -57,12 +71,16 @@
   }
 
   let ultimaActividad = Date.now();
-  function marcarActividad() { ultimaActividad = Date.now(); }
+  function marcarActividad() {
+    ultimaActividad = Date.now();
+    avisoYaMostrado = false; // hubo actividad real: el aviso puede volver a salir más adelante
+  }
 
   const rolActual = sessionStorage.getItem('rol');
   const eventosParaEsteRol = EVENTOS_ACTIVIDAD_POR_ROL[rolActual] || EVENTOS_ACTIVIDAD_POR_ROL['Administrador'];
   eventosParaEsteRol.forEach(evento => {
     document.addEventListener(evento, function (e) {
+      if (avisoActivo) return; // el aviso está en pantalla: nada cuenta como actividad
       if (rolActual === 'Empleado' && !esInteraccionRealDeEmpleado(e)) return;
       marcarActividad();
     }, { passive: true });
@@ -109,6 +127,60 @@
     }
   }
 
+  // ── Modal obligatorio "se va a cerrar tu sesión" ──────────────────────
+  // Se crea una sola vez y se reutiliza. No tiene botón de cerrar ni se
+  // puede quitar haciendo clic afuera: hay que elegir una de las dos
+  // opciones sí o sí.
+  let elementoAviso = null;
+  function crearElementoAviso() {
+    const overlay = document.createElement('div');
+    overlay.id = 'capcob-aviso-inactividad';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:999999;display:flex;align-items:center;justify-content:center;font-family:inherit;';
+
+    const caja = document.createElement('div');
+    caja.style.cssText = 'background:#fff;border-radius:10px;max-width:380px;width:90%;padding:24px;box-shadow:0 10px 30px rgba(0,0,0,0.3);text-align:center;';
+    caja.innerHTML =
+      '<h3 style="margin:0 0 12px;color:#1F2937;">Tu sesión está por cerrarse</h3>' +
+      '<p style="margin:0 0 20px;color:#4B5563;">Han pasado varios minutos sin actividad. Si no respondes, la sesión se cerrará por inactividad.</p>' +
+      '<div style="display:flex;gap:10px;justify-content:center;">' +
+      '<button type="button" id="capcob-aviso-extender" style="flex:1;padding:10px;border:none;border-radius:6px;background:#1F8A2B;color:#fff;font-weight:600;cursor:pointer;">Continuar conectado</button>' +
+      '<button type="button" id="capcob-aviso-ignorar" style="flex:1;padding:10px;border:none;border-radius:6px;background:#E5E7EB;color:#374151;font-weight:600;cursor:pointer;">Ignorar</button>' +
+      '</div>';
+
+    overlay.appendChild(caja);
+    // Evita que un clic en el fondo oscuro cierre el aviso o cuente como actividad.
+    overlay.addEventListener('click', function (e) { e.stopPropagation(); });
+
+    overlay.querySelector('#capcob-aviso-extender').addEventListener('click', function (e) {
+      e.stopPropagation();
+      ultimaActividad = Date.now(); // vuelve al tiempo de inicio, como si acabara de haber actividad
+      avisoYaMostrado = false;
+      ocultarAvisoInactividad();
+    });
+    overlay.querySelector('#capcob-aviso-ignorar').addEventListener('click', function (e) {
+      e.stopPropagation();
+      // No se toca ultimaActividad: si la persona sigue sin hacer nada,
+      // la próxima revisión cierra la sesión.
+      ocultarAvisoInactividad();
+    });
+
+    document.body.appendChild(overlay);
+    return overlay;
+  }
+
+  function mostrarAvisoInactividad() {
+    if (avisoActivo) return;
+    avisoActivo = true;
+    avisoYaMostrado = true;
+    if (!elementoAviso) elementoAviso = crearElementoAviso();
+    elementoAviso.style.display = 'flex';
+  }
+
+  function ocultarAvisoInactividad() {
+    avisoActivo = false;
+    if (elementoAviso) elementoAviso.style.display = 'none';
+  }
+
   function revisarInactividad() {
     const rol = sessionStorage.getItem('rol');
     const userId = sessionStorage.getItem('userId');
@@ -118,8 +190,18 @@
     if (!limiteMinutos) return; // rol sin límite configurado
 
     const minutosInactivo = (Date.now() - ultimaActividad) / 60000;
-    if (minutosInactivo >= limiteMinutos) {
+    const minutosRestantes = limiteMinutos - minutosInactivo;
+
+    if (minutosRestantes <= 0) {
+      if (avisoActivo) ocultarAvisoInactividad();
       cerrarSesionPorInactividad();
+      return;
+    }
+
+    if (avisoActivo) return; // esperando respuesta: no cerrar todavía
+
+    if (minutosRestantes <= MINUTOS_AVISO_ANTES_DE_CERRAR && !avisoYaMostrado) {
+      mostrarAvisoInactividad();
     }
   }
 
@@ -177,4 +259,3 @@
   setInterval(enviarLatido, HEARTBEAT_INTERVALO_MS);
   setInterval(revisarInactividad, REVISAR_INACTIVIDAD_CADA_MS);
 })();
-
