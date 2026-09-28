@@ -16,56 +16,172 @@
   <!-- ══ MAIN ══ -->
   <main class="main">
 
-    <!-- Header -->
+    <!-- Encabezado -->
     <div class="header-row">
       <div>
-        <div class="page-title">Ver inventario</div>
-        <div class="page-sub">Consulta el inventario actual de productos por paquete.</div>
+        <div class="page-title" id="tituloPagina">Ver inventario</div>
+        <div class="page-sub" id="subPagina">Consulta, analiza y compara tus productos por paquete.</div>
       </div>
-      <div class="logo-badge">
-        <div class="licon">
-          <img src="/frontend/assets/imagenes/logo-capcob.png" alt="CAPCOB logo" style="width:38px;height:auto;"/>
+      <div class="header-right">
+        <button type="button" class="btn-comparar" id="btnComparar">Comparar</button>
+        <div class="logo-badge">
+          <div class="licon">
+            <img src="/frontend/assets/imagenes/logo-capcob.png" alt="CAPCOB logo" style="width:38px;height:auto;"/>
+          </div>
+          CAPCOB
         </div>
-        CAPCOB
       </div>
     </div>
 
-    <!-- Paquetes -->
-    <div class="card">
-      <div class="card-title">Paquetes</div>
-      <div class="paquetes-row" id="paquetesRow">
-        <span class="empty-hint">Cargando paquetes...</span>
+    <div class="vista" id="vistaInventario">
+
+    <!-- Buscador y filtros -->
+    <div class="inv-filters">
+      <label class="inv-search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="buscador" placeholder="Buscar por nombre o código de barras" autocomplete="off"/>
+      </label>
+
+      <div class="inv-filter">
+        <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        <span class="inv-filter-txt">
+          <small>Paquete</small>
+          <select id="filtroPaquete"><option value="">Todos</option></select>
+        </span>
+      </div>
+
+      <div class="inv-filter">
+        <svg viewBox="0 0 24 24"><path d="M12 2v6"/><path d="M8 8h8"/><path d="M9 8v4a3 3 0 0 0 6 0V8"/><path d="M12 15v7"/></svg>
+        <span class="inv-filter-txt">
+          <small>Estado</small>
+          <select id="filtroEstado">
+            <option value="">Todos</option>
+            <option value="disponible">Disponible</option>
+            <option value="bajo">Bajo stock</option>
+            <option value="agotado">Agotado</option>
+          </select>
+        </span>
+      </div>
+
+      <div class="inv-filter">
+        <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        <span class="inv-filter-txt">
+          <small>Tipo</small>
+          <select id="filtroTipo">
+            <option value="">Todos</option>
+            <option value="FIJO">Fijo</option>
+            <option value="PESO">Por peso</option>
+          </select>
+        </span>
+      </div>
+
+      <div class="inv-filter">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span class="inv-filter-txt">
+          <small>Precio</small>
+          <select id="filtroPrecio">
+            <option value="">Todos</option>
+            <option value="0-5000">Hasta $5.000</option>
+            <option value="5000-20000">$5.000 – $20.000</option>
+            <option value="20000-100000">$20.000 – $100.000</option>
+            <option value="100000-">Más de $100.000</option>
+          </select>
+        </span>
       </div>
     </div>
 
-    <!-- Inventario -->
-    <div class="card">
-      <div class="card-title" id="inventarioTitle">Inventario actual</div>
-      <p class="empty-hint" id="sinPaqueteHint">Selecciona un paquete arriba para ver su inventario.</p>
-      <table class="act-table" id="inventarioTable" style="display:none;">
-        <thead>
-          <tr><th>Producto</th><th>Tipo</th><th>Cantidad</th><th>Precio</th><th>Estado</th><th></th></tr>
-        </thead>
-        <tbody id="inventarioBody"></tbody>
-      </table>
-      <p class="empty-hint" id="sinProductosHint" style="display:none;">Este paquete todavía no tiene productos.</p>
+    <!-- Tarjetas resumen (clic para filtrar por estado) -->
+    <div class="inv-stats">
+      <button type="button" class="inv-stat inv-stat-blue" data-estado="">
+        <span class="inv-stat-icon"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span>
+        <span><span class="inv-stat-label">Productos</span><span class="inv-stat-value" id="statTotal">0</span></span>
+      </button>
+      <button type="button" class="inv-stat inv-stat-green" data-estado="disponible">
+        <span class="inv-stat-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+        <span><span class="inv-stat-label">Disponibles</span><span class="inv-stat-value" id="statDisponibles">0</span></span>
+      </button>
+      <button type="button" class="inv-stat inv-stat-amber" data-estado="bajo">
+        <span class="inv-stat-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+        <span><span class="inv-stat-label">Bajo stock</span><span class="inv-stat-value" id="statBajo">0</span></span>
+      </button>
+      <button type="button" class="inv-stat inv-stat-red" data-estado="agotado">
+        <span class="inv-stat-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+        <span><span class="inv-stat-label">Agotados</span><span class="inv-stat-value" id="statAgotados">0</span></span>
+      </button>
+    </div>
+
+    <!-- Tabla de inventario -->
+    <div class="inv-table-card">
+      <div class="inv-table-wrap">
+        <table class="inv-table" id="inventarioTable">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Paquete</th>
+              <th>Tipo</th>
+              <th>Cantidad</th>
+              <th>Precio</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="inventarioBody"></tbody>
+        </table>
+      </div>
+      <p class="empty-hint" id="inventarioVacio" style="display:none;"></p>
+
+      <div class="inv-footer">
+        <span class="inv-count" id="conteoTexto"></span>
+        <div class="inv-pager" id="paginacion"></div>
+      </div>
+    </div>
+
+    </div><!-- /vistaInventario -->
+
+    <!-- ══ VISTA COMPARAR ══ -->
+    <div class="vista" id="vistaComparar" hidden>
+      <div class="cmp-top">
+        <div class="cmp-titulo">¿Qué deseas comparar?</div>
+        <div class="cmp-modos">
+          <button type="button" class="cmp-modo active" data-modo="productos">Productos</button>
+          <button type="button" class="cmp-modo" data-modo="paquetes">Paquetes</button>
+        </div>
+        <div class="cmp-regla" id="cmpRegla"></div>
+        <div class="inv-filter cmp-paquete" id="cmpPaqueteWrap">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          <span class="inv-filter-txt">
+            <small>Paquete</small>
+            <select id="cmpPaquete"></select>
+          </span>
+        </div>
+      </div>
+
+      <div class="cmp-grid">
+        <div class="cmp-card cmp-a" id="cmpCardA"></div>
+        <div class="cmp-card cmp-b" id="cmpCardB"></div>
+      </div>
+
+      <div class="cmp-result" id="cmpResultado"></div>
     </div>
 
   </main>
 </div>
 
-<!-- Modal código de barras -->
+<!-- Modal detalle + código de barras -->
 <div class="modal-overlay hidden" id="modalCodigo">
   <div class="modal-box">
     <div class="card-title" id="modalCodigoNombre">Código de barras</div>
     <span class="barcode-tipo" id="modalCodigoTipo"></span>
     <div class="barcode-visual" id="modalCodigoValor"></div>
-    <div id="modalCodigoPrecio" style="font-size:.82rem;color:var(--muted);"></div>
+    <dl class="modal-detalle" id="modalCodigoDetalle"></dl>
     <div class="modal-actions">
       <button class="modal-confirm" id="btnCerrarModalCodigo">Cerrar</button>
     </div>
   </div>
 </div>
+
+<!-- Aviso temporal -->
+<div class="inv-toast" id="invToast"></div>
 
 <script src="/frontend/assets/js/api-config.js"></script>
 <script src="/frontend/assets/js/session-heartbeat.js"></script>
