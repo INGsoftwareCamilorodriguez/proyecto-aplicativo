@@ -95,7 +95,13 @@
       const res = await fetch(API_BASE_URL + '/auth/heartbeat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: Number(userId), token })
+        // segundosInactivo: lo usa la pantalla "Anuncios" del Administrador para saber
+        // cuánto lleva esta persona sin interactuar.
+        body: JSON.stringify({
+          id: Number(userId),
+          token,
+          segundosInactivo: Math.max(0, Math.floor((Date.now() - ultimaActividad) / 1000))
+        })
       });
 
       if (res.status === 409) {

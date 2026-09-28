@@ -60,7 +60,7 @@
     return;
   }
 
-  const esPaginaUsuarios = ruta.includes('gestion-usuario');
+  const esPaginaUsuarios = ruta.includes('gestion-usuario') || ruta.includes('anuncios');
   if (esPaginaUsuarios && rol !== 'Administrador') {
     window.location.href = "/frontend/paginas/inicio/inicio.html";
     return;

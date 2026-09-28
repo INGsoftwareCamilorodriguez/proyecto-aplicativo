@@ -39,6 +39,12 @@ const MENU_ITEMS = [
     label: "Usuario",
     icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
     requiereRol: "Administrador" // solo el Administrador ve esta opción en el menú
+  },
+  {
+    href: "/frontend/paginas/anuncios/anuncios.html",
+    label: "Anuncios",
+    icon: '<path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
+    requiereRol: "Administrador" // conectados en tiempo real y mensajes a empleados
   }
 ];
 

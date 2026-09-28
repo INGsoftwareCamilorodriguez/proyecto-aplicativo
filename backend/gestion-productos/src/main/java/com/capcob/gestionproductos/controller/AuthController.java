@@ -111,6 +111,7 @@ public class AuthController {
         String token = (dispositivoId != null ? dispositivoId : "sin-dispositivo") + "." + UUID.randomUUID();
         usuario.setSesionToken(token);
         usuario.setSesionExpiraEn(ahora.plusSeconds(SESION_TIMEOUT_SEGUNDOS));
+        usuario.setUltimaActividad(ahora); // recién entró: cuenta como actividad
         usuarioRepository.save(usuario);
 
         LoginResponse response = new LoginResponse(
@@ -193,7 +194,15 @@ public class AuthController {
             return ResponseEntity.status(409).body(Map.of("mensaje", "Tu sesión ya no está activa."));
         }
 
-        usuario.setSesionExpiraEn(ahoraUtc().plusSeconds(SESION_TIMEOUT_SEGUNDOS));
+        LocalDateTime ahora = ahoraUtc();
+        usuario.setSesionExpiraEn(ahora.plusSeconds(SESION_TIMEOUT_SEGUNDOS));
+
+        // El frontend dice cuántos segundos lleva sin interactuar; aquí lo convertimos
+        // en la hora de la última actividad. Se limita a 1 día por si llega un valor raro.
+        Integer segundosInactivo = request.getSegundosInactivo();
+        if (segundosInactivo != null && segundosInactivo >= 0) {
+            usuario.setUltimaActividad(ahora.minusSeconds(Math.min(segundosInactivo, 86400)));
+        }
         usuarioRepository.save(usuario);
 
         return ResponseEntity.ok().build();

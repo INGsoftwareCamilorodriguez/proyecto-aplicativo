@@ -49,6 +49,12 @@ public class Usuario {
     @Column(name = "sesion_expira_en")
     private LocalDateTime sesionExpiraEn;
 
+    // Última vez que la persona hizo algo real en pantalla (clic/tecla). El frontend
+    // manda "segundosInactivo" en cada latido y aquí se guarda como una hora (UTC).
+    // Lo usa la pantalla "Anuncios" del Administrador para detectar empleados inactivos.
+    @Column(name = "ultima_actividad")
+    private LocalDateTime ultimaActividad;
+
     @Column(name = "fecha_creacion", updatable = false, insertable = false)
     private LocalDateTime fechaCreacion;
 

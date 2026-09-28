@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CAPCOB - Anuncios</title>
+  <link rel="stylesheet" href="/frontend/paginas/anuncios/anuncios.css">
+  <link rel="stylesheet" href="/frontend/assets/css/tema-panel.css">
+  <script src="/frontend/assets/js/tema-panel.js"></script>
+</head>
+<body>
+<script src="/frontend/assets/js/guardian-dashboard.js"></script>
+<div class="layout">
+
+  <!-- ══ SIDEBAR ══ -->
+  <div id="sidebar-root"></div>
+
+  <!-- ══ MAIN ══ -->
+  <main class="main">
+
+    <!-- Header -->
+    <div class="header-row">
+      <div class="title-wrap">
+        <div class="page-title">Anuncios</div>
+        <div class="page-sub">Mira quién está conectado en este momento y envíale mensajes a tus empleados.</div>
+      </div>
+      <div class="logo-badge">
+        <img src="/frontend/assets/imagenes/logo-capcob.png" alt="CAPCOB logo"/>
+        CAPCOB
+      </div>
+    </div>
+
+    <!-- Estado de la conexión en vivo -->
+    <div class="live-bar">
+      <span class="live-dot" id="liveDot"></span>
+      <span id="liveText">Conectando…</span>
+    </div>
+
+    <!-- Resumen -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num" id="statConectados">0</div>
+        <div class="stat-label">Empleados conectados</div>
+      </div>
+      <div class="stat-card warn" id="statInactivosCard">
+        <div class="stat-num" id="statInactivos">0</div>
+        <div class="stat-label" id="statInactivosLabel">Sin interacciones</div>
+      </div>
+    </div>
+
+    <!-- Empleados conectados -->
+    <div class="table-card">
+      <div class="card-head">
+        <h3>Empleados conectados</h3>
+        <span class="card-sub">Se actualiza solo, no necesitas recargar la página</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Empleado</th>
+            <th>Estado</th>
+            <th>Última interacción</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="listaBody"></tbody>
+      </table>
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <strong>No hay empleados conectados ahora mismo</strong>
+        Cuando un empleado inicie sesión en la caja, aparecerá aquí.
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Avisos emergentes -->
+<div id="toasts"></div>
+
+<!-- Modal enviar mensaje -->
+<div class="modal-overlay" id="modalMsg">
+  <div class="modal">
+    <button class="modal-close" id="msgCerrar" title="Cerrar">✕</button>
+    <h3>Enviar mensaje</h3>
+    <div class="modal-para" id="msgPara">Para: </div>
+
+    <div class="frases" id="msgFrases">
+      <button type="button" class="frase">¿Todo bien por ahí?</button>
+      <button type="button" class="frase">Recuerda mantener la caja atendida.</button>
+      <button type="button" class="frase">Por favor ven a la oficina.</button>
+    </div>
+
+    <textarea id="msgTexto" maxlength="500" placeholder="Escribe tu mensaje…"></textarea>
+    <div class="msg-meta">
+      <span class="msg-error" id="msgError"></span>
+      <span id="msgContador">0 / 500</span>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" id="msgCancelar">Cancelar</button>
+      <button class="btn-save" id="msgEnviar">Enviar</button>
+    </div>
+  </div>
+</div>
+
+<script src="/frontend/assets/js/api-config.js"></script>
+<script src="/frontend/assets/js/session-heartbeat.js"></script>
+<script src="/frontend/assets/js/tema-marca.js"></script>
+<script src="/frontend/paginas/anuncios/anuncios.js"></script>
+<script src="/frontend/assets/js/sidebar.js"></script>
+<script src="/frontend/assets/js/asistente.js"></script>
+</body>
+</html>
