@@ -28,6 +28,8 @@ let ventaPorUnidadActual = true;
 let ventaPorPaqueteActual = false;
 let editandoProductoId = null;
 let imagenActual = null;          // data URL de la foto del producto (o null)
+const PRODUCTOS_POR_PAGINA = 5;
+let paginaProductos = 1;
 let todosLosProductos = null;     // caché para el buscador (todos los paquetes)
 
 // ── Elementos ───────────────────────────────────────────────
@@ -37,10 +39,15 @@ const productoForm = document.getElementById('productoForm');
 const formTitle = document.getElementById('formTitle');
 const formMsg = document.getElementById('formMsg');
 const productosCard = document.getElementById('productosCard');
+const sinProductosCard = document.getElementById('sinProductosCard');
 const productosTitle = document.getElementById('productosTitle');
 const productosBody = document.getElementById('productosBody');
 const sinProductosHint = document.getElementById('sinProductosHint');
 const btnEliminarPaquete = document.getElementById('btnEliminarPaquete');
+const paginacionEl = document.getElementById('paginacion');
+const pagInfo = document.getElementById('pagInfo');
+const btnPagAnterior = document.getElementById('btnPagAnterior');
+const btnPagSiguiente = document.getElementById('btnPagSiguiente');
 const btnCancelarEdicion = document.getElementById('btnCancelarEdicion');
 
 const optFijo = document.getElementById('optFijo');
@@ -124,7 +131,7 @@ async function cargarPaquetes() {
     paquetes = await apiFetch('/paquetes');
     renderPaquetes();
   } catch (e) {
-    paquetesRow.innerHTML = '<span class="empty-hint">No se pudieron cargar los paquetes: ' + e.message + '</span>';
+    paquetesRow.innerHTML = '<span class="empty-hint">No se pudieron cargar las categorías: ' + e.message + '</span>';
   }
 }
 
@@ -134,7 +141,7 @@ function renderPaquetes() {
   if (paquetes.length === 0) {
     const hint = document.createElement('span');
     hint.className = 'empty-hint';
-    hint.textContent = 'Todavía no hay paquetes creados.';
+    hint.textContent = 'Todavía no hay categorías creadas.';
     paquetesRow.appendChild(hint);
   }
 
@@ -148,7 +155,7 @@ function renderPaquetes() {
 
   const nuevo = document.createElement('div');
   nuevo.className = 'paquete-pill-nueva';
-  nuevo.textContent = '+ Nuevo paquete';
+  nuevo.textContent = '+ Nueva categoría';
   nuevo.addEventListener('click', abrirModalPaquete);
   paquetesRow.appendChild(nuevo);
 }
@@ -156,6 +163,7 @@ function renderPaquetes() {
 // ── Seleccionar paquete ─────────────────────────────────────
 async function seleccionarPaquete(id) {
   paqueteSeleccionadoId = id;
+  paginaProductos = 1;
   renderPaquetes();
   cancelarEdicion();
 
@@ -164,6 +172,7 @@ async function seleccionarPaquete(id) {
   productoForm.style.display = 'flex';
   formTitle.textContent = 'Nuevo producto en "' + paquete.nombre + '"';
   productosCard.style.display = 'block';
+  sinProductosCard.style.display = 'none';
   productosTitle.textContent = 'Productos de "' + paquete.nombre + '"';
   buscarProductoInput.value = '';
   ocultarResultadosBusqueda();
@@ -185,14 +194,21 @@ async function cargarProductosDelPaquete(paqueteId) {
 function renderProductos() {
   productosBody.innerHTML = '';
 
+  const total = productosDelPaquete.length;
+  const totalPaginas = Math.max(1, Math.ceil(total / PRODUCTOS_POR_PAGINA));
+  if (paginaProductos > totalPaginas) paginaProductos = totalPaginas;
+  if (paginaProductos < 1) paginaProductos = 1;
+  renderPaginacion(total, totalPaginas);
+
   if (productosDelPaquete.length === 0) {
     sinProductosHint.style.display = 'block';
-    sinProductosHint.textContent = 'Este paquete todavía no tiene productos.';
+    sinProductosHint.textContent = 'Esta categoría todavía no tiene productos.';
     return;
   }
   sinProductosHint.style.display = 'none';
 
-  productosDelPaquete.forEach(prod => {
+  const inicio = (paginaProductos - 1) * PRODUCTOS_POR_PAGINA;
+  productosDelPaquete.slice(inicio, inicio + PRODUCTOS_POR_PAGINA).forEach(prod => {
     const tr = document.createElement('tr');
 
     const precioTexto = textoPrecioProducto(prod);
@@ -327,7 +343,7 @@ document.getElementById('btnGuardar').addEventListener('click', async () => {
   const unidadesPorPaqueteTexto = unidadesPorPaqueteInput.value;
 
   if (!paqueteSeleccionadoId) {
-    mostrarMsg(formMsg, 'Selecciona un paquete primero.', 'error');
+    mostrarMsg(formMsg, 'Selecciona una categoría primero.', 'error');
     return;
   }
   if (!nombre || cantidadTexto === '') {
@@ -562,7 +578,26 @@ imagenPreview.addEventListener('drop', (e) => {
   procesarArchivoImagen(e.dataTransfer.files && e.dataTransfer.files[0]);
 });
 
-// ── Buscador de productos (todos los paquetes) ───────────────
+// ── Paginación de la tabla (5 productos por página) ───────────
+function renderPaginacion(total, totalPaginas) {
+  if (total <= PRODUCTOS_POR_PAGINA) {
+    paginacionEl.style.display = 'none';
+    return;
+  }
+  paginacionEl.style.display = 'flex';
+  pagInfo.textContent = 'Página ' + paginaProductos + ' de ' + totalPaginas;
+  btnPagAnterior.disabled = paginaProductos <= 1;
+  btnPagSiguiente.disabled = paginaProductos >= totalPaginas;
+}
+btnPagAnterior.addEventListener('click', () => {
+  if (paginaProductos > 1) { paginaProductos--; renderProductos(); }
+});
+btnPagSiguiente.addEventListener('click', () => {
+  paginaProductos++;
+  renderProductos();
+});
+
+// ── Buscador de productos (solo la categoría seleccionada) ───────────────
 async function obtenerTodosLosProductos() {
   if (!todosLosProductos) {
     todosLosProductos = await apiFetch('/productos');
@@ -577,17 +612,15 @@ function ocultarResultadosBusqueda() {
 
 async function buscarCoincidencias(texto) {
   const q = texto.trim().toLowerCase();
-  if (!q) return [];
-  const todos = await obtenerTodosLosProductos();
-  return todos.filter(p =>
+  if (!q || !paqueteSeleccionadoId) return [];
+  return productosDelPaquete.filter(p =>
     (p.nombre || '').toLowerCase().includes(q) ||
-    (p.codigoBarras || '').toLowerCase().includes(q) ||
-    (p.paqueteNombre || '').toLowerCase().includes(q)
+    (p.codigoBarras || '').toLowerCase().includes(q)
   );
 }
 
 async function renderResultadosBusqueda(texto) {
-  if (!texto.trim()) { ocultarResultadosBusqueda(); return; }
+  if (!texto.trim() || !paqueteSeleccionadoId) { ocultarResultadosBusqueda(); return; }
 
   let coincidencias;
   try {
@@ -602,7 +635,7 @@ async function renderResultadosBusqueda(texto) {
   if (coincidencias.length === 0) {
     const vacio = document.createElement('div');
     vacio.className = 'buscar-resultado-vacio';
-    vacio.textContent = 'Ningún producto coincide con esa búsqueda.';
+    vacio.textContent = 'Ningún producto de esta categoría coincide con esa búsqueda.';
     buscarResultados.appendChild(vacio);
   } else {
     coincidencias.slice(0, 30).forEach(prod => {
@@ -616,7 +649,7 @@ async function renderResultadosBusqueda(texto) {
       nombre.textContent = prod.nombre;
       const detalle = document.createElement('div');
       detalle.className = 'detalle';
-      detalle.textContent = [prod.paqueteNombre, textoPrecioProducto(prod), prod.codigoBarras].filter(Boolean).join(' · ');
+      detalle.textContent = [textoPrecioProducto(prod), prod.codigoBarras].filter(Boolean).join(' · ');
       info.appendChild(nombre);
       info.appendChild(detalle);
 
@@ -681,7 +714,7 @@ async function eliminarProducto(id) {
 btnEliminarPaquete.addEventListener('click', async () => {
   if (!paqueteSeleccionadoId) return;
   const paquete = paquetes.find(p => p.id === paqueteSeleccionadoId);
-  if (!confirm('¿Eliminar el paquete "' + paquete.nombre + '" y todos sus productos?')) return;
+  if (!confirm('¿Eliminar la categoría "' + paquete.nombre + '" y todos sus productos?')) return;
 
   try {
     await apiFetch('/paquetes/' + paqueteSeleccionadoId, { method: 'DELETE' });
@@ -689,13 +722,14 @@ btnEliminarPaquete.addEventListener('click', async () => {
     paqueteSeleccionadoId = null;
     productoForm.style.display = 'none';
     productosCard.style.display = 'none';
+    sinProductosCard.style.display = 'flex';
     buscarProductoInput.value = '';
     ocultarResultadosBusqueda();
     sinPaqueteHint.style.display = 'block';
     await cargarPaquetes();
     cargarHistorial();
   } catch (e) {
-    alert('No se pudo eliminar el paquete: ' + e.message);
+    alert('No se pudo eliminar la categoría: ' + e.message);
   }
 });
 
@@ -713,7 +747,7 @@ document.getElementById('btnConfirmarPaquete').addEventListener('click', async (
   const descripcion = document.getElementById('nuevoPaqueteDescripcion').value.trim();
 
   if (!nombre) {
-    mostrarMsg(modalPaqueteMsg, 'El nombre del paquete es obligatorio.', 'error');
+    mostrarMsg(modalPaqueteMsg, 'El nombre de la categoría es obligatorio.', 'error');
     return;
   }
 

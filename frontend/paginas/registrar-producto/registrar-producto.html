@@ -20,7 +20,7 @@
     <div class="header-row">
       <div>
         <div class="page-title">Registrar producto</div>
-        <div class="page-sub">Añade nuevos productos al inventario, organizados por paquetes.</div>
+        <div class="page-sub">Añade nuevos productos al inventario, organizados por categorías.</div>
       </div>
       <div class="logo-badge">
         <div class="licon">
@@ -30,11 +30,11 @@
       </div>
     </div>
 
-    <!-- Paquetes -->
+    <!-- Categorías -->
     <div class="card">
-      <div class="card-title">Paquetes</div>
+      <div class="card-title">Categorías</div>
       <div class="paquetes-row" id="paquetesRow">
-        <span class="empty-hint">Cargando paquetes...</span>
+        <span class="empty-hint">Cargando categorías...</span>
       </div>
     </div>
 
@@ -43,7 +43,7 @@
 
       <div class="card" id="formCard">
         <div class="card-title" id="formTitle">Datos del producto</div>
-        <p class="empty-hint" id="sinPaqueteHint">Selecciona o crea un paquete arriba para empezar a registrar productos.</p>
+        <p class="empty-hint" id="sinPaqueteHint">Selecciona o crea una categoría arriba para empezar a registrar productos.</p>
 
         <form id="productoForm" onsubmit="return false;" class="producto-form-grid" style="display:none;">
           <input type="hidden" id="productoId" value=""/>
@@ -127,7 +127,7 @@
           <input type="text" id="buscarProductoInput" class="form-input" placeholder="Buscar por nombre o código de barras..." autocomplete="off"/>
           <div class="buscar-resultados" id="buscarResultados"></div>
         </div>
-        <p class="modalidad-hint">Busca en todos los paquetes y elige el producto para editarlo en el formulario.</p>
+        <p class="modalidad-hint">Busca solo en la categoría seleccionada y elige el producto para editarlo en el formulario.</p>
 
         <div class="historial-header">
           <div class="card-title" style="margin-bottom:0;">Historial reciente</div>
@@ -137,28 +137,39 @@
 
     </div>
 
-    <!-- Productos del paquete seleccionado -->
+    <!-- Estado vacío: aún no hay categoría seleccionada -->
+    <div class="card sin-productos-card" id="sinProductosCard">
+      <div class="card-title">Productos</div>
+      <p class="sin-productos-texto">No hay productos</p>
+    </div>
+
+    <!-- Productos de la categoría seleccionada -->
     <div class="card" id="productosCard" style="display:none;">
-      <div class="card-title" id="productosTitle">Productos del paquete</div>
+      <div class="card-title" id="productosTitle">Productos de la categoría</div>
       <table class="act-table">
         <thead>
           <tr><th>Producto</th><th>Tipo</th><th>Precio</th><th>Cantidad</th><th>Código</th><th></th></tr>
         </thead>
         <tbody id="productosBody"></tbody>
       </table>
-      <p class="empty-hint" id="sinProductosHint" style="display:none;">Este paquete todavía no tiene productos.</p>
-      <a class="ver-link" id="btnEliminarPaquete" style="color:var(--red);">Eliminar este paquete completo</a>
+      <div class="paginacion" id="paginacion" style="display:none;">
+        <button type="button" class="pag-btn" id="btnPagAnterior">&lsaquo; Anterior</button>
+        <span class="pag-info" id="pagInfo"></span>
+        <button type="button" class="pag-btn" id="btnPagSiguiente">Siguiente &rsaquo;</button>
+      </div>
+      <p class="empty-hint" id="sinProductosHint" style="display:none;">Esta categoría todavía no tiene productos.</p>
+      <a class="ver-link" id="btnEliminarPaquete" style="color:var(--red);">Eliminar esta categoría completa</a>
     </div>
 
   </main>
 </div>
 
-<!-- Modal nuevo paquete -->
+<!-- Modal nueva categoría -->
 <div class="modal-overlay hidden" id="modalPaquete">
   <div class="modal-box">
-    <div class="card-title">Nuevo paquete</div>
+    <div class="card-title">Nueva categoría</div>
     <div>
-      <label class="form-label">NOMBRE DEL PAQUETE</label>
+      <label class="form-label">NOMBRE DE LA CATEGORÍA</label>
       <input type="text" id="nuevoPaqueteNombre" class="form-input" placeholder="Ej: Arroz"/>
     </div>
     <div>
@@ -168,7 +179,7 @@
     <div class="form-msg" id="modalPaqueteMsg"></div>
     <div class="modal-actions">
       <button class="modal-cancel" id="btnCancelarPaquete">Cancelar</button>
-      <button class="modal-confirm" id="btnConfirmarPaquete">Crear paquete</button>
+      <button class="modal-confirm" id="btnConfirmarPaquete">Crear categoría</button>
     </div>
   </div>
 </div>

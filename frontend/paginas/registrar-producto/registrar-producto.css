@@ -728,3 +728,45 @@
   padding-left: 38px;
   background: #fbfaff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") no-repeat 13px center;
 }
+
+
+/* ── Paginación de la tabla de productos ── */
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 14px;
+}
+.pag-info { font-size: .78rem; color: var(--muted); }
+.pag-btn {
+  padding: 7px 14px;
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--text);
+  background: #f3f4f6;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.pag-btn:hover:not(:disabled) { background: #e5e7eb; }
+.pag-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+
+/* ── Estado vacío grande: sin categoría seleccionada ── */
+.sin-productos-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 340px;
+}
+.sin-productos-texto {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #4b5563;
+  text-align: center;
+}
