@@ -55,6 +55,12 @@ public class Producto {
     @Column(name = "unidades_por_paquete")
     private Integer unidadesPorPaquete;
 
+    // Foto del producto (opcional), guardada como data URL (data:image/jpeg;base64,...).
+    // El frontend la reduce a ~480px antes de enviarla para que pese poco.
+    @Lob
+    @Column(name = "imagen")
+    private String imagen;
+
     @Column(name = "codigo_barras", nullable = false, unique = true, length = 20)
     private String codigoBarras;
 

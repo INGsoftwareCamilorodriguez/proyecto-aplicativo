@@ -15,11 +15,14 @@ public class ProductoService {
     private final ProductoRepository productoRepository;
     private final PaqueteService paqueteService;
     private final BarcodeService barcodeService;
+    private final HistorialService historialService;
 
-    public ProductoService(ProductoRepository productoRepository, PaqueteService paqueteService, BarcodeService barcodeService) {
+    public ProductoService(ProductoRepository productoRepository, PaqueteService paqueteService,
+                           BarcodeService barcodeService, HistorialService historialService) {
         this.productoRepository = productoRepository;
         this.paqueteService = paqueteService;
         this.barcodeService = barcodeService;
+        this.historialService = historialService;
     }
 
     public List<ProductoResponse> listarTodos() {
@@ -42,9 +45,12 @@ public class ProductoService {
         aplicarModalidadVenta(producto, request);
         producto.setCantidad(request.getCantidad());
         producto.setCodigoBarras(barcodeService.generarCodigo(request.getTipoPrecio()));
+        producto.setImagen(normalizarImagen(request.getImagen()));
         producto.setActivo(true);
 
-        return toResponse(productoRepository.save(producto));
+        ProductoResponse response = toResponse(productoRepository.save(producto));
+        historialService.registrarProducto("CREADO", response);
+        return response;
     }
 
     public ProductoResponse actualizar(Integer id, ProductoRequest request) {
@@ -60,6 +66,7 @@ public class ProductoService {
         producto.setNombre(request.getNombre());
         aplicarModalidadVenta(producto, request);
         producto.setCantidad(request.getCantidad());
+        producto.setImagen(normalizarImagen(request.getImagen()));
 
         // El código de barras solo se regenera si cambió el tipo de precio
         // (un producto FIJO no puede quedarse con un código de PESO y viceversa)
@@ -68,7 +75,23 @@ public class ProductoService {
             producto.setCodigoBarras(barcodeService.generarCodigo(request.getTipoPrecio()));
         }
 
-        return toResponse(productoRepository.save(producto));
+        ProductoResponse response = toResponse(productoRepository.save(producto));
+        historialService.registrarProducto("EDITADO", response);
+        return response;
+    }
+
+    // La imagen es opcional. Si viene, debe ser una imagen en formato data URL y no pasar de ~1.5 MB.
+    private String normalizarImagen(String imagen) {
+        if (imagen == null || imagen.isBlank()) {
+            return null;
+        }
+        if (!imagen.startsWith("data:image/")) {
+            throw new IllegalArgumentException("La imagen no tiene un formato válido");
+        }
+        if (imagen.length() > 2_000_000) {
+            throw new IllegalArgumentException("La imagen es demasiado pesada");
+        }
+        return imagen;
     }
 
     // Valida que la combinación de modalidad de venta tenga sentido antes de guardar.
@@ -134,6 +157,7 @@ public class ProductoService {
         Producto producto = obtenerActivo(id);
         producto.setActivo(false);
         productoRepository.save(producto);
+        historialService.registrarProducto("ELIMINADO", toResponse(producto));
     }
 
     private Producto obtenerActivo(Integer id) {
@@ -158,7 +182,8 @@ public class ProductoService {
                 producto.getVentaPorPaquete(),
                 producto.getPrecioPaquete(),
                 producto.getUnidadesPorPaquete(),
-                producto.getCodigoBarras()
+                producto.getCodigoBarras(),
+                producto.getImagen()
         );
     }
 }

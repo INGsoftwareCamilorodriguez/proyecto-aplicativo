@@ -34,4 +34,7 @@ public class ProductoRequest {
     private BigDecimal precioPaquete;
 
     private Integer unidadesPorPaquete;
+
+    // Foto opcional como data URL; null o vacío = sin imagen
+    private String imagen;
 }

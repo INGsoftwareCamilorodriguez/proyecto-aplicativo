@@ -54,6 +54,19 @@
           </div>
 
           <div class="campo">
+            <label class="form-label">IMAGEN DEL PRODUCTO (OPCIONAL)</label>
+            <div class="imagen-drop" id="imagenPreview" role="button" tabindex="0" title="Clic o arrastra una imagen aquí">
+              <img id="imagenPreviewImg" class="imagen-thumb" alt="Vista previa"/>
+              <div class="imagen-centro">
+                <span class="imagen-texto" id="btnSubirImagen">Subir imagen</span>
+                <span class="imagen-hint">JPG, PNG o WEBP. Se ajusta sola a un tamaño liviano.</span>
+              </div>
+              <button type="button" class="imagen-quitar" id="btnQuitarImagen" style="display:none;">Quitar</button>
+            </div>
+            <input type="file" id="imagenInput" accept="image/*" style="display:none;"/>
+          </div>
+
+          <div class="campo">
             <label class="form-label">TIPO DE VENTA</label>
             <div class="tipo-precio-row">
               <div class="tipo-precio-opt active" data-tipo="FIJO" id="optFijo">Precio fijo</div>
@@ -111,14 +124,13 @@
       <div class="card panel-lateral" id="panelLateral">
         <div class="card-title">Buscar producto</div>
         <div class="buscar-editar-wrap" id="buscarEditarWrap">
-          <input type="text" id="buscarProductoInput" class="form-input" placeholder="Selecciona un paquete para buscar..." autocomplete="off" disabled/>
+          <input type="text" id="buscarProductoInput" class="form-input" placeholder="Buscar por nombre o código de barras..." autocomplete="off"/>
           <div class="buscar-resultados" id="buscarResultados"></div>
         </div>
-        <p class="modalidad-hint">Escribe el nombre o el código y elígelo para editarlo en el formulario.</p>
+        <p class="modalidad-hint">Busca en todos los paquetes y elige el producto para editarlo en el formulario.</p>
 
         <div class="historial-header">
           <div class="card-title" style="margin-bottom:0;">Historial reciente</div>
-          <a class="ver-link" id="btnLimpiarHistorial" style="margin-top:0;cursor:pointer;">Limpiar</a>
         </div>
         <div class="historial-lista" id="historialLista"></div>
       </div>

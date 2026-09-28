@@ -23,4 +23,5 @@ public class ProductoResponse {
     private BigDecimal precioPaquete;
     private Integer unidadesPorPaquete;
     private String codigoBarras;
+    private String imagen;
 }

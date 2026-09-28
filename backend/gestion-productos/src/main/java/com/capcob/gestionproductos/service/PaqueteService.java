@@ -3,6 +3,7 @@ package com.capcob.gestionproductos.service;
 import com.capcob.gestionproductos.dto.PaqueteRequest;
 import com.capcob.gestionproductos.dto.PaqueteResponse;
 import com.capcob.gestionproductos.model.Paquete;
+import com.capcob.gestionproductos.model.Producto;
 import com.capcob.gestionproductos.repository.PaqueteRepository;
 import com.capcob.gestionproductos.repository.ProductoRepository;
 import org.springframework.stereotype.Service;
@@ -14,10 +15,13 @@ public class PaqueteService {
 
     private final PaqueteRepository paqueteRepository;
     private final ProductoRepository productoRepository;
+    private final HistorialService historialService;
 
-    public PaqueteService(PaqueteRepository paqueteRepository, ProductoRepository productoRepository) {
+    public PaqueteService(PaqueteRepository paqueteRepository, ProductoRepository productoRepository,
+                          HistorialService historialService) {
         this.paqueteRepository = paqueteRepository;
         this.productoRepository = productoRepository;
+        this.historialService = historialService;
     }
 
     public List<PaqueteResponse> listar() {
@@ -43,7 +47,9 @@ public class PaqueteService {
         paquete.setNombre(request.getNombre());
         paquete.setDescripcion(request.getDescripcion());
         paquete.setActivo(true);
-        return toResponse(paqueteRepository.save(paquete));
+        PaqueteResponse response = toResponse(paqueteRepository.save(paquete));
+        historialService.registrarPaquete("PAQUETE_CREADO", response.getId(), response.getNombre(), null);
+        return response;
     }
 
     public PaqueteResponse actualizar(Integer id, PaqueteRequest request) {
@@ -59,11 +65,14 @@ public class PaqueteService {
         paquete.setActivo(false);
         paqueteRepository.save(paquete);
 
-        productoRepository.findByPaqueteIdAndActivoTrue(id)
-                .forEach(producto -> {
-                    producto.setActivo(false);
-                    productoRepository.save(producto);
-                });
+        List<Producto> productos = productoRepository.findByPaqueteIdAndActivoTrue(id);
+        productos.forEach(producto -> {
+            producto.setActivo(false);
+            productoRepository.save(producto);
+        });
+
+        historialService.registrarPaquete("PAQUETE_ELIMINADO", id, paquete.getNombre(),
+                productos.size() + " producto(s) eliminados con el paquete");
     }
 
     private PaqueteResponse toResponse(Paquete paquete) {
