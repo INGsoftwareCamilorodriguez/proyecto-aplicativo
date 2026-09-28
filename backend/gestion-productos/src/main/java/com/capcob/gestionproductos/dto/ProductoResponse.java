@@ -18,5 +18,9 @@ public class ProductoResponse {
     private Producto.TipoPrecio tipoPrecio;
     private BigDecimal precio;
     private BigDecimal cantidad;
+    private Boolean ventaPorUnidad;
+    private Boolean ventaPorPaquete;
+    private BigDecimal precioPaquete;
+    private Integer unidadesPorPaquete;
     private String codigoBarras;
 }

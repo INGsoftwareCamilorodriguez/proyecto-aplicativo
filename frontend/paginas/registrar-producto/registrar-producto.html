@@ -38,50 +38,91 @@
       </div>
     </div>
 
-    <!-- Formulario -->
-    <div class="card" style="max-width:640px;" id="formCard">
-      <div class="card-title" id="formTitle">Datos del producto</div>
-      <p class="empty-hint" id="sinPaqueteHint">Selecciona o crea un paquete arriba para empezar a registrar productos.</p>
+    <!-- Formulario + Buscador/Historial -->
+    <div class="fila-principal">
 
-      <form id="productoForm" onsubmit="return false;" style="display:none;flex-direction:column;gap:14px;">
-        <input type="hidden" id="productoId" value=""/>
+      <div class="card" id="formCard">
+        <div class="card-title" id="formTitle">Datos del producto</div>
+        <p class="empty-hint" id="sinPaqueteHint">Selecciona o crea un paquete arriba para empezar a registrar productos.</p>
 
-        <div>
-          <label class="form-label">NOMBRE DEL PRODUCTO</label>
-          <input type="text" id="nombre" class="form-input" placeholder="Ej: Arroz Diana 500g"/>
-        </div>
+        <form id="productoForm" onsubmit="return false;" class="producto-form-grid" style="display:none;">
+          <input type="hidden" id="productoId" value=""/>
 
-        <div>
-          <label class="form-label">TIPO DE VENTA</label>
-          <div class="tipo-precio-row">
-            <div class="tipo-precio-opt active" data-tipo="FIJO" id="optFijo">Precio fijo</div>
-            <div class="tipo-precio-opt" data-tipo="PESO" id="optPeso">Por peso (kg)</div>
+          <div class="campo">
+            <label class="form-label">NOMBRE DEL PRODUCTO</label>
+            <input type="text" id="nombre" class="form-input"/>
           </div>
-        </div>
 
-        <div style="display:flex;gap:14px;">
-          <div style="flex:1;">
-            <label class="form-label" id="precioLabel">PRECIO ($)</label>
-            <input type="text" inputmode="decimal" id="precio" class="form-input" placeholder="$0"/>
+          <div class="campo">
+            <label class="form-label">TIPO DE VENTA</label>
+            <div class="tipo-precio-row">
+              <div class="tipo-precio-opt active" data-tipo="FIJO" id="optFijo">Precio fijo</div>
+              <div class="tipo-precio-opt" data-tipo="PESO" id="optPeso">Por peso (kg)</div>
+            </div>
           </div>
-          <div style="flex:1;">
-            <label class="form-label" id="cantidadLabel">CANTIDAD (UNIDADES)</label>
-            <input type="text" inputmode="decimal" id="cantidad" class="form-input" placeholder="0"/>
+
+          <div class="campo" id="modalidadVentaWrap">
+            <label class="form-label">MODALIDAD DE VENTA</label>
+            <div class="tipo-precio-row">
+              <div class="tipo-precio-opt active" data-modalidad="unidad" id="optPorUnidad">Por unidad</div>
+              <div class="tipo-precio-opt" data-modalidad="paquete" id="optPorPaquete">Por paquete</div>
+            </div>
+            <p class="modalidad-hint">Puedes activar las dos si la vendes de ambas formas.</p>
           </div>
-        </div>
 
-        <div style="display:flex;gap:10px;">
-          <button class="action-btn btn-purple" id="btnGuardar" style="flex:1;">
-            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Guardar producto
-          </button>
-          <button class="action-btn btn-light" id="btnCancelarEdicion" style="display:none;flex:0 0 auto;">
-            Cancelar edición
-          </button>
-        </div>
+          <div class="fila">
+            <div class="campo" id="campoPrecioUnidad">
+              <label class="form-label" id="precioLabel">PRECIO POR UNIDAD ($)</label>
+              <input type="text" inputmode="decimal" id="precio" class="form-input" placeholder="$0"/>
+            </div>
 
-        <div class="form-msg" id="formMsg"></div>
-      </form>
+            <div class="campo" id="campoCantidad">
+              <label class="form-label" id="cantidadLabel">UNIDADES DISPONIBLES</label>
+              <input type="text" inputmode="decimal" id="cantidad" class="form-input" placeholder="0"/>
+            </div>
+          </div>
+
+          <div class="fila" id="filaPaquete" style="display:none;">
+            <div class="campo" id="campoPrecioPaquete">
+              <label class="form-label">PRECIO DEL PAQUETE ($)</label>
+              <input type="text" inputmode="decimal" id="precioPaquete" class="form-input" placeholder="$0"/>
+            </div>
+
+            <div class="campo" id="campoUnidadesPorPaquete">
+              <label class="form-label">UNIDADES QUE TRAE EL PAQUETE</label>
+              <input type="text" inputmode="numeric" id="unidadesPorPaquete" class="form-input" placeholder="Ej: 12"/>
+            </div>
+          </div>
+
+          <div class="campo-botones">
+            <button class="action-btn btn-purple" id="btnGuardar" style="flex:1;">
+              <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Guardar producto
+            </button>
+            <button class="action-btn btn-light" id="btnCancelarEdicion" style="display:none;flex:0 0 auto;">
+              Cancelar edición
+            </button>
+          </div>
+
+          <div class="form-msg" id="formMsg"></div>
+        </form>
+      </div>
+
+      <div class="card panel-lateral" id="panelLateral">
+        <div class="card-title">Buscar producto</div>
+        <div class="buscar-editar-wrap" id="buscarEditarWrap">
+          <input type="text" id="buscarProductoInput" class="form-input" placeholder="Selecciona un paquete para buscar..." autocomplete="off" disabled/>
+          <div class="buscar-resultados" id="buscarResultados"></div>
+        </div>
+        <p class="modalidad-hint">Escribe el nombre o el código y elígelo para editarlo en el formulario.</p>
+
+        <div class="historial-header">
+          <div class="card-title" style="margin-bottom:0;">Historial reciente</div>
+          <a class="ver-link" id="btnLimpiarHistorial" style="margin-top:0;cursor:pointer;">Limpiar</a>
+        </div>
+        <div class="historial-lista" id="historialLista"></div>
+      </div>
+
     </div>
 
     <!-- Productos del paquete seleccionado -->

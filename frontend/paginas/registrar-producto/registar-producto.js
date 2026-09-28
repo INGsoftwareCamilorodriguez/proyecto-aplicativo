@@ -24,6 +24,8 @@ let paquetes = [];
 let paqueteSeleccionadoId = null;
 let productosDelPaquete = [];
 let tipoPrecioActual = 'FIJO';
+let ventaPorUnidadActual = true;
+let ventaPorPaqueteActual = false;
 let editandoProductoId = null;
 
 // ── Elementos ───────────────────────────────────────────────
@@ -43,6 +45,18 @@ const optFijo = document.getElementById('optFijo');
 const optPeso = document.getElementById('optPeso');
 const precioLabel = document.getElementById('precioLabel');
 const cantidadLabel = document.getElementById('cantidadLabel');
+
+const modalidadVentaWrap = document.getElementById('modalidadVentaWrap');
+const optPorUnidad = document.getElementById('optPorUnidad');
+const optPorPaquete = document.getElementById('optPorPaquete');
+const campoPrecioUnidad = document.getElementById('campoPrecioUnidad');
+const filaPaquete = document.getElementById('filaPaquete');
+const precioPaqueteInput = document.getElementById('precioPaquete');
+const unidadesPorPaqueteInput = document.getElementById('unidadesPorPaquete');
+
+const buscarEditarWrap = document.getElementById('buscarEditarWrap');
+const buscarProductoInput = document.getElementById('buscarProductoInput');
+const buscarResultados = document.getElementById('buscarResultados');
 
 const modalPaquete = document.getElementById('modalPaquete');
 const modalPaqueteMsg = document.getElementById('modalPaqueteMsg');
@@ -141,6 +155,10 @@ async function seleccionarPaquete(id) {
   formTitle.textContent = 'Nuevo producto en "' + paquete.nombre + '"';
   productosCard.style.display = 'block';
   productosTitle.textContent = 'Productos de "' + paquete.nombre + '"';
+  buscarProductoInput.disabled = false;
+  buscarProductoInput.placeholder = 'Buscar producto para editar (nombre o código)...';
+  buscarProductoInput.value = '';
+  ocultarResultadosBusqueda();
 
   await cargarProductosDelPaquete(id);
 }
@@ -169,9 +187,7 @@ function renderProductos() {
   productosDelPaquete.forEach(prod => {
     const tr = document.createElement('tr');
 
-    const precioTexto = prod.tipoPrecio === 'PESO'
-      ? formatearPrecio(prod.precio) + ' / kg'
-      : formatearPrecio(prod.precio);
+    const precioTexto = textoPrecioProducto(prod);
     const cantidadTexto = prod.tipoPrecio === 'PESO'
       ? Number(prod.cantidad).toLocaleString('es-CO') + ' kg'
       : Number(prod.cantidad).toLocaleString('es-CO') + ' und';
@@ -186,13 +202,6 @@ function renderProductos() {
 
     const rowActions = tr.querySelector('.row-actions');
 
-    const btnEditar = document.createElement('div');
-    btnEditar.className = 'icon-btn';
-    btnEditar.title = 'Editar';
-    btnEditar.innerHTML = '<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>';
-    btnEditar.addEventListener('click', () => cargarProductoEnFormulario(prod));
-    rowActions.appendChild(btnEditar);
-
     const btnEliminar = document.createElement('div');
     btnEliminar.className = 'icon-btn danger';
     btnEliminar.title = 'Eliminar';
@@ -204,6 +213,21 @@ function renderProductos() {
   });
 }
 
+// Arma el texto de precio de la tabla según la modalidad de venta del producto.
+function textoPrecioProducto(prod) {
+  if (prod.tipoPrecio === 'PESO') {
+    return formatearPrecio(prod.precio) + ' / kg';
+  }
+  const partes = [];
+  if (prod.ventaPorUnidad && prod.precio != null) {
+    partes.push(formatearPrecio(prod.precio) + ' / und');
+  }
+  if (prod.ventaPorPaquete && prod.precioPaquete != null) {
+    partes.push(formatearPrecio(prod.precioPaquete) + ' / paq (' + prod.unidadesPorPaquete + ' und)');
+  }
+  return partes.length ? partes.join(' · ') : formatearPrecio(prod.precio);
+}
+
 // ── Selector FIJO / PESO ────────────────────────────────────
 function seleccionarTipoPrecio(tipo) {
   tipoPrecioActual = tipo;
@@ -211,42 +235,91 @@ function seleccionarTipoPrecio(tipo) {
   optPeso.classList.toggle('active', tipo === 'PESO');
 
   if (tipo === 'PESO') {
+    modalidadVentaWrap.style.display = 'none';
+    filaPaquete.style.display = 'none';
+    campoPrecioUnidad.style.display = 'block';
     precioLabel.textContent = 'PRECIO POR KILO ($/KG)';
     document.getElementById('precio').placeholder = '$0 por kg';
     cantidadLabel.textContent = 'CANTIDAD DISPONIBLE (KG)';
     document.getElementById('cantidad').placeholder = '0.0 kg';
   } else {
-    precioLabel.textContent = 'PRECIO ($)';
-    document.getElementById('precio').placeholder = '$0';
-    cantidadLabel.textContent = 'CANTIDAD (UNIDADES)';
+    modalidadVentaWrap.style.display = 'block';
+    cantidadLabel.textContent = 'UNIDADES DISPONIBLES';
     document.getElementById('cantidad').placeholder = '0';
+    actualizarModalidadVenta();
   }
 }
 optFijo.addEventListener('click', () => seleccionarTipoPrecio('FIJO'));
 optPeso.addEventListener('click', () => seleccionarTipoPrecio('PESO'));
+
+// ── Selector modalidad de venta: por unidad y/o por paquete ──
+// Ambas se pueden activar al tiempo (ej: la tienda que vende individual o por paquete);
+// solo una está permitida como mínimo (no se puede desactivar la última que queda activa).
+function actualizarModalidadVenta() {
+  optPorUnidad.classList.toggle('active', ventaPorUnidadActual);
+  optPorPaquete.classList.toggle('active', ventaPorPaqueteActual);
+  campoPrecioUnidad.style.display = ventaPorUnidadActual ? 'block' : 'none';
+  filaPaquete.style.display = ventaPorPaqueteActual ? 'flex' : 'none';
+  precioLabel.textContent = 'PRECIO POR UNIDAD ($)';
+}
+
+optPorUnidad.addEventListener('click', () => {
+  if (ventaPorUnidadActual && !ventaPorPaqueteActual) {
+    mostrarMsg(formMsg, 'Debe quedar activa al menos una modalidad de venta.', 'error');
+    return;
+  }
+  ventaPorUnidadActual = !ventaPorUnidadActual;
+  mostrarMsg(formMsg, '', '');
+  actualizarModalidadVenta();
+});
+
+optPorPaquete.addEventListener('click', () => {
+  if (ventaPorPaqueteActual && !ventaPorUnidadActual) {
+    mostrarMsg(formMsg, 'Debe quedar activa al menos una modalidad de venta.', 'error');
+    return;
+  }
+  ventaPorPaqueteActual = !ventaPorPaqueteActual;
+  mostrarMsg(formMsg, '', '');
+  actualizarModalidadVenta();
+});
 
 // ── Guardar producto (crear o editar) ───────────────────────
 document.getElementById('btnGuardar').addEventListener('click', async () => {
   const nombre = document.getElementById('nombre').value.trim();
   const precioTexto = document.getElementById('precio').value;
   const cantidadTexto = document.getElementById('cantidad').value;
+  const precioPaqueteTexto = precioPaqueteInput.value;
+  const unidadesPorPaqueteTexto = unidadesPorPaqueteInput.value;
 
   if (!paqueteSeleccionadoId) {
     mostrarMsg(formMsg, 'Selecciona un paquete primero.', 'error');
     return;
   }
-  if (!nombre || !precioTexto || cantidadTexto === '') {
-    mostrarMsg(formMsg, 'Completa nombre, precio y cantidad.', 'error');
+  if (!nombre || cantidadTexto === '') {
+    mostrarMsg(formMsg, 'Completa el nombre y la cantidad.', 'error');
+    return;
+  }
+  if (tipoPrecioActual === 'FIJO' && !ventaPorUnidadActual && !ventaPorPaqueteActual) {
+    mostrarMsg(formMsg, 'Selecciona si se vende por unidad, por paquete, o ambas.', 'error');
+    return;
+  }
+  if (tipoPrecioActual === 'PESO' && !precioTexto) {
+    mostrarMsg(formMsg, 'Indica el precio por kilo.', 'error');
+    return;
+  }
+  if (tipoPrecioActual === 'FIJO' && ventaPorUnidadActual && !precioTexto) {
+    mostrarMsg(formMsg, 'Indica el precio por unidad.', 'error');
+    return;
+  }
+  if (tipoPrecioActual === 'FIJO' && ventaPorPaqueteActual && (!precioPaqueteTexto || !unidadesPorPaqueteTexto)) {
+    mostrarMsg(formMsg, 'Indica el precio del paquete y cuántas unidades trae.', 'error');
     return;
   }
 
-  // El precio en pesos colombianos no maneja decimales -> el punto siempre es de miles.
-  const precio = parseNumeroCO(precioTexto, false);
   // La cantidad sí puede llevar decimales si el producto se vende por peso (kg).
   const cantidad = parseNumeroCO(cantidadTexto, tipoPrecioActual === 'PESO');
-
-  if (isNaN(precio) || isNaN(cantidad)) {
-    mostrarMsg(formMsg, 'Revisa el precio y la cantidad, tienen un formato no válido.', 'error');
+  if (isNaN(cantidad)) {
+    mostrarMsg(formMsg, 'Revisa la cantidad, tiene un formato no válido.', 'error');
     return;
   }
 
@@ -254,9 +327,41 @@ document.getElementById('btnGuardar').addEventListener('click', async () => {
     paqueteId: paqueteSeleccionadoId,
     nombre: nombre,
     tipoPrecio: tipoPrecioActual,
-    precio: precio,
     cantidad: cantidad
   };
+
+  if (tipoPrecioActual === 'PESO') {
+    // El precio en pesos colombianos no maneja decimales -> el punto siempre es de miles.
+    const precio = parseNumeroCO(precioTexto, false);
+    if (isNaN(precio)) {
+      mostrarMsg(formMsg, 'Revisa el precio, tiene un formato no válido.', 'error');
+      return;
+    }
+    body.precio = precio;
+  } else {
+    body.ventaPorUnidad = ventaPorUnidadActual;
+    body.ventaPorPaquete = ventaPorPaqueteActual;
+
+    if (ventaPorUnidadActual) {
+      const precio = parseNumeroCO(precioTexto, false);
+      if (isNaN(precio)) {
+        mostrarMsg(formMsg, 'Revisa el precio por unidad, tiene un formato no válido.', 'error');
+        return;
+      }
+      body.precio = precio;
+    }
+
+    if (ventaPorPaqueteActual) {
+      const precioPaquete = parseNumeroCO(precioPaqueteTexto, false);
+      const unidadesPorPaquete = parseInt(unidadesPorPaqueteTexto, 10);
+      if (isNaN(precioPaquete) || isNaN(unidadesPorPaquete) || unidadesPorPaquete <= 0) {
+        mostrarMsg(formMsg, 'Revisa el precio del paquete y las unidades que trae.', 'error');
+        return;
+      }
+      body.precioPaquete = precioPaquete;
+      body.unidadesPorPaquete = unidadesPorPaquete;
+    }
+  }
 
   try {
     let resultado;
@@ -266,12 +371,14 @@ document.getElementById('btnGuardar').addEventListener('click', async () => {
         body: JSON.stringify(body)
       });
       mostrarMsg(formMsg, 'Producto actualizado. Código de barras: ' + resultado.codigoBarras, 'ok');
+      registrarHistorial('EDITADO', resultado);
     } else {
       resultado = await apiFetch('/productos', {
         method: 'POST',
         body: JSON.stringify(body)
       });
       mostrarMsg(formMsg, 'Producto guardado. Código de barras generado: ' + resultado.codigoBarras, 'ok');
+      registrarHistorial('CREADO', resultado);
     }
 
     cancelarEdicion();
@@ -285,12 +392,26 @@ document.getElementById('btnGuardar').addEventListener('click', async () => {
 function cargarProductoEnFormulario(prod) {
   editandoProductoId = prod.id;
   document.getElementById('nombre').value = prod.nombre;
-  document.getElementById('precio').value = prod.precio;
   document.getElementById('cantidad').value = prod.cantidad;
-  seleccionarTipoPrecio(prod.tipoPrecio);
+
+  if (prod.tipoPrecio === 'PESO') {
+    document.getElementById('precio').value = prod.precio != null ? prod.precio : '';
+    seleccionarTipoPrecio('PESO');
+  } else {
+    ventaPorUnidadActual = prod.ventaPorUnidad !== false;
+    ventaPorPaqueteActual = !!prod.ventaPorPaquete;
+    if (!ventaPorUnidadActual && !ventaPorPaqueteActual) ventaPorUnidadActual = true;
+    document.getElementById('precio').value = prod.precio != null ? prod.precio : '';
+    precioPaqueteInput.value = prod.precioPaquete != null ? prod.precioPaquete : '';
+    unidadesPorPaqueteInput.value = prod.unidadesPorPaquete != null ? prod.unidadesPorPaquete : '';
+    seleccionarTipoPrecio('FIJO');
+  }
+
   formTitle.textContent = 'Editando "' + prod.nombre + '"';
   btnCancelarEdicion.style.display = 'inline-flex';
   mostrarMsg(formMsg, '', '');
+  buscarProductoInput.value = '';
+  ocultarResultadosBusqueda();
   productoForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
@@ -299,6 +420,10 @@ function cancelarEdicion() {
   document.getElementById('nombre').value = '';
   document.getElementById('precio').value = '';
   document.getElementById('cantidad').value = '';
+  precioPaqueteInput.value = '';
+  unidadesPorPaqueteInput.value = '';
+  ventaPorUnidadActual = true;
+  ventaPorPaqueteActual = false;
   seleccionarTipoPrecio('FIJO');
   btnCancelarEdicion.style.display = 'none';
   const paquete = paquetes.find(p => p.id === paqueteSeleccionadoId);
@@ -307,11 +432,55 @@ function cancelarEdicion() {
 }
 btnCancelarEdicion.addEventListener('click', cancelarEdicion);
 
+// ── Buscador de productos para editar ────────────────────────
+function ocultarResultadosBusqueda() {
+  buscarResultados.classList.remove('visible');
+  buscarResultados.innerHTML = '';
+}
+
+function renderResultadosBusqueda(texto) {
+  const q = texto.trim().toLowerCase();
+  if (!q) { ocultarResultadosBusqueda(); return; }
+
+  const coincidencias = productosDelPaquete.filter(p =>
+    p.nombre.toLowerCase().includes(q) || (p.codigoBarras || '').toLowerCase().includes(q)
+  );
+
+  buscarResultados.innerHTML = '';
+  if (coincidencias.length === 0) {
+    const vacio = document.createElement('div');
+    vacio.className = 'buscar-resultado-vacio';
+    vacio.textContent = 'Ningún producto coincide con esa búsqueda.';
+    buscarResultados.appendChild(vacio);
+  } else {
+    coincidencias.forEach(prod => {
+      const item = document.createElement('div');
+      item.className = 'buscar-resultado-item';
+      item.innerHTML =
+        '<div class="nombre">' + prod.nombre + '</div>' +
+        '<div class="detalle">' + textoPrecioProducto(prod) + ' · ' + prod.codigoBarras + '</div>';
+      item.addEventListener('click', () => cargarProductoEnFormulario(prod));
+      buscarResultados.appendChild(item);
+    });
+  }
+  buscarResultados.classList.add('visible');
+}
+
+buscarProductoInput.addEventListener('input', () => renderResultadosBusqueda(buscarProductoInput.value));
+buscarProductoInput.addEventListener('focus', () => {
+  if (buscarProductoInput.value.trim()) renderResultadosBusqueda(buscarProductoInput.value);
+});
+document.addEventListener('click', (e) => {
+  if (!buscarEditarWrap.contains(e.target)) ocultarResultadosBusqueda();
+});
+
 // ── Eliminar producto ───────────────────────────────────────
 async function eliminarProducto(id) {
   if (!confirm('¿Eliminar este producto?')) return;
+  const prodEliminado = productosDelPaquete.find(p => p.id === id);
   try {
     await apiFetch('/productos/' + id, { method: 'DELETE' });
+    if (prodEliminado) registrarHistorial('ELIMINADO', prodEliminado);
     await cargarPaquetes();
     await cargarProductosDelPaquete(paqueteSeleccionadoId);
   } catch (e) {
@@ -327,9 +496,14 @@ btnEliminarPaquete.addEventListener('click', async () => {
 
   try {
     await apiFetch('/paquetes/' + paqueteSeleccionadoId, { method: 'DELETE' });
+    registrarHistorialPaquete('PAQUETE_ELIMINADO', paquete);
     paqueteSeleccionadoId = null;
     productoForm.style.display = 'none';
     productosCard.style.display = 'none';
+    buscarProductoInput.value = '';
+    buscarProductoInput.disabled = true;
+    buscarProductoInput.placeholder = 'Selecciona un paquete para buscar...';
+    ocultarResultadosBusqueda();
     sinPaqueteHint.style.display = 'block';
     await cargarPaquetes();
   } catch (e) {
@@ -361,6 +535,7 @@ document.getElementById('btnConfirmarPaquete').addEventListener('click', async (
       body: JSON.stringify({ nombre: nombre, descripcion: descripcion })
     });
     modalPaquete.classList.add('hidden');
+    registrarHistorialPaquete('PAQUETE_CREADO', nuevo);
     await cargarPaquetes();
     await seleccionarPaquete(nuevo.id);
   } catch (e) {
@@ -368,5 +543,148 @@ document.getElementById('btnConfirmarPaquete').addEventListener('click', async (
   }
 });
 
+// ── Historial reciente (guardado en este navegador) ──────────
+const HISTORIAL_KEY = 'capcob_historial_productos';
+const HISTORIAL_MAX = 30;
+const historialLista = document.getElementById('historialLista');
+
+const ETIQUETAS_HISTORIAL = {
+  CREADO: { texto: 'registró', clase: 'creado' },
+  EDITADO: { texto: 'editó', clase: 'editado' },
+  ELIMINADO: { texto: 'eliminó', clase: 'eliminado' },
+  PAQUETE_CREADO: { texto: 'creó el paquete', clase: 'creado' },
+  PAQUETE_ELIMINADO: { texto: 'eliminó el paquete', clase: 'eliminado' }
+};
+
+function leerHistorial() {
+  try {
+    const datos = JSON.parse(localStorage.getItem(HISTORIAL_KEY) || '[]');
+    return Array.isArray(datos) ? datos : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function guardarHistorial(lista) {
+  try {
+    localStorage.setItem(HISTORIAL_KEY, JSON.stringify(lista.slice(0, HISTORIAL_MAX)));
+  } catch (e) { /* si el navegador no deja guardar, el historial simplemente no se conserva */ }
+}
+
+function registrarHistorial(accion, prod) {
+  const lista = leerHistorial();
+  lista.unshift({
+    accion: accion,
+    nombre: prod.nombre,
+    productoId: prod.id,
+    paqueteId: prod.paqueteId,
+    paquete: prod.paqueteNombre,
+    detalle: textoPrecioProducto(prod),
+    usuario: sessionStorage.getItem('username') || '',
+    fecha: new Date().toISOString()
+  });
+  guardarHistorial(lista);
+  renderHistorial();
+}
+
+function registrarHistorialPaquete(accion, paquete) {
+  const lista = leerHistorial();
+  lista.unshift({
+    accion: accion,
+    nombre: paquete.nombre,
+    productoId: null,
+    paqueteId: paquete.id,
+    paquete: paquete.nombre,
+    detalle: '',
+    usuario: sessionStorage.getItem('username') || '',
+    fecha: new Date().toISOString()
+  });
+  guardarHistorial(lista);
+  renderHistorial();
+}
+
+function formatearFechaHistorial(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  return d.toLocaleString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+function renderHistorial() {
+  const lista = leerHistorial();
+  historialLista.innerHTML = '';
+
+  if (lista.length === 0) {
+    const vacio = document.createElement('p');
+    vacio.className = 'empty-hint';
+    vacio.textContent = 'Aún no hay movimientos. Aquí aparecerán los productos que registres, edites o elimines.';
+    historialLista.appendChild(vacio);
+    return;
+  }
+
+  lista.forEach(item => {
+    const etiqueta = ETIQUETAS_HISTORIAL[item.accion] || { texto: item.accion, clase: 'editado' };
+    // Solo se puede reabrir para editar un producto que no fue eliminado.
+    const reabrible = item.productoId && item.accion !== 'ELIMINADO';
+
+    const fila = document.createElement('div');
+    fila.className = 'historial-item' + (reabrible ? ' clickable' : '');
+    if (reabrible) fila.title = 'Clic para editar este producto';
+
+    const punto = document.createElement('span');
+    punto.className = 'historial-punto ' + etiqueta.clase;
+
+    const cuerpo = document.createElement('div');
+    cuerpo.className = 'historial-cuerpo';
+
+    const titulo = document.createElement('div');
+    titulo.className = 'historial-titulo';
+    const quien = item.usuario ? item.usuario + ' ' : '';
+    const accion = document.createElement('span');
+    accion.className = 'accion';
+    accion.textContent = quien + etiqueta.texto + ' ';
+    titulo.appendChild(accion);
+    titulo.appendChild(document.createTextNode(item.nombre));
+
+    const detalle = document.createElement('div');
+    detalle.className = 'historial-detalle';
+    detalle.textContent = [item.paquete ? 'Paquete: ' + item.paquete : '', item.detalle].filter(Boolean).join(' · ');
+
+    cuerpo.appendChild(titulo);
+    if (detalle.textContent) cuerpo.appendChild(detalle);
+
+    const fecha = document.createElement('div');
+    fecha.className = 'historial-fecha';
+    fecha.textContent = formatearFechaHistorial(item.fecha);
+
+    fila.appendChild(punto);
+    fila.appendChild(cuerpo);
+    fila.appendChild(fecha);
+
+    if (reabrible) fila.addEventListener('click', () => abrirDesdeHistorial(item));
+    historialLista.appendChild(fila);
+  });
+}
+
+async function abrirDesdeHistorial(item) {
+  try {
+    if (item.paqueteId !== paqueteSeleccionadoId) await seleccionarPaquete(item.paqueteId);
+    const prod = productosDelPaquete.find(p => p.id === item.productoId);
+    if (prod) {
+      cargarProductoEnFormulario(prod);
+    } else {
+      alert('Ese producto ya no existe (pudo haber sido eliminado).');
+    }
+  } catch (e) {
+    alert('No se pudo abrir el producto: ' + e.message);
+  }
+}
+
+document.getElementById('btnLimpiarHistorial').addEventListener('click', () => {
+  if (!confirm('¿Borrar el historial reciente de este navegador?')) return;
+  guardarHistorial([]);
+  renderHistorial();
+});
+
 // ── Inicio ───────────────────────────────────────────────────
+renderHistorial();
 cargarPaquetes();

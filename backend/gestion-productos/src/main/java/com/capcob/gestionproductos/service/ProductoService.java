@@ -33,12 +33,13 @@ public class ProductoService {
 
     public ProductoResponse crear(ProductoRequest request) {
         Paquete paquete = paqueteService.obtenerActivo(request.getPaqueteId());
+        validarModalidadVenta(request);
 
         Producto producto = new Producto();
         producto.setPaquete(paquete);
         producto.setNombre(request.getNombre());
         producto.setTipoPrecio(request.getTipoPrecio());
-        producto.setPrecio(request.getPrecio());
+        aplicarModalidadVenta(producto, request);
         producto.setCantidad(request.getCantidad());
         producto.setCodigoBarras(barcodeService.generarCodigo(request.getTipoPrecio()));
         producto.setActivo(true);
@@ -48,6 +49,7 @@ public class ProductoService {
 
     public ProductoResponse actualizar(Integer id, ProductoRequest request) {
         Producto producto = obtenerActivo(id);
+        validarModalidadVenta(request);
 
         // Si cambia de paquete, se valida que el nuevo paquete exista
         if (!producto.getPaquete().getId().equals(request.getPaqueteId())) {
@@ -56,7 +58,7 @@ public class ProductoService {
         }
 
         producto.setNombre(request.getNombre());
-        producto.setPrecio(request.getPrecio());
+        aplicarModalidadVenta(producto, request);
         producto.setCantidad(request.getCantidad());
 
         // El código de barras solo se regenera si cambió el tipo de precio
@@ -67,6 +69,54 @@ public class ProductoService {
         }
 
         return toResponse(productoRepository.save(producto));
+    }
+
+    // Valida que la combinación de modalidad de venta tenga sentido antes de guardar.
+    private void validarModalidadVenta(ProductoRequest request) {
+        if (request.getTipoPrecio() == Producto.TipoPrecio.PESO) {
+            if (request.getPrecio() == null) {
+                throw new IllegalArgumentException("Debe indicar el precio por kilo");
+            }
+            return;
+        }
+
+        boolean porUnidad = Boolean.TRUE.equals(request.getVentaPorUnidad());
+        boolean porPaquete = Boolean.TRUE.equals(request.getVentaPorPaquete());
+
+        if (!porUnidad && !porPaquete) {
+            throw new IllegalArgumentException("Selecciona si el producto se vende por unidad, por paquete, o ambas");
+        }
+        if (porUnidad && request.getPrecio() == null) {
+            throw new IllegalArgumentException("Debe indicar el precio por unidad");
+        }
+        if (porPaquete && (request.getPrecioPaquete() == null || request.getUnidadesPorPaquete() == null)) {
+            throw new IllegalArgumentException("Debe indicar el precio del paquete y cuántas unidades trae");
+        }
+        if (porPaquete && request.getUnidadesPorPaquete() != null && request.getUnidadesPorPaquete() <= 0) {
+            throw new IllegalArgumentException("Las unidades por paquete deben ser mayores a 0");
+        }
+    }
+
+    // Copia al producto los campos de precio/modalidad según el tipoPrecio elegido.
+    private void aplicarModalidadVenta(Producto producto, ProductoRequest request) {
+        if (request.getTipoPrecio() == Producto.TipoPrecio.PESO) {
+            producto.setPrecio(request.getPrecio());
+            producto.setVentaPorUnidad(false);
+            producto.setVentaPorPaquete(false);
+            producto.setPrecioPaquete(null);
+            producto.setUnidadesPorPaquete(null);
+            return;
+        }
+
+        boolean porUnidad = Boolean.TRUE.equals(request.getVentaPorUnidad());
+        boolean porPaquete = Boolean.TRUE.equals(request.getVentaPorPaquete());
+
+        producto.setVentaPorUnidad(porUnidad);
+        producto.setPrecio(porUnidad ? request.getPrecio() : null);
+
+        producto.setVentaPorPaquete(porPaquete);
+        producto.setPrecioPaquete(porPaquete ? request.getPrecioPaquete() : null);
+        producto.setUnidadesPorPaquete(porPaquete ? request.getUnidadesPorPaquete() : null);
     }
 
     // Usado por la caja: busca un producto activo por su código de barras
@@ -104,6 +154,10 @@ public class ProductoService {
                 producto.getTipoPrecio(),
                 producto.getPrecio(),
                 producto.getCantidad(),
+                producto.getVentaPorUnidad(),
+                producto.getVentaPorPaquete(),
+                producto.getPrecioPaquete(),
+                producto.getUnidadesPorPaquete(),
                 producto.getCodigoBarras()
         );
     }
