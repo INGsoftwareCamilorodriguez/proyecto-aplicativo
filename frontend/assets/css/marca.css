@@ -1,0 +1,34 @@
+/* ══════════════════════════════════════════════════════════════
+   MARCA (LOGO) EN EL PANEL — CAPCOB
+   El logo ahora es la imagen de los cubos (Gestión / Control /
+   Eficiencia / Tiempo): es más ancho que alto, así que se ajusta
+   por ALTURA y se centra con el nombre de la empresa.
+   Se carga después del CSS de cada página, por eso gana sobre
+   los tamaños viejos de 38px.
+   ══════════════════════════════════════════════════════════════ */
+.logo-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-badge .licon {
+  width: auto !important;
+  height: auto !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.logo-badge img,
+.logo-badge .licon img {
+  height: 46px !important;
+  width: auto !important;
+  max-width: none;
+  border-radius: 0 !important;
+  object-fit: contain;
+  display: block;
+}
+@media (max-width: 700px) {
+  .logo-badge img,
+  .logo-badge .licon img { height: 36px !important; }
+}

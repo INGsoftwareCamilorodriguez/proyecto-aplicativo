@@ -1,0 +1,85 @@
+/* ══════════════════════════════════════════════════════════════
+   PANTALLA DE CARGA — CAPCOB
+   Se usa junto con /frontend/assets/js/loader.js
+   - En las páginas del panel cubre SOLO el área de contenido
+     (el menú lateral verde queda visible).
+   - En las páginas públicas (principal, login, caja) cubre todo.
+   ══════════════════════════════════════════════════════════════ */
+
+#capcob-loader {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  left: var(--capcob-loader-left, 0px);
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--main-bg, #f5f5f5);
+  opacity: 1;
+  transition: opacity .35s ease, visibility .35s ease;
+}
+#capcob-loader.capcob-loader--full { background: #ffffff; }
+
+#capcob-loader.capcob-loader--oculto {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+#capcob-loader .capcob-loader__caja {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 0 20px;
+  text-align: center;
+}
+
+#capcob-loader .capcob-loader__logo {
+  width: clamp(150px, 22vw, 230px);
+  height: auto;
+  display: block;
+  animation: capcob-latido 1.6s ease-in-out infinite;
+  filter: drop-shadow(0 8px 14px rgba(0, 51, 102, .18));
+}
+
+#capcob-loader .capcob-loader__barra {
+  position: relative;
+  width: clamp(150px, 22vw, 230px);
+  height: 5px;
+  border-radius: 999px;
+  background: #d9eadb;
+  overflow: hidden;
+}
+#capcob-loader .capcob-loader__barra::after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0;
+  left: -40%;
+  width: 40%;
+  border-radius: 999px;
+  background: #1F8A2B;
+  animation: capcob-barra 1.2s ease-in-out infinite;
+}
+
+#capcob-loader .capcob-loader__texto {
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-size: .85rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  color: #1F8A2B;
+}
+
+@keyframes capcob-latido {
+  0%, 100% { transform: scale(1);    opacity: .92; }
+  50%      { transform: scale(1.06); opacity: 1; }
+}
+@keyframes capcob-barra {
+  0%   { left: -40%; }
+  100% { left: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #capcob-loader .capcob-loader__logo { animation: none; }
+  #capcob-loader .capcob-loader__barra::after { animation-duration: 2.4s; }
+}

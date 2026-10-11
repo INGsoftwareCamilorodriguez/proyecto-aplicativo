@@ -65,7 +65,15 @@ header {
   cursor: pointer;
   user-select: none;
 }
-.logo img { height: 34px; width: auto; }
+.logo img {
+  height: 44px;
+  width: auto;
+  background: #fff;
+  border-radius: 10px;
+  padding: 3px 10px;
+  object-fit: contain;
+  box-shadow: 0 2px 8px rgba(0,0,0,.18);
+}
 
 nav ul {
   display: flex;

@@ -36,7 +36,7 @@ const MENU_ITEMS = [
   },
   {
     href: "/frontend/paginas/gestion-usuario/gestion-usuario.html",
-    label: "Usuario",
+    label: "Personal",
     icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
     requiereRol: "Administrador" // solo el Administrador ve esta opción en el menú
   },
