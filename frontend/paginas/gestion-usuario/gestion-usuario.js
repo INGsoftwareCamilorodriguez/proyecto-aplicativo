@@ -1,5 +1,5 @@
 // ══════════════════════════════════════════════════════════════
-// GESTIÓN DE USUARIOS — CAPCOB
+// GESTIÓN DE EMPLEADOS — CAPCOB
 // Conectado al backend real: /api/usuarios
 // Por ahora solo administra cuentas con rol Empleado. Administrador
 // y Auditor quedan pendientes de definir (ver select del modal).
@@ -42,12 +42,12 @@ function estadoBadge(activo) {
 // ── Cargar usuarios desde el backend ───────────────────────
 async function cargarUsuarios() {
   const tbody = document.getElementById('tableBody');
-  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:28px">Cargando usuarios...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:28px">Cargando empleados...</td></tr>`;
   try {
     usuarios = await apiFetch('/usuarios');
     renderTable();
   } catch (e) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:28px">No se pudieron cargar los usuarios: ${e.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:28px">No se pudieron cargar los empleados: ${e.message}</td></tr>`;
   }
 }
 
@@ -71,7 +71,7 @@ function renderTable() {
   tbody.innerHTML = '';
 
   if (pagina.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:28px">No se encontraron usuarios.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:28px">No se encontraron empleados.</td></tr>`;
   } else {
     pagina.forEach(u => {
       const tr = document.createElement('tr');
@@ -105,7 +105,7 @@ function renderTable() {
 
   // Footer info
   document.getElementById('footerInfo').textContent =
-    `Mostrando ${total === 0 ? 0 : Math.min(inicio+1,total)}–${Math.min(inicio+porPagina,total)} de ${total} usuarios`;
+    `Mostrando ${total === 0 ? 0 : Math.min(inicio+1,total)}–${Math.min(inicio+porPagina,total)} de ${total} empleados`;
 
   // Pagination
   const totalPags = Math.ceil(total / porPagina);
@@ -137,7 +137,7 @@ function renderTable() {
 function abrirModal(id = null) {
   editingId = id;
   const passwordHint = document.getElementById('fPasswordHint');
-  document.getElementById('modalTitle').textContent = id ? 'Editar usuario' : 'Añadir nuevo usuario';
+  document.getElementById('modalTitle').textContent = id ? 'Editar empleado' : 'Añadir nuevo empleado';
   if (id) {
     const u = usuarios.find(x => x.id === id);
     document.getElementById('fNombre').value   = u.nombre;
@@ -178,7 +178,7 @@ async function guardarUsuario() {
   if (!telefono) { alert('El teléfono es obligatorio.'); return; }
   if (!/^[0-9A-Za-z.\-]{5,30}$/.test(identidad)) { alert('La identidad solo puede tener letras, números, puntos o guiones (mínimo 5 caracteres).'); return; }
   if (!/^[0-9+()\s-]{7,30}$/.test(telefono)) { alert('El teléfono no es válido. Usa solo números (mínimo 7 dígitos).'); return; }
-  if (!editingId && !password) { alert('La contraseña es obligatoria para crear el usuario.'); return; }
+  if (!editingId && !password) { alert('La contraseña es obligatoria para crear el empleado.'); return; }
 
   const body = {
     nombre: nombre,
@@ -213,7 +213,7 @@ async function guardarUsuario() {
 function editarUsuario(id) { abrirModal(id); }
 
 async function eliminarUsuario(id) {
-  if (!confirm('¿Estás seguro de eliminar este usuario?')) return;
+  if (!confirm('¿Estás seguro de eliminar este empleado?')) return;
   try {
     await apiFetch('/usuarios/' + id, { method: 'DELETE' });
     await cargarUsuarios();

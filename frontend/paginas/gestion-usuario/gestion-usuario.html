@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CAPCOB - Gestión de Usuarios</title>
+  <title>CAPCOB - Gestión de Empleados</title>
   <link rel="stylesheet" href="/frontend/paginas/gestion-usuario/gestion-usuario.css">
   <link rel="stylesheet" href="/frontend/assets/css/tema-panel.css">
   <script src="/frontend/assets/js/tema-panel.js"></script>
@@ -23,8 +23,8 @@
     <!-- Header -->
     <div class="header-row">
       <div class="title-wrap">
-        <div class="page-title">Gestión de Usuarios</div>
-        <div class="page-sub">Administra los usuarios y sus permisos en el sistema.</div>
+        <div class="page-title">Gestión de Empleados</div>
+        <div class="page-sub">Administra los empleados y sus permisos en el sistema.</div>
       </div>
       <div class="logo-badge">
         <img src="/frontend/assets/imagenes/logo-capcob.png" alt="CAPCOB logo"/>
@@ -36,11 +36,11 @@
     <div class="toolbar">
       <div class="search-box">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="searchInput" placeholder="Buscar usuario..." oninput="filtrarUsuarios()"/>
+        <input type="text" id="searchInput" placeholder="Buscar empleado por nombre o correo..." oninput="filtrarUsuarios()" autocomplete="off"/>
       </div>
       <button class="btn-add" onclick="abrirModal()">
         <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Añadir nuevo usuario
+        Añadir nuevo empleado
       </button>
     </div>
 
@@ -49,7 +49,7 @@
       <table>
         <thead>
           <tr>
-            <th>Usuario</th>
+            <th>Empleado</th>
             <th>Rol</th>
             <th>Identidad</th>
             <th>Teléfono</th>
@@ -73,7 +73,7 @@
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <button class="modal-close" onclick="cerrarModal()">✕</button>
-    <h3 id="modalTitle">Añadir nuevo usuario</h3>
+    <h3 id="modalTitle">Añadir nuevo empleado</h3>
     <div class="form-group">
       <label>Nombre completo</label>
       <input type="text" id="fNombre" placeholder="Ej: Gabriel Márquez"/>
@@ -87,8 +87,8 @@
       <input type="tel" id="fTelefono" placeholder="Ej: 3001234567" inputmode="tel" maxlength="30"/>
     </div>
     <div class="form-group">
-      <label>Correo (usuario de acceso)</label>
-      <input type="email" id="fEmail" placeholder="usuario@example.com"/>
+      <label>Correo (acceso del empleado)</label>
+      <input type="email" id="fEmail" placeholder="empleado@example.com"/>
     </div>
     <div class="form-group">
       <label>Contraseña</label>
