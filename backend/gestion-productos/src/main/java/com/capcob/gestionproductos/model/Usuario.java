@@ -55,6 +55,15 @@ public class Usuario {
     @Column(name = "ultima_actividad")
     private LocalDateTime ultimaActividad;
 
+    // Primer inicio de sesión del día (guardado en UTC). Se actualiza solo cuando el
+    // login ocurre en un día (hora de Colombia) distinto al que ya estaba guardado.
+    @Column(name = "primer_login_dia")
+    private LocalDateTime primerLoginDia;
+
+    // Cédula / documento de identidad del empleado.
+    @Column(name = "identidad", length = 30)
+    private String identidad;
+
     @Column(name = "fecha_creacion", updatable = false, insertable = false)
     private LocalDateTime fechaCreacion;
 

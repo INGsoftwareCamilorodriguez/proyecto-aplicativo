@@ -9,7 +9,7 @@
 let usuarios = [];
 let editingId = null;
 let paginaActual = 1;
-const porPagina = 5;
+const porPagina = 10;
 
 // ── Utilidades ──────────────────────────────────────────────
 async function apiFetch(path, options) {
@@ -42,12 +42,12 @@ function estadoBadge(activo) {
 // ── Cargar usuarios desde el backend ───────────────────────
 async function cargarUsuarios() {
   const tbody = document.getElementById('tableBody');
-  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:28px">Cargando usuarios...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:28px">Cargando usuarios...</td></tr>`;
   try {
     usuarios = await apiFetch('/usuarios');
     renderTable();
   } catch (e) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:28px">No se pudieron cargar los usuarios: ${e.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:28px">No se pudieron cargar los usuarios: ${e.message}</td></tr>`;
   }
 }
 
@@ -71,7 +71,7 @@ function renderTable() {
   tbody.innerHTML = '';
 
   if (pagina.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:28px">No se encontraron usuarios.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:28px">No se encontraron usuarios.</td></tr>`;
   } else {
     pagina.forEach(u => {
       const tr = document.createElement('tr');
@@ -86,6 +86,8 @@ function renderTable() {
           </div>
         </td>
         <td>${rolBadge()}</td>
+        <td>${u.identidad || '—'}</td>
+        <td>${u.telefono || '—'}</td>
         <td>${u.usuario}</td>
         <td>${estadoBadge(u.activo)}</td>
         <td>
@@ -139,12 +141,16 @@ function abrirModal(id = null) {
   if (id) {
     const u = usuarios.find(x => x.id === id);
     document.getElementById('fNombre').value   = u.nombre;
+    document.getElementById('fIdentidad').value = u.identidad || '';
+    document.getElementById('fTelefono').value  = u.telefono || '';
     document.getElementById('fEmail').value    = u.usuario;
     document.getElementById('fPassword').value = '';
     document.getElementById('fEstado').value   = u.activo ? 'Activo' : 'Inactivo';
     passwordHint.style.display = 'block';
   } else {
     document.getElementById('fNombre').value   = '';
+    document.getElementById('fIdentidad').value = '';
+    document.getElementById('fTelefono').value  = '';
     document.getElementById('fEmail').value    = '';
     document.getElementById('fPassword').value = '';
     document.getElementById('fEstado').value   = 'Activo';
@@ -162,15 +168,23 @@ function cerrarModal() {
 async function guardarUsuario() {
   const nombre   = document.getElementById('fNombre').value.trim();
   const email    = document.getElementById('fEmail').value.trim();
+  const identidad = document.getElementById('fIdentidad').value.trim();
+  const telefono  = document.getElementById('fTelefono').value.trim();
   const password = document.getElementById('fPassword').value;
   const estado   = document.getElementById('fEstado').value;
 
   if (!nombre || !email) { alert('Por favor completa nombre y correo.'); return; }
+  if (!identidad) { alert('La identidad es obligatoria.'); return; }
+  if (!telefono) { alert('El teléfono es obligatorio.'); return; }
+  if (!/^[0-9A-Za-z.\-]{5,30}$/.test(identidad)) { alert('La identidad solo puede tener letras, números, puntos o guiones (mínimo 5 caracteres).'); return; }
+  if (!/^[0-9+()\s-]{7,30}$/.test(telefono)) { alert('El teléfono no es válido. Usa solo números (mínimo 7 dígitos).'); return; }
   if (!editingId && !password) { alert('La contraseña es obligatoria para crear el usuario.'); return; }
 
   const body = {
     nombre: nombre,
     usuario: email,
+    identidad: identidad,
+    telefono: telefono,
     activo: estado === 'Activo'
   };
   if (password) body.password = password;

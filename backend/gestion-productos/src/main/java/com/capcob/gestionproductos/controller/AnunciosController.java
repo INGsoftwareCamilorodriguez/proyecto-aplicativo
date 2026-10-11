@@ -68,9 +68,15 @@ public class AnunciosController {
                     long segundos = e.getUltimaActividad() == null
                             ? 0
                             : Math.max(0, Duration.between(e.getUltimaActividad(), ahora).getSeconds());
+                    // Primer inicio de sesión del día, en UTC con "Z" para que el navegador
+                    // lo muestre en la hora local de quien mira la pantalla.
+                    String primerInicio = e.getPrimerLoginDia() == null
+                            ? ""
+                            : e.getPrimerLoginDia().atOffset(ZoneOffset.UTC).toInstant().toString();
                     return Map.<String, Object>of(
                             "id", e.getId(),
                             "nombre", e.getNombre(),
+                            "primerInicioDia", primerInicio,
                             "segundosInactivo", segundos,
                             "mensajesSinEntregar", mensajeRepository.countByDestinatarioIdAndFechaEntregaIsNull(e.getId())
                     );

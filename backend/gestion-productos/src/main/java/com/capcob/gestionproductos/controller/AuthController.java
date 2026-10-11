@@ -53,6 +53,14 @@ public class AuthController {
         return LocalDateTime.now(ZoneOffset.UTC);
     }
 
+    // El "día" para el primer inicio de sesión se cuenta con la hora de Colombia
+    // (aunque todo lo demás se guarde en UTC).
+    private static final java.time.ZoneId ZONA_COLOMBIA = java.time.ZoneId.of("America/Bogota");
+
+    private static java.time.LocalDate diaColombia(LocalDateTime utc) {
+        return utc.atOffset(ZoneOffset.UTC).atZoneSameInstant(ZONA_COLOMBIA).toLocalDate();
+    }
+
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -112,6 +120,12 @@ public class AuthController {
         usuario.setSesionToken(token);
         usuario.setSesionExpiraEn(ahora.plusSeconds(SESION_TIMEOUT_SEGUNDOS));
         usuario.setUltimaActividad(ahora); // recién entró: cuenta como actividad
+
+        // Primer inicio de sesión del día: solo se guarda si es el primero de hoy.
+        if (usuario.getPrimerLoginDia() == null
+                || !diaColombia(usuario.getPrimerLoginDia()).equals(diaColombia(ahora))) {
+            usuario.setPrimerLoginDia(ahora);
+        }
         usuarioRepository.save(usuario);
 
         LoginResponse response = new LoginResponse(

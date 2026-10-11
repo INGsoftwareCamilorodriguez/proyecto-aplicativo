@@ -11,4 +11,6 @@ public class UsuarioResponse {
     private String usuario;
     private String rol;
     private Boolean activo;
+    private String identidad;
+    private String telefono;
 }

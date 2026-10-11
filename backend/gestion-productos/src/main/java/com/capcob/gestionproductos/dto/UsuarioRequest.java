@@ -15,6 +15,10 @@ public class UsuarioRequest {
     // Obligatoria al crear. Al editar, si viene vacía/nula se conserva la actual.
     private String password;
 
+    private String identidad;
+
+    private String telefono;
+
     // Al crear siempre queda true por defecto; al editar permite activar/inactivar.
     private Boolean activo;
 }

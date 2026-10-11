@@ -57,6 +57,8 @@ public class UsuarioService {
         usuario.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         usuario.setRol(Usuario.Rol.EMPLEADO);
         usuario.setActivo(request.getActivo() == null ? true : request.getActivo());
+        usuario.setIdentidad(limpiar(request.getIdentidad()));
+        usuario.setTelefono(limpiar(request.getTelefono()));
 
         return toResponse(usuarioRepository.save(usuario));
     }
@@ -76,6 +78,8 @@ public class UsuarioService {
 
         usuario.setNombre(request.getNombre());
         usuario.setUsuario(usuarioLogin);
+        usuario.setIdentidad(limpiar(request.getIdentidad()));
+        usuario.setTelefono(limpiar(request.getTelefono()));
         if (request.getActivo() != null) {
             usuario.setActivo(request.getActivo());
         }
@@ -231,6 +235,13 @@ public class UsuarioService {
         return usuario;
     }
 
+    // Texto opcional: recortado, y null si viene vacío.
+    private String limpiar(String texto) {
+        if (texto == null) return null;
+        String t = texto.trim();
+        return t.isEmpty() ? null : t;
+    }
+
     private String normalizar(String usuario) {
         return usuario == null ? "" : usuario.trim().toLowerCase();
     }
@@ -241,7 +252,9 @@ public class UsuarioService {
                 usuario.getNombre(),
                 usuario.getUsuario(),
                 usuario.getRol().name(),
-                usuario.getActivo()
+                usuario.getActivo(),
+                usuario.getIdentidad(),
+                usuario.getTelefono()
         );
     }
 
