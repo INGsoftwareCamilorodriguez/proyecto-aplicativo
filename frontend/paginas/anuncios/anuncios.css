@@ -178,17 +178,37 @@
       100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
     }
 
-    /* tarjetas resumen */
-    .stats-row { display: flex; gap: 16px; flex-wrap: wrap; }
+    /* tarjetas resumen + buscador: una sola fila de 4 */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px;
+    }
     .stat-card {
       background: var(--white); border: 1px solid var(--border); border-radius: 14px;
-      padding: 16px 22px; min-width: 200px;
+      padding: 16px 22px; min-width: 0;
       display: flex; align-items: center; gap: 14px;
     }
     .stat-num { font-size: 1.8rem; font-weight: 800; color: var(--text); line-height: 1; }
-    .stat-label { font-size: .78rem; color: var(--muted); max-width: 120px; }
+    .stat-label { font-size: .78rem; color: var(--muted); }
     .stat-card.warn .stat-num { color: var(--warn-fg); }
     .stat-card.warn.hay { background: var(--warn-row); border-color: #FCD34D; }
+    .stat-card.off .stat-num { color: var(--muted); }
+
+    /* buscador (4ª posición de la fila) */
+    .search-card {
+      background: var(--white); border: 1.5px solid var(--border); border-radius: 14px;
+      padding: 0 16px; min-width: 0;
+      display: flex; align-items: center; gap: 10px; cursor: text;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .search-card:focus-within { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(31,138,43,.15); }
+    .search-card svg { width: 18px; height: 18px; flex-shrink: 0; stroke: var(--muted); fill: none; stroke-width: 2; stroke-linecap: round; }
+    .search-card input {
+      flex: 1; min-width: 0; border: none; outline: none; background: transparent;
+      font-size: .9rem; font-family: 'Inter', sans-serif; color: var(--text); padding: 18px 0;
+    }
+    .search-card input::placeholder { color: var(--muted); }
+    @media (max-width: 1200px) { .stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px)  { .stats-row { grid-template-columns: minmax(0, 1fr); } }
 
     /* cabecera de la tabla */
     .card-head {
@@ -299,3 +319,35 @@
     }
     .toast-x { background: none; border: none; cursor: pointer; color: var(--muted); font-size: .95rem; line-height: 1; }
     @keyframes entra { from { transform: translateX(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+    /* ══ TABLA DE TODOS LOS EMPLEADOS (ocupa el alto restante de la pantalla) ══ */
+    .table-card { flex: 1; display: flex; flex-direction: column; min-height: 360px; }
+    .table-scroll { flex: 1; overflow-x: auto; }
+    .table-card tbody tr.oculta { display: none; }
+    .table-card tbody td { height: 64px; }
+    .table-card tbody tr.fila-off .user-avatar { opacity: .55; }
+    .table-card tbody tr.fila-off .user-cell-name { color: var(--muted); }
+
+    .status-off { background: var(--gray-light); color: var(--muted); }
+    html.tema-panel .status-off { background: var(--gray-light); color: var(--muted); }
+
+    .btn-msg:disabled { background: var(--gray-light); color: var(--muted); cursor: not-allowed; filter: none; }
+    .btn-msg:disabled svg { stroke: var(--muted); }
+    html.tema-panel .btn-msg:disabled { background: var(--gray-light); color: var(--muted); }
+
+    /* paginado: 5 en 5 */
+    .pager {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+      padding: 12px 96px 12px 18px; border-top: 1px solid var(--border); /* margen derecho: el botón flotante del asistente */
+    }
+    .pager-info { font-size: .78rem; color: var(--muted); }
+    .pager-btns { display: flex; align-items: center; gap: 6px; }
+    .pg-btn {
+      min-width: 34px; height: 34px; padding: 0 10px;
+      border: 1.5px solid var(--border); border-radius: 8px; background: var(--white); color: var(--text);
+      font-size: .8rem; font-weight: 600; font-family: 'Inter', sans-serif; cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .pg-btn:hover:not(:disabled):not(.activo) { background: var(--gray-light); }
+    .pg-btn.activo { background: var(--purple); border-color: var(--purple); color: #fff; cursor: default; }
+    .pg-btn:disabled { opacity: .45; cursor: not-allowed; }
