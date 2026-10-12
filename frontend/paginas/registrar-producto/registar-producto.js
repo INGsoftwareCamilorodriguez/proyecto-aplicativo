@@ -219,12 +219,6 @@ function renderPaquetes() {
     paquetesRow.appendChild(pill);
   });
 
-  const nuevo = document.createElement('div');
-  nuevo.className = 'paquete-pill-nueva';
-  nuevo.textContent = '+ Nueva categoría';
-  nuevo.addEventListener('click', abrirModalPaquete);
-  paquetesRow.appendChild(nuevo);
-
   // Pie: conteo + flechas (solo si hay más de una página)
   document.getElementById('catFooter').style.display = total > CATEGORIAS_POR_PAGINA ? 'flex' : 'none';
   document.getElementById('catInfo').textContent =
@@ -238,6 +232,7 @@ document.getElementById('buscarCategoriaInput').addEventListener('input', (e) =>
   paginaCategorias = 1;
   renderPaquetes();
 });
+document.getElementById('btnNuevaCategoria').addEventListener('click', () => abrirModalPaquete());
 document.getElementById('btnCatAnterior').addEventListener('click', () => { paginaCategorias--; renderPaquetes(); });
 document.getElementById('btnCatSiguiente').addEventListener('click', () => { paginaCategorias++; renderPaquetes(); });
 
@@ -822,7 +817,6 @@ btnEliminarPaquete.addEventListener('click', async () => {
 // ── Modal nuevo paquete ──────────────────────────────────────
 function abrirModalPaquete() {
   document.getElementById('nuevoPaqueteNombre').value = '';
-  document.getElementById('nuevoPaqueteDescripcion').value = '';
   mostrarMsg(modalPaqueteMsg, '', '');
   modalPaquete.classList.remove('hidden');
 }
@@ -830,7 +824,6 @@ document.getElementById('btnCancelarPaquete').addEventListener('click', () => mo
 
 document.getElementById('btnConfirmarPaquete').addEventListener('click', async () => {
   const nombre = document.getElementById('nuevoPaqueteNombre').value.trim();
-  const descripcion = document.getElementById('nuevoPaqueteDescripcion').value.trim();
 
   if (!nombre) {
     mostrarMsg(modalPaqueteMsg, 'El nombre de la categoría es obligatorio.', 'error');
@@ -844,7 +837,7 @@ document.getElementById('btnConfirmarPaquete').addEventListener('click', async (
   try {
     const nuevo = await apiFetch('/paquetes', {
       method: 'POST',
-      body: JSON.stringify({ nombre: nombre, descripcion: descripcion })
+      body: JSON.stringify({ nombre: nombre })
     });
     modalPaquete.classList.add('hidden');
     await cargarPaquetes();
