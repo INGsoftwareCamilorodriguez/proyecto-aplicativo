@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface HistorialProductoRepository extends JpaRepository<HistorialProducto, Integer> {
 
-    List<HistorialProducto> findTop50ByOrderByFechaDescIdDesc();
+    List<HistorialProducto> findTop50ByAdminIdOrderByFechaDescIdDesc(Integer adminId);
 }

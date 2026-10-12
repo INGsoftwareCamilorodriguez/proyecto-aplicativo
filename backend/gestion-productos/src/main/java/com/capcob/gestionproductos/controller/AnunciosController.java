@@ -15,8 +15,8 @@ import java.util.List;
 import java.util.Map;
 
 // Pantalla "Anuncios" del Administrador:
-//  - /conectados : empleados con sesión abierta ahora mismo + cuánto llevan sin interactuar.
-//  - /enviar     : el Administrador le manda un mensaje a un empleado conectado.
+//  - /conectados : empleados DE ESE ADMIN con sesión abierta ahora mismo + cuánto llevan sin interactuar.
+//  - /enviar     : el Administrador le manda un mensaje a un empleado suyo conectado.
 //  - /pendientes : el empleado (su caja) pregunta si tiene mensajes nuevos.
 //
 // Todas son POST y reciben id + token de la sesión en el cuerpo (igual que el latido),
@@ -54,13 +54,15 @@ public class AnunciosController {
 
     @PostMapping("/conectados")
     public ResponseEntity<?> conectados(@RequestBody LogoutRequest request) {
-        if (adminAutenticado(request.getId(), request.getToken()) == null) {
+        Usuario admin = adminAutenticado(request.getId(), request.getToken());
+        if (admin == null) {
             return ResponseEntity.status(401).body(Map.of("mensaje", "Sesión no válida."));
         }
 
         LocalDateTime ahora = ahoraUtc();
         List<Map<String, Object>> lista = usuarioRepository
-                .findByRolAndSesionTokenIsNotNullAndSesionExpiraEnAfterOrderByNombreAsc(Usuario.Rol.EMPLEADO, ahora)
+                .findByRolAndAdminIdAndSesionTokenIsNotNullAndSesionExpiraEnAfterOrderByNombreAsc(
+                        Usuario.Rol.EMPLEADO, admin.getId(), ahora)
                 .stream()
                 .map(e -> {
                     // Segundos sin interactuar, calculados AQUÍ con la hora del servidor
@@ -110,6 +112,7 @@ public class AnunciosController {
         Usuario empleado = usuarioRepository.findById(request.destinatarioId()).orElse(null);
         boolean conectado = empleado != null
                 && empleado.getRol() == Usuario.Rol.EMPLEADO
+                && admin.getId().equals(empleado.getAdminId())
                 && empleado.getSesionToken() != null
                 && empleado.getSesionExpiraEn() != null
                 && ahora.isBefore(empleado.getSesionExpiraEn());

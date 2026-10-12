@@ -16,21 +16,24 @@ public class ProductoService {
     private final PaqueteService paqueteService;
     private final BarcodeService barcodeService;
     private final HistorialService historialService;
+    private final ContextoUsuario contexto;
 
     public ProductoService(ProductoRepository productoRepository, PaqueteService paqueteService,
-                           BarcodeService barcodeService, HistorialService historialService) {
+                           BarcodeService barcodeService, HistorialService historialService,
+                           ContextoUsuario contexto) {
         this.productoRepository = productoRepository;
         this.paqueteService = paqueteService;
         this.barcodeService = barcodeService;
         this.historialService = historialService;
+        this.contexto = contexto;
     }
 
     public List<ProductoResponse> listarTodos() {
-        return productoRepository.findByActivoTrue().stream().map(this::toResponse).toList();
+        return productoRepository.findByActivoTrue(contexto.duenoId()).stream().map(this::toResponse).toList();
     }
 
     public List<ProductoResponse> listarPorPaquete(Integer paqueteId) {
-        return productoRepository.findByPaqueteIdAndActivoTrue(paqueteId).stream()
+        return productoRepository.findByPaqueteIdAndActivoTrue(paqueteId, contexto.duenoId()).stream()
                 .map(this::toResponse).toList();
     }
 
@@ -47,6 +50,7 @@ public class ProductoService {
         producto.setCodigoBarras(barcodeService.generarCodigo(request.getTipoPrecio()));
         producto.setImagen(normalizarImagen(request.getImagen()));
         producto.setActivo(true);
+        producto.setAdminId(contexto.duenoId());
 
         ProductoResponse response = toResponse(productoRepository.save(producto));
         historialService.registrarProducto("CREADO", response);
@@ -145,7 +149,7 @@ public class ProductoService {
     // Usado por la caja: busca un producto activo por su código de barras
     // escaneado (lector físico, cámara o tecleado manual).
     public ProductoResponse buscarPorCodigoBarras(String codigoBarras) {
-        Producto producto = productoRepository.findByCodigoBarras(codigoBarras)
+        Producto producto = productoRepository.findByCodigoBarrasAndAdminId(codigoBarras, contexto.duenoId())
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
         if (!producto.getActivo()) {
             throw new IllegalArgumentException("El producto no está activo");
@@ -163,6 +167,9 @@ public class ProductoService {
     private Producto obtenerActivo(Integer id) {
         Producto producto = productoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
+        if (!contexto.duenoId().equals(producto.getAdminId())) {
+            throw new IllegalArgumentException("Producto no encontrado");
+        }
         if (!producto.getActivo()) {
             throw new IllegalArgumentException("El producto no está activo");
         }

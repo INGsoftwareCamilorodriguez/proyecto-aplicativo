@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PaqueteRepository extends JpaRepository<Paquete, Integer> {
-    Optional<Paquete> findByNombre(String nombre);
-    Optional<Paquete> findByNombreAndActivoTrue(String nombre);
-    List<Paquete> findByActivoTrue();
+    Optional<Paquete> findByNombreAndActivoTrueAndAdminId(String nombre, Integer adminId);
+    List<Paquete> findByActivoTrueAndAdminId(Integer adminId);
 }

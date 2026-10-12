@@ -82,6 +82,9 @@ async function cerrarSesion() {
   } catch (e) {
     // Si el backend no responde, igual dejamos salir al usuario localmente.
   } finally {
+    localStorage.removeItem("temaSistema");
+    localStorage.removeItem("nombreEmpresa");
+    localStorage.removeItem("logoEmpresa");
     sessionStorage.clear();
     window.location.href = "/frontend/paginas/login/login.html";
   }

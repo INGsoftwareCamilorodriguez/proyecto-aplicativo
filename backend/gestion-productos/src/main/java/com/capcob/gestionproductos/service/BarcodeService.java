@@ -22,12 +22,7 @@ public class BarcodeService {
                 : generarCodigoFijo();
     }
 
-    /**
-     * Producto FIJO -> código EAN-13 completo (13 dígitos), único.
-     * Prefijo "77" (uso interno) + 10 dígitos random + dígito verificador.
-     * Este código no cambia nunca: el empleado lo escanea y el backend
-     * responde con el precio guardado en la BD.
-     */
+    // Producto FIJO -> EAN-13 (prefijo "77" + 10 dígitos random + verificador), único.
     private String generarCodigoFijo() {
         String codigo;
         do {
@@ -42,13 +37,7 @@ public class BarcodeService {
         return codigo;
     }
 
-    /**
-     * Producto PESO -> PLU corto (6 dígitos), único, prefijo "2" que
-     * indica "venta por peso" (convención estándar de supermercados).
-     * Este código NO lleva el precio: solo identifica el producto.
-     * El precio real ($) se calcula en el punto de venta (precio_kg × peso)
-     * cuando lleguemos al módulo de registro de venta.
-     */
+    // Producto PESO -> PLU de 6 dígitos con prefijo "2", único.
     private String generarCodigoPeso() {
         String codigo;
         do {

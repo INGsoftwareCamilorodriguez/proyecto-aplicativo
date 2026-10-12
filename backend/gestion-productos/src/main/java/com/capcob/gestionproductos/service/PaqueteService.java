@@ -16,16 +16,18 @@ public class PaqueteService {
     private final PaqueteRepository paqueteRepository;
     private final ProductoRepository productoRepository;
     private final HistorialService historialService;
+    private final ContextoUsuario contexto;
 
     public PaqueteService(PaqueteRepository paqueteRepository, ProductoRepository productoRepository,
-                          HistorialService historialService) {
+                          HistorialService historialService, ContextoUsuario contexto) {
         this.paqueteRepository = paqueteRepository;
         this.productoRepository = productoRepository;
         this.historialService = historialService;
+        this.contexto = contexto;
     }
 
     public List<PaqueteResponse> listar() {
-        return paqueteRepository.findByActivoTrue().stream()
+        return paqueteRepository.findByActivoTrueAndAdminId(contexto.duenoId()).stream()
                 .map(this::toResponse)
                 .toList();
     }
@@ -33,6 +35,9 @@ public class PaqueteService {
     public Paquete obtenerActivo(Integer id) {
         Paquete paquete = paqueteRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Paquete no encontrado"));
+        if (!contexto.duenoId().equals(paquete.getAdminId())) {
+            throw new IllegalArgumentException("Paquete no encontrado");
+        }
         if (!paquete.getActivo()) {
             throw new IllegalArgumentException("El paquete no está activo");
         }
@@ -40,13 +45,14 @@ public class PaqueteService {
     }
 
     public PaqueteResponse crear(PaqueteRequest request) {
-        if (paqueteRepository.findByNombreAndActivoTrue(request.getNombre()).isPresent()) {
+        if (paqueteRepository.findByNombreAndActivoTrueAndAdminId(request.getNombre(), contexto.duenoId()).isPresent()) {
             throw new IllegalArgumentException("Ya existe un paquete con ese nombre");
         }
         Paquete paquete = new Paquete();
         paquete.setNombre(request.getNombre());
         paquete.setDescripcion(request.getDescripcion());
         paquete.setActivo(true);
+        paquete.setAdminId(contexto.duenoId());
         PaqueteResponse response = toResponse(paqueteRepository.save(paquete));
         historialService.registrarPaquete("PAQUETE_CREADO", response.getId(), response.getNombre(), null);
         return response;
@@ -65,7 +71,7 @@ public class PaqueteService {
         paquete.setActivo(false);
         paqueteRepository.save(paquete);
 
-        List<Producto> productos = productoRepository.findByPaqueteIdAndActivoTrue(id);
+        List<Producto> productos = productoRepository.findByPaqueteIdAndActivoTrue(id, contexto.duenoId());
         productos.forEach(producto -> {
             producto.setActivo(false);
             productoRepository.save(producto);
@@ -76,7 +82,7 @@ public class PaqueteService {
     }
 
     private PaqueteResponse toResponse(Paquete paquete) {
-        long total = productoRepository.findByPaqueteIdAndActivoTrue(paquete.getId()).size();
+        long total = productoRepository.findByPaqueteIdAndActivoTrue(paquete.getId(), contexto.duenoId()).size();
         return new PaqueteResponse(paquete.getId(), paquete.getNombre(), paquete.getDescripcion(), total);
     }
 }

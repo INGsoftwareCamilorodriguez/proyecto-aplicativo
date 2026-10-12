@@ -45,4 +45,7 @@ public class HistorialProducto {
 
     @Column(nullable = false)
     private LocalDateTime fecha;
+
+    @Column(name = "admin_id")
+    private Integer adminId;
 }

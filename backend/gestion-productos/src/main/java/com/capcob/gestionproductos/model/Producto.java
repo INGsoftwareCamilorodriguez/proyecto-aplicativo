@@ -70,6 +70,9 @@ public class Producto {
     @Column(name = "fecha_creacion", updatable = false, insertable = false)
     private LocalDateTime fechaCreacion;
 
+    @Column(name = "admin_id")
+    private Integer adminId;
+
     public enum TipoPrecio {
         FIJO, PESO
     }

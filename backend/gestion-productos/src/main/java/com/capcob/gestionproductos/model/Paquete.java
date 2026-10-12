@@ -28,4 +28,7 @@ public class Paquete {
 
     @Column(name = "fecha_creacion", updatable = false, insertable = false)
     private LocalDateTime fechaCreacion;
+
+    @Column(name = "admin_id")
+    private Integer adminId;
 }

@@ -18,6 +18,9 @@ import java.util.List;
 // exclusivo del Desarrollador). La gestión de un tercer rol/Auditor queda
 // pendiente de definir con el equipo.
 //
+// Cada empleado pertenece a un administrador (columna admin_id): un admin
+// solo ve y edita a SUS empleados.
+//
 // Los métodos de "perfil" (obtenerPerfil/actualizarPerfil) son la
 // excepción: son de autoservicio (cualquier usuario, sin importar el
 // rol, edita SU PROPIO nombre y foto desde Configuración), por eso no
@@ -27,14 +30,17 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ContextoUsuario contexto;
 
-    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder,
+                          ContextoUsuario contexto) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.contexto = contexto;
     }
 
     public List<UsuarioResponse> listarEmpleados() {
-        return usuarioRepository.findByRolOrderByNombreAsc(Usuario.Rol.EMPLEADO)
+        return usuarioRepository.findByRolAndAdminIdOrderByNombreAsc(Usuario.Rol.EMPLEADO, contexto.duenoId())
                 .stream().map(this::toResponse).toList();
     }
 
@@ -59,6 +65,7 @@ public class UsuarioService {
         usuario.setActivo(request.getActivo() == null ? true : request.getActivo());
         usuario.setIdentidad(limpiar(request.getIdentidad()));
         usuario.setTelefono(limpiar(request.getTelefono()));
+        usuario.setAdminId(contexto.duenoId());
 
         return toResponse(usuarioRepository.save(usuario));
     }
@@ -201,12 +208,18 @@ public class UsuarioService {
     // ── Perfil (autoservicio, cualquier rol) ──────────────────────
 
     public PerfilResponse obtenerPerfil(Integer id) {
+        if (!contexto.actual().getId().equals(id)) {
+            throw new IllegalArgumentException("Usuario no encontrado");
+        }
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
         return toPerfilResponse(usuario);
     }
 
     public PerfilResponse actualizarPerfil(Integer id, PerfilRequest request) {
+        if (!contexto.actual().getId().equals(id)) {
+            throw new IllegalArgumentException("Usuario no encontrado");
+        }
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
@@ -231,6 +244,9 @@ public class UsuarioService {
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
         if (usuario.getRol() != Usuario.Rol.EMPLEADO) {
             throw new IllegalArgumentException("Este usuario no se puede administrar desde aquí");
+        }
+        if (!contexto.duenoId().equals(usuario.getAdminId())) {
+            throw new IllegalArgumentException("Usuario no encontrado");
         }
         return usuario;
     }

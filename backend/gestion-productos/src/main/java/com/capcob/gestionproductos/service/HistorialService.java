@@ -24,13 +24,15 @@ public class HistorialService {
     private static final Logger log = LoggerFactory.getLogger(HistorialService.class);
 
     private final HistorialProductoRepository historialRepository;
+    private final ContextoUsuario contexto;
 
-    public HistorialService(HistorialProductoRepository historialRepository) {
+    public HistorialService(HistorialProductoRepository historialRepository, ContextoUsuario contexto) {
         this.historialRepository = historialRepository;
+        this.contexto = contexto;
     }
 
     public List<HistorialProducto> listarRecientes() {
-        return historialRepository.findTop50ByOrderByFechaDescIdDesc();
+        return historialRepository.findTop50ByAdminIdOrderByFechaDescIdDesc(contexto.duenoId());
     }
 
     public void registrarProducto(String accion, ProductoResponse p) {
@@ -55,6 +57,7 @@ public class HistorialService {
             h.setDetalle(recortar(detalle, 255));
             h.setUsuario(usuarioActual());
             h.setFecha(LocalDateTime.now());
+            h.setAdminId(contexto.duenoId());
             historialRepository.save(h);
         } catch (Exception e) {
             log.warn("No se pudo registrar el historial ({}): {}", accion, e.getMessage());

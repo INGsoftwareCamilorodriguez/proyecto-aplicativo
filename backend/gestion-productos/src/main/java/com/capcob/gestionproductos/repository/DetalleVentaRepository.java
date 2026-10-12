@@ -10,7 +10,8 @@ import java.util.List;
 public interface DetalleVentaRepository extends JpaRepository<DetalleVenta, Integer> {
 
     // JOIN FETCH del producto (de ahí se saca el nombre, ya que detalle_venta no lo guarda)
-    @Query("SELECT d FROM DetalleVenta d JOIN FETCH d.producto WHERE d.venta.fechaHora BETWEEN :inicio AND :fin")
-    List<DetalleVenta> findDetallesEnRango(@Param("inicio") LocalDateTime inicio,
+    @Query("SELECT d FROM DetalleVenta d JOIN FETCH d.producto WHERE d.venta.adminId = :adminId AND d.venta.fechaHora BETWEEN :inicio AND :fin")
+    List<DetalleVenta> findDetallesEnRango(@Param("adminId") Integer adminId,
+                                            @Param("inicio") LocalDateTime inicio,
                                             @Param("fin") LocalDateTime fin);
 }

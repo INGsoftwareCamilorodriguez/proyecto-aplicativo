@@ -10,7 +10,8 @@ import java.util.List;
 public interface VentaRepository extends JpaRepository<Venta, Integer> {
 
     // JOIN FETCH para traer el empleado junto con la venta en una sola consulta
-    @Query("SELECT v FROM Venta v JOIN FETCH v.empleado WHERE v.fechaHora BETWEEN :inicio AND :fin ORDER BY v.fechaHora DESC")
-    List<Venta> findByFechaBetweenOrderByFechaDesc(@Param("inicio") LocalDateTime inicio,
+    @Query("SELECT v FROM Venta v JOIN FETCH v.empleado WHERE v.adminId = :adminId AND v.fechaHora BETWEEN :inicio AND :fin ORDER BY v.fechaHora DESC")
+    List<Venta> findByFechaBetweenOrderByFechaDesc(@Param("adminId") Integer adminId,
+                                                     @Param("inicio") LocalDateTime inicio,
                                                      @Param("fin") LocalDateTime fin);
 }

@@ -3,25 +3,32 @@ package com.capcob.gestionproductos.service;
 import com.capcob.gestionproductos.dto.ConfiguracionRequest;
 import com.capcob.gestionproductos.dto.ConfiguracionResponse;
 import com.capcob.gestionproductos.model.ConfiguracionSistema;
+import com.capcob.gestionproductos.model.Usuario;
 import com.capcob.gestionproductos.repository.ConfiguracionRepository;
+import com.capcob.gestionproductos.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-// La configuración del sistema es una SOLA fila (id = 1): el tema,
-// el logo y el nombre de la empresa se aplican de forma uniforme a
-// todo el panel, no por usuario.
+// Hay UNA fila de configuración por administrador: su id es el id del admin dueño.
+// El tema, el logo y el nombre de la empresa se aplican a todo su panel
+// (y a sus empleados), pero nunca se mezclan con los de otro administrador.
 @Service
 public class ConfiguracionService {
 
-    private static final Integer ID_UNICO = 1;
     private static final List<String> TEMAS_VALIDOS = List.of("claro", "oscuro");
 
     private final ConfiguracionRepository configuracionRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final ContextoUsuario contexto;
 
-    public ConfiguracionService(ConfiguracionRepository configuracionRepository) {
+    public ConfiguracionService(ConfiguracionRepository configuracionRepository,
+                                UsuarioRepository usuarioRepository,
+                                ContextoUsuario contexto) {
         this.configuracionRepository = configuracionRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.contexto = contexto;
     }
 
     public ConfiguracionResponse obtener() {
@@ -57,11 +64,14 @@ public class ConfiguracionService {
     }
 
     private ConfiguracionSistema obtenerOCrear() {
-        return configuracionRepository.findById(ID_UNICO).orElseGet(() -> {
+        Integer duenoId = contexto.duenoId();
+        return configuracionRepository.findById(duenoId).orElseGet(() -> {
+            Usuario dueno = usuarioRepository.findById(duenoId).orElseThrow();
             ConfiguracionSistema nueva = new ConfiguracionSistema();
-            nueva.setId(ID_UNICO);
+            nueva.setId(duenoId);
             nueva.setTema("claro");
-            nueva.setNombreEmpresa("CAPCOB");
+            nueva.setNombreEmpresa(dueno.getEmpresaNombre() != null ? dueno.getEmpresaNombre() : "CAPCOB");
+            nueva.setLogoUrl(dueno.getEmpresaLogo());
             return configuracionRepository.save(nueva);
         });
     }

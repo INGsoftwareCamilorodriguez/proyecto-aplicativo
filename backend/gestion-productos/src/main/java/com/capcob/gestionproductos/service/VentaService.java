@@ -7,7 +7,6 @@ import com.capcob.gestionproductos.model.Usuario;
 import com.capcob.gestionproductos.model.Venta;
 import com.capcob.gestionproductos.repository.DetalleVentaRepository;
 import com.capcob.gestionproductos.repository.ProductoRepository;
-import com.capcob.gestionproductos.repository.UsuarioRepository;
 import com.capcob.gestionproductos.repository.VentaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,26 +28,27 @@ public class VentaService {
     private final VentaRepository ventaRepository;
     private final DetalleVentaRepository detalleVentaRepository;
     private final ProductoRepository productoRepository;
-    private final UsuarioRepository usuarioRepository;
+    private final ContextoUsuario contexto;
 
     public VentaService(VentaRepository ventaRepository,
                          DetalleVentaRepository detalleVentaRepository,
                          ProductoRepository productoRepository,
-                         UsuarioRepository usuarioRepository) {
+                         ContextoUsuario contexto) {
         this.ventaRepository = ventaRepository;
         this.detalleVentaRepository = detalleVentaRepository;
         this.productoRepository = productoRepository;
-        this.usuarioRepository = usuarioRepository;
+        this.contexto = contexto;
     }
 
     // Registra la venta completa: valida stock, descuenta inventario y
     // guarda la cabecera + el detalle en una sola transacción.
     @Transactional
     public VentaResponse registrar(VentaRequest request) {
-        Usuario empleado = usuarioRepository.findById(request.getUsuarioId())
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+        // El cajero es quien tiene la sesión abierta (ya no se confía en el usuarioId del request).
+        Usuario empleado = contexto.actual();
 
         Venta venta = new Venta();
+        venta.setAdminId(contexto.duenoId());
         venta.setEmpleado(empleado);
         venta.setFechaHora(LocalDateTime.now());
 
@@ -59,6 +59,9 @@ public class VentaService {
             Producto producto = productoRepository.findById(item.getProductoId())
                     .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: id " + item.getProductoId()));
 
+            if (!contexto.duenoId().equals(producto.getAdminId())) {
+                throw new IllegalArgumentException("Producto no encontrado: id " + item.getProductoId());
+            }
             if (!producto.getActivo()) {
                 throw new IllegalArgumentException("El producto \"" + producto.getNombre() + "\" no está activo");
             }
@@ -99,7 +102,7 @@ public class VentaService {
 
     @Transactional(readOnly = true)
     public List<VentaResponse> listar(LocalDateTime inicio, LocalDateTime fin) {
-        return ventaRepository.findByFechaBetweenOrderByFechaDesc(inicio, fin).stream()
+        return ventaRepository.findByFechaBetweenOrderByFechaDesc(contexto.duenoId(), inicio, fin).stream()
                 .map(this::toResponseCalculado)
                 .toList();
     }
@@ -112,7 +115,7 @@ public class VentaService {
         BigDecimal[] totalesPorMes = new BigDecimal[12];
         Arrays.fill(totalesPorMes, BigDecimal.ZERO);
 
-        ventaRepository.findByFechaBetweenOrderByFechaDesc(inicio, fin).forEach(v -> {
+        ventaRepository.findByFechaBetweenOrderByFechaDesc(contexto.duenoId(), inicio, fin).forEach(v -> {
             int idx = v.getFechaHora().getMonthValue() - 1;
             totalesPorMes[idx] = totalesPorMes[idx].add(v.getTotal());
         });
@@ -127,7 +130,7 @@ public class VentaService {
     // Cantidad y monto vendido por producto en un rango de fechas
     // (usado por las tarjetas y la gráfica de pastel de "producto de ventas")
     public List<ResumenProductoResponse> resumenPorProducto(LocalDateTime inicio, LocalDateTime fin) {
-        List<DetalleVenta> detalles = detalleVentaRepository.findDetallesEnRango(inicio, fin);
+        List<DetalleVenta> detalles = detalleVentaRepository.findDetallesEnRango(contexto.duenoId(), inicio, fin);
 
         Map<Integer, ResumenProductoResponse> acumulado = new LinkedHashMap<>();
         BigDecimal totalGeneral = BigDecimal.ZERO;

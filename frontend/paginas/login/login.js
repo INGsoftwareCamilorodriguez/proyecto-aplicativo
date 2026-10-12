@@ -133,6 +133,11 @@ async function doLogin() {
     sessionStorage.setItem('userId', data.id);
     sessionStorage.setItem('token', data.token);
 
+    // ── Limpiar la marca (logo/nombre/tema) del admin anterior ──
+    localStorage.removeItem('temaSistema');
+    localStorage.removeItem('nombreEmpresa');
+    localStorage.removeItem('logoEmpresa');
+
     // ── Recordarme ──
     const recordar = document.getElementById('cb').classList.contains('on');
     if (recordar) {

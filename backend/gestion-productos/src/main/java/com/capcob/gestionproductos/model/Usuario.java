@@ -85,6 +85,10 @@ public class Usuario {
     @Column(name = "empresa_logo", columnDefinition = "LONGTEXT")
     private String empresaLogo;
 
+    // Dueño del empleado: id del ADMIN al que pertenece. Null para ADMIN y DESARROLLADOR.
+    @Column(name = "admin_id")
+    private Integer adminId;
+
     public enum Rol {
         ADMIN, EMPLEADO, DESARROLLADOR
     }
