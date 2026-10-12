@@ -862,13 +862,14 @@ html.tema-panel[data-tema="oscuro"] .estado-agotado { background: #4A2020; color
 
 /* Botón Comparar (solo texto) */
 .btn-comparar { padding: 10px 24px; }
+/* "Volver al inventario": mismo verde sólido que el botón Comparar (tema claro y oscuro) */
 .btn-comparar.volver {
-  background: var(--card);
-  color: var(--dev-accent, #1F8A2B);
-  border: 1.5px solid var(--dev-accent, #1F8A2B);
-  box-shadow: none;
+  background: var(--dev-accent, #1F8A2B);
+  color: #fff;
+  border: none;
+  box-shadow: 0 2px 8px rgba(31, 138, 43, .35);
 }
-.btn-comparar.volver:hover { background: var(--dev-tint, #E8F5E9); }
+.btn-comparar.volver:hover { background: var(--dev-accent-hover, #187022); }
 
 /* Desplegables con diseño */
 .inv-filter { position: relative; user-select: none; }

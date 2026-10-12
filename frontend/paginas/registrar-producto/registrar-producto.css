@@ -829,3 +829,47 @@
 .paquete-pill .pill-nombre { flex: 0 1 auto; }
 @media (max-width: 1100px) { .paquetes-row { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 640px)  { .paquetes-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+
+/* ══ Tema "Negro": las superficies claras (chips, historial, formulario, modal, paginado) ══
+   conservan fondo blanco, así que se les pone letra oscura (se redefinen las variables
+   de color solo dentro de ellas). ══ */
+html.tema-panel[data-tema="oscuro"] .paquete-pill:not(.active),
+html.tema-panel[data-tema="oscuro"] .buscar-resultados,
+html.tema-panel[data-tema="oscuro"] .historial-item,
+html.tema-panel[data-tema="oscuro"] .form-input,
+html.tema-panel[data-tema="oscuro"] .form-select,
+html.tema-panel[data-tema="oscuro"] .icon-btn,
+html.tema-panel[data-tema="oscuro"] .modal-box,
+html.tema-panel[data-tema="oscuro"] .pag-btn,
+html.tema-panel[data-tema="oscuro"] .modal-cancel,
+html.tema-panel[data-tema="oscuro"] .imagen-drop,
+html.tema-panel[data-tema="oscuro"] .imagen-quitar {
+  --text: #1A1A1A;
+  --muted: #5F6B63;
+  --border: #D5DBD6;
+  color: #1A1A1A;
+}
+html.tema-panel[data-tema="oscuro"] .form-input,
+html.tema-panel[data-tema="oscuro"] .form-select { color: #1A1A1A; }
+html.tema-panel[data-tema="oscuro"] .form-input::placeholder { color: #6B7280; }
+html.tema-panel[data-tema="oscuro"] .paquete-pill:not(.active) .count { background: rgba(0,0,0,.1); color: #1A1A1A; }
+html.tema-panel[data-tema="oscuro"] .paquete-pill-nueva { color: #9BE0A0; border-color: #4FBF5E; background: #1F3A22; }
+html.tema-panel[data-tema="oscuro"] .cat-arrow:not(:disabled) { background: #fff; color: #1A1A1A; border-color: #D5DBD6; }
+html.tema-panel[data-tema="oscuro"] .pag-btn:not(:disabled) { background: #fff; }
+html.tema-panel[data-tema="oscuro"] .pag-btn:disabled { background: #cfd6d1; color: #3b4540; opacity: .8; }
+html.tema-panel[data-tema="oscuro"] .modal-cancel { background: #E5E7EB; color: #1A1A1A; }
+html.tema-panel[data-tema="oscuro"] .modal-box .card-title { color: #1A1A1A; }
+html.tema-panel[data-tema="oscuro"] .modal-box .form-label { color: #5F6B63; }
+html.tema-panel[data-tema="oscuro"] .imagen-drop { background: #F4F6F4; border-color: #B8C2BA; }
+html.tema-panel[data-tema="oscuro"] .imagen-drop .imagen-texto { color: #1A1A1A; }
+
+/* Tipo / modalidad de venta: opción elegida bien visible */
+html.tema-panel[data-tema="oscuro"] .tipo-precio-opt { color: #C9D8CA; border-color: #3A5040; }
+html.tema-panel[data-tema="oscuro"] .tipo-precio-opt.active {
+  background: #24432A;
+  border-color: #4FBF5E;
+  color: #B9F5BE;
+  font-weight: 700;
+  box-shadow: 0 0 0 1px #4FBF5E inset;
+}
