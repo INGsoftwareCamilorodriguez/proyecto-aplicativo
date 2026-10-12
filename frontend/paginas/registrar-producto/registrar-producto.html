@@ -35,9 +35,22 @@
 
     <!-- Categorías -->
     <div class="card">
-      <div class="card-title">Categorías</div>
+      <div class="cat-head">
+        <div class="card-title">Categorías</div>
+        <label class="cat-search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="buscarCategoriaInput" placeholder="Buscar categoría..." autocomplete="off" maxlength="100"/>
+        </label>
+      </div>
       <div class="paquetes-row" id="paquetesRow">
         <span class="empty-hint">Cargando categorías...</span>
+      </div>
+      <div class="cat-footer" id="catFooter" style="display:none;">
+        <span class="cat-info" id="catInfo"></span>
+        <div class="cat-pager">
+          <button type="button" class="cat-arrow" id="btnCatAnterior" aria-label="Categorías anteriores">&larr;</button>
+          <button type="button" class="cat-arrow" id="btnCatSiguiente" aria-label="Categorías siguientes">&rarr;</button>
+        </div>
       </div>
     </div>
 

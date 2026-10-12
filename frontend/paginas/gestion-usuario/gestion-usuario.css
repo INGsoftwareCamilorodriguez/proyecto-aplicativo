@@ -301,3 +301,16 @@
       transition: background .2s;
     }
     .btn-save:hover { background: #9333ea; }
+
+    /* ══ Mismo diseño de tabla/paginado que Anuncios: 8 por página, la tarjeta ocupa el alto restante ══ */
+    .table-card { flex: 1; display: flex; flex-direction: column; min-height: 360px; }
+    .table-scroll { flex: 1; overflow: auto; }
+    .table-footer { flex-wrap: wrap; gap: 12px; padding: 12px 96px 12px 18px; } /* margen derecho: botón flotante del asistente */
+    .pg-btn {
+      width: auto; min-width: 34px; height: 34px; padding: 0 10px;
+      border: 1.5px solid var(--border); border-radius: 8px; background: var(--white); color: var(--text);
+      font-size: .8rem; font-weight: 600; font-family: 'Inter', sans-serif; cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .pg-btn:disabled { opacity: .45; cursor: not-allowed; }
+    .pg-btn.active { cursor: default; }

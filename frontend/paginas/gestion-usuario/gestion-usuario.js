@@ -9,7 +9,7 @@
 let usuarios = [];
 let editingId = null;
 let paginaActual = 1;
-const porPagina = 10;
+const porPagina = 8;
 
 // ── Utilidades ──────────────────────────────────────────────
 async function apiFetch(path, options) {
@@ -112,25 +112,21 @@ function renderTable() {
   const pgDiv = document.getElementById('pagination');
   pgDiv.innerHTML = '';
 
-  const prev = document.createElement('div');
-  prev.className = 'pg-btn';
-  prev.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>`;
-  prev.onclick = () => { if (paginaActual > 1) { paginaActual--; renderTable(); } };
-  pgDiv.appendChild(prev);
-
-  for (let i=1; i<=totalPags; i++) {
-    const btn = document.createElement('div');
-    btn.className = 'pg-btn' + (i === paginaActual ? ' active' : '');
-    btn.textContent = i;
-    btn.onclick = (()=> { const p=i; return ()=>{ paginaActual=p; renderTable(); }; })();
+  const crear = (texto, pagina, deshabilitado, activo) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pg-btn' + (activo ? ' active' : '');
+    btn.textContent = texto;
+    btn.disabled = !!deshabilitado;
+    btn.onclick = () => { paginaActual = pagina; renderTable(); };
     pgDiv.appendChild(btn);
-  }
+  };
 
-  const next = document.createElement('div');
-  next.className = 'pg-btn';
-  next.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>`;
-  next.onclick = () => { if (paginaActual < totalPags) { paginaActual++; renderTable(); } };
-  pgDiv.appendChild(next);
+  if (total > 0) {
+    crear('‹ Anterior', paginaActual - 1, paginaActual === 1);
+    for (let i = 1; i <= totalPags; i++) crear(String(i), i, false, i === paginaActual);
+    crear('Siguiente ›', paginaActual + 1, paginaActual === totalPags);
+  }
 }
 
 // ── Modal ──

@@ -760,32 +760,35 @@
 .ver-btn:hover { background: var(--dev-tint, #E8F5E9); }
 .ver-btn:hover svg { stroke: var(--dev-accent, #1F8A2B); }
 
-/* Pie de tabla: conteo + paginación */
+/* Pie de tabla: conteo + paginación (mismo diseño que Anuncios) */
 .inv-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  padding: 12px 6px 0;
+  padding: 12px 96px 12px 18px; /* margen derecho: botón flotante del asistente */
+  margin: 12px -14px -12px;
+  border-top: 1px solid var(--border);
 }
-.inv-count { font-size: .76rem; color: var(--muted); }
+.inv-count { font-size: .78rem; color: var(--muted); }
 .inv-pager { display: flex; align-items: center; gap: 6px; }
 .pg-btn {
-  min-width: 28px; height: 28px;
-  padding: 0 8px;
-  border: 1px solid var(--border);
-  border-radius: 7px;
+  min-width: 34px; height: 34px;
+  padding: 0 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
   background: var(--card);
   color: var(--text);
-  font-size: .78rem;
+  font-size: .8rem;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
+  transition: background .15s, border-color .15s;
 }
-.pg-btn:hover:not(:disabled):not(.active) { border-color: var(--dev-accent, #1F8A2B); color: var(--dev-accent, #1F8A2B); }
-.pg-btn.active { background: var(--dev-accent, #1F8A2B); border-color: var(--dev-accent, #1F8A2B); color: #fff; }
-.pg-btn:disabled { opacity: .4; cursor: default; }
+.pg-btn:hover:not(:disabled):not(.active) { background: #F3F4F6; }
+.pg-btn.active { background: var(--dev-accent, #1F8A2B); border-color: var(--dev-accent, #1F8A2B); color: #fff; cursor: default; }
+.pg-btn:disabled { opacity: .45; cursor: not-allowed; }
 .pg-dots { color: var(--muted); font-size: .8rem; padding: 0 2px; }
 
 /* ── Modal de detalle ── */
@@ -1094,3 +1097,46 @@ html.tema-panel[data-tema="oscuro"] .cmp-nota { background: #3D3218; color: #F5D
 html.tema-panel[data-tema="oscuro"] .cmp-dif-pill { background: #4A2020; color: #F5A0A0; }
 
 @media (max-width: 900px) { .cmp-grid, .cmp-abajo { grid-template-columns: 1fr; } .cmp-h, .cmp-c { padding: 12px 14px; } }
+
+/* ── Comparar: buscador de paquetes + aviso de "elige un paquete" ── */
+.cmp-buscador {
+  flex: 1 1 260px; min-width: 200px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 14px; min-height: 50px;
+  border: 1px solid var(--border); border-radius: 10px;
+  background: var(--card); cursor: text;
+}
+.cmp-buscador svg { width: 17px; height: 17px; stroke: var(--muted); fill: none; stroke-width: 2; flex-shrink: 0; }
+.cmp-buscador input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-size: .85rem; color: var(--text); }
+.cmp-buscador input::placeholder { color: var(--muted); }
+.cmp-buscador:focus-within { border-color: var(--dev-accent, #1F8A2B); box-shadow: var(--dev-ring, 0 0 0 3px rgba(31,138,43,.18)); }
+.cmp-regla { flex: 1 0 100%; order: 10; }
+
+.inv-opt.off { opacity: .5; background: rgba(0,0,0,.05); font-style: italic; }
+.inv-opt.off:hover { background: rgba(0,0,0,.05); }
+.inv-opt.vacio { justify-content: center; }
+
+.cmp-paquete.alerta {
+  border-color: #D32F2F !important;
+  box-shadow: 0 0 0 3px rgba(211,47,47,.2) !important;
+  animation: cmp-sacudir .45s ease;
+}
+.cmp-paquete.alerta small { color: #D32F2F; font-weight: 700; }
+@keyframes cmp-sacudir {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+.cmp-select.pendiente { opacity: .8; cursor: pointer; }
+html.tema-panel[data-tema="oscuro"] .inv-opt.off { background: rgba(255,255,255,.06); }
+html.tema-panel[data-tema="oscuro"] .pg-btn:hover:not(:disabled):not(.active) { background: #1F2D22; }
+
+
+/* ── Tabla ocupa el alto restante, con scroll interno y paginado abajo (como Anuncios) ── */
+.header-row, .inv-filters, .inv-stats { flex-shrink: 0; }
+#vistaInventario { flex: 1; min-height: 0; }
+.inv-table-card { flex: 1; display: flex; flex-direction: column; min-height: 360px; overflow: hidden; }
+.inv-table-wrap { flex: 1; overflow: auto; }
+.inv-footer { flex-shrink: 0; }

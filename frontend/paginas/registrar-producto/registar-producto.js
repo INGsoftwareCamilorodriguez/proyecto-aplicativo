@@ -77,6 +77,50 @@ const modalPaquete = document.getElementById('modalPaquete');
 const modalPaqueteMsg = document.getElementById('modalPaqueteMsg');
 
 // ── Utilidades ──────────────────────────────────────────────
+// ── Nombres largos: el texto "recorre" despacio en vez de agrandar el cuadro ──
+const MAX_NOMBRE_PRODUCTO = 150; // igual que la columna en la base de datos
+const MAX_NOMBRE_CATEGORIA = 100;
+const CATEGORIAS_POR_PAGINA = 6;
+
+function marquesina(el, texto) {
+  el.classList.add('marquesina');
+  el.textContent = '';
+  const inner = document.createElement('span');
+  inner.className = 'marq-txt';
+  inner.textContent = texto;
+  el.appendChild(inner);
+  el.title = texto;
+  requestAnimationFrame(() => medirMarquesina(el));
+}
+
+function medirMarquesina(el) {
+  const inner = el.firstElementChild;
+  if (!inner || el.clientWidth === 0) return;
+  el.classList.remove('corre');
+  const extra = inner.scrollWidth - el.clientWidth;
+  if (extra > 2) {
+    const px = extra + 6;
+    el.style.setProperty('--marq-dist', '-' + px + 'px');
+    el.style.setProperty('--marq-dur', Math.max(5, px / 22 / 0.7).toFixed(1) + 's');
+    el.classList.add('corre');
+  }
+}
+window.addEventListener('resize', () => document.querySelectorAll('.marquesina').forEach(medirMarquesina));
+
+// Título con prefijo fijo y nombre entre comillas que se desplaza si no cabe.
+function ponerTitulo(el, prefijo, nombre) {
+  el.classList.add('titulo-marq');
+  el.textContent = '';
+  const pre = document.createElement('span');
+  pre.className = 'tit-pre';
+  pre.textContent = prefijo;
+  const nom = document.createElement('span');
+  nom.className = 'tit-nombre';
+  el.appendChild(pre);
+  el.appendChild(nom);
+  marquesina(nom, '"' + nombre + '"');
+}
+
 function mostrarMsg(el, texto, tipo) {
   el.textContent = texto;
   el.className = 'form-msg ' + (tipo || '');
@@ -135,20 +179,42 @@ async function cargarPaquetes() {
   }
 }
 
+let paginaCategorias = 1;
+let filtroCategorias = '';
+
+function normalizarTexto(t) {
+  return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
 function renderPaquetes() {
   paquetesRow.innerHTML = '';
 
-  if (paquetes.length === 0) {
+  const q = normalizarTexto(filtroCategorias.trim());
+  const filtradas = paquetes.filter(p => !q || normalizarTexto(p.nombre).includes(q));
+  const total = filtradas.length;
+  const totalPaginas = Math.max(1, Math.ceil(total / CATEGORIAS_POR_PAGINA));
+  if (paginaCategorias > totalPaginas) paginaCategorias = totalPaginas;
+  if (paginaCategorias < 1) paginaCategorias = 1;
+  const inicio = (paginaCategorias - 1) * CATEGORIAS_POR_PAGINA;
+
+  if (paquetes.length === 0 || total === 0) {
     const hint = document.createElement('span');
     hint.className = 'empty-hint';
-    hint.textContent = 'Todavía no hay categorías creadas.';
+    hint.textContent = paquetes.length === 0 ? 'Todavía no hay categorías creadas.' : 'No hay categorías que coincidan con la búsqueda.';
     paquetesRow.appendChild(hint);
   }
 
-  paquetes.forEach(p => {
+  filtradas.slice(inicio, inicio + CATEGORIAS_POR_PAGINA).forEach(p => {
     const pill = document.createElement('div');
     pill.className = 'paquete-pill' + (p.id === paqueteSeleccionadoId ? ' active' : '');
-    pill.innerHTML = '<span>' + p.nombre + '</span><span class="count">' + p.totalProductos + '</span>';
+    const nombre = document.createElement('span');
+    nombre.className = 'pill-nombre';
+    const count = document.createElement('span');
+    count.className = 'count';
+    count.textContent = p.totalProductos;
+    pill.appendChild(nombre);
+    pill.appendChild(count);
+    marquesina(nombre, p.nombre);
     pill.addEventListener('click', () => seleccionarPaquete(p.id));
     paquetesRow.appendChild(pill);
   });
@@ -158,7 +224,22 @@ function renderPaquetes() {
   nuevo.textContent = '+ Nueva categoría';
   nuevo.addEventListener('click', abrirModalPaquete);
   paquetesRow.appendChild(nuevo);
+
+  // Pie: conteo + flechas (solo si hay más de una página)
+  document.getElementById('catFooter').style.display = total > CATEGORIAS_POR_PAGINA ? 'flex' : 'none';
+  document.getElementById('catInfo').textContent =
+    'Mostrando ' + (total === 0 ? 0 : inicio + 1) + '–' + Math.min(inicio + CATEGORIAS_POR_PAGINA, total) + ' de ' + total + ' categorías';
+  document.getElementById('btnCatAnterior').disabled = paginaCategorias <= 1;
+  document.getElementById('btnCatSiguiente').disabled = paginaCategorias >= totalPaginas;
 }
+
+document.getElementById('buscarCategoriaInput').addEventListener('input', (e) => {
+  filtroCategorias = e.target.value;
+  paginaCategorias = 1;
+  renderPaquetes();
+});
+document.getElementById('btnCatAnterior').addEventListener('click', () => { paginaCategorias--; renderPaquetes(); });
+document.getElementById('btnCatSiguiente').addEventListener('click', () => { paginaCategorias++; renderPaquetes(); });
 
 // ── Seleccionar paquete ─────────────────────────────────────
 async function seleccionarPaquete(id) {
@@ -170,10 +251,10 @@ async function seleccionarPaquete(id) {
   const paquete = paquetes.find(p => p.id === id);
   sinPaqueteHint.style.display = 'none';
   productoForm.style.display = 'flex';
-  formTitle.textContent = 'Nuevo producto en "' + paquete.nombre + '"';
+  ponerTitulo(formTitle, 'Nuevo producto en', paquete.nombre);
   productosCard.style.display = 'block';
   sinProductosCard.style.display = 'none';
-  productosTitle.textContent = 'Productos de "' + paquete.nombre + '"';
+  ponerTitulo(productosTitle, 'Productos de', paquete.nombre);
   buscarProductoInput.value = '';
   ocultarResultadosBusqueda();
 
@@ -258,7 +339,8 @@ function crearCeldaProducto(prod) {
   const cont = document.createElement('div');
   cont.className = 'prod-nombre-celda';
   const nombre = document.createElement('span');
-  nombre.textContent = prod.nombre;
+  nombre.className = 'prod-nombre-txt';
+  marquesina(nombre, prod.nombre);
   cont.appendChild(crearMiniatura(prod));
   cont.appendChild(nombre);
   return cont;
@@ -348,6 +430,10 @@ document.getElementById('btnGuardar').addEventListener('click', async () => {
   }
   if (!nombre || cantidadTexto === '') {
     mostrarMsg(formMsg, 'Completa el nombre y la cantidad.', 'error');
+    return;
+  }
+  if (nombre.length > MAX_NOMBRE_PRODUCTO) {
+    mostrarMsg(formMsg, 'Nombre de producto extenso (máximo ' + MAX_NOMBRE_PRODUCTO + ' caracteres).', 'error');
     return;
   }
   if (tipoPrecioActual === 'FIJO' && !ventaPorUnidadActual && !ventaPorPaqueteActual) {
@@ -464,7 +550,7 @@ function cargarProductoEnFormulario(prod) {
   imagenActual = prod.imagen || null;
   pintarImagen();
 
-  formTitle.textContent = 'Editando "' + prod.nombre + '"';
+  ponerTitulo(formTitle, 'Editando', prod.nombre);
   btnCancelarEdicion.style.display = 'inline-flex';
   mostrarMsg(formMsg, '', '');
   buscarProductoInput.value = '';
@@ -487,7 +573,7 @@ function cancelarEdicion() {
   seleccionarTipoPrecio('FIJO');
   btnCancelarEdicion.style.display = 'none';
   const paquete = paquetes.find(p => p.id === paqueteSeleccionadoId);
-  if (paquete) formTitle.textContent = 'Nuevo producto en "' + paquete.nombre + '"';
+  if (paquete) ponerTitulo(formTitle, 'Nuevo producto en', paquete.nombre);
   mostrarMsg(formMsg, '', '');
 }
 btnCancelarEdicion.addEventListener('click', cancelarEdicion);
@@ -750,6 +836,10 @@ document.getElementById('btnConfirmarPaquete').addEventListener('click', async (
     mostrarMsg(modalPaqueteMsg, 'El nombre de la categoría es obligatorio.', 'error');
     return;
   }
+  if (nombre.length > MAX_NOMBRE_CATEGORIA) {
+    mostrarMsg(modalPaqueteMsg, 'Nombre de categoría extenso (máximo ' + MAX_NOMBRE_CATEGORIA + ' caracteres).', 'error');
+    return;
+  }
 
   try {
     const nuevo = await apiFetch('/paquetes', {
@@ -758,6 +848,10 @@ document.getElementById('btnConfirmarPaquete').addEventListener('click', async (
     });
     modalPaquete.classList.add('hidden');
     await cargarPaquetes();
+    filtroCategorias = '';
+    document.getElementById('buscarCategoriaInput').value = '';
+    const pos = paquetes.findIndex(p => p.id === nuevo.id);
+    if (pos >= 0) paginaCategorias = Math.floor(pos / CATEGORIAS_POR_PAGINA) + 1;
     await seleccionarPaquete(nuevo.id);
     cargarHistorial();
   } catch (e) {

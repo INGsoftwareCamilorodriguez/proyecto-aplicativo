@@ -770,3 +770,47 @@
   color: #4b5563;
   text-align: center;
 }
+/* ══ Categorías: buscador, 6 por página y nombres que recorren ══ */
+.cat-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.cat-head .card-title { margin-bottom: 0; }
+.cat-search {
+  display: flex; align-items: center; gap: 8px;
+  width: 280px; max-width: 100%;
+  padding: 0 12px; height: 38px;
+  border: 1.5px solid var(--border); border-radius: 10px; background: var(--card);
+  cursor: text;
+}
+.cat-search svg { width: 16px; height: 16px; stroke: var(--muted); fill: none; stroke-width: 2; flex-shrink: 0; }
+.cat-search input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-size: .82rem; color: var(--text); font-family: inherit; }
+.cat-search:focus-within { border-color: var(--purple); }
+
+.paquete-pill { max-width: 230px; min-width: 0; }
+.paquete-pill .pill-nombre { flex: 1; min-width: 0; }
+.paquete-pill .count { flex-shrink: 0; }
+
+.cat-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+.cat-info { font-size: .78rem; color: var(--muted); }
+.cat-pager { display: flex; gap: 8px; }
+.cat-arrow {
+  width: 40px; height: 32px; border: 1.5px solid var(--border); border-radius: 8px;
+  background: var(--card); color: var(--text); font-size: 1rem; font-weight: 700; cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.cat-arrow:hover:not(:disabled) { border-color: var(--purple); }
+.cat-arrow:disabled { opacity: .4; cursor: not-allowed; }
+
+/* Marquesina: el nombre recorre despacio, con pausa en cada extremo */
+.marquesina { overflow: hidden; white-space: nowrap; min-width: 0; }
+.marquesina .marq-txt { display: inline-block; white-space: nowrap; }
+.marquesina.corre .marq-txt { animation: marq-ir var(--marq-dur, 8s) ease-in-out infinite alternate; }
+.marquesina.corre:hover .marq-txt { animation-play-state: paused; }
+@keyframes marq-ir {
+  0%, 15% { transform: translateX(0); }
+  85%, 100% { transform: translateX(var(--marq-dist, 0)); }
+}
+.titulo-marq { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.titulo-marq .tit-pre { flex: 0 0 auto; white-space: nowrap; }
+.titulo-marq .tit-nombre { flex: 1; min-width: 0; }
+.prod-nombre-celda { max-width: 320px; }
+.prod-nombre-celda .prod-nombre-txt { flex: 1; min-width: 0; }
+@media (prefers-reduced-motion: reduce) { .marquesina.corre .marq-txt { animation: none; } .marquesina { text-overflow: ellipsis; } }

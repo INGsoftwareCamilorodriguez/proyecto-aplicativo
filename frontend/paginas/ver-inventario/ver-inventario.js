@@ -235,7 +235,6 @@ function renderTabla() {
 
 function renderPaginacion(totalPaginas) {
   paginacion.innerHTML = '';
-  if (totalPaginas <= 1) return;
 
   const crear = (texto, pagina, opts) => {
     const b = document.createElement('button');
@@ -247,7 +246,7 @@ function renderPaginacion(totalPaginas) {
     return b;
   };
 
-  paginacion.appendChild(crear('‹', paginaActual - 1, { deshabilitado: paginaActual === 1 }));
+  paginacion.appendChild(crear('‹ Anterior', paginaActual - 1, { deshabilitado: paginaActual === 1 }));
 
   // Muestra: 1 … (actual-1) actual (actual+1) … última
   const visibles = new Set([1, totalPaginas, paginaActual - 1, paginaActual, paginaActual + 1]);
@@ -264,7 +263,7 @@ function renderPaginacion(totalPaginas) {
     previo = i;
   }
 
-  paginacion.appendChild(crear('›', paginaActual + 1, { deshabilitado: paginaActual === totalPaginas }));
+  paginacion.appendChild(crear('Siguiente ›', paginaActual + 1, { deshabilitado: paginaActual === totalPaginas }));
 }
 
 function irAPagina(n) {
@@ -360,12 +359,21 @@ function mejorarSelect(sel) {
     valor.textContent = o ? o.textContent : 'Sin opciones';
   };
   sel._sync = sync;
+  sel._filtro = '';
 
   const cerrar = () => { menu.hidden = true; caja.classList.remove('open'); };
   const abrir = () => {
     if (cerrarMenuAbierto) cerrarMenuAbierto();
     menu.innerHTML = '';
-    Array.from(sel.options).forEach(o => {
+    const q = normalizar(sel._filtro || '');
+    const opciones = Array.from(sel.options).filter(o => !q || (o.value !== '' && normalizar(o.textContent).includes(q)));
+    if (opciones.length === 0) {
+      const vacio = document.createElement('li');
+      vacio.className = 'inv-opt off vacio';
+      vacio.textContent = 'No se encontró ningún paquete';
+      menu.appendChild(vacio);
+    }
+    opciones.forEach(o => {
       const li = document.createElement('li');
       li.className = 'inv-opt' + (o.value === sel.value ? ' sel' : '') + (o.disabled ? ' off' : '');
       li.textContent = o.textContent;
@@ -378,6 +386,7 @@ function mejorarSelect(sel) {
           sel.dispatchEvent(new Event('change'));
         });
       }
+      if (o.disabled && o.title) li.title = o.title;
       menu.appendChild(li);
     });
     menu.hidden = false;
@@ -385,6 +394,7 @@ function mejorarSelect(sel) {
     cerrarMenuAbierto = cerrar;
   };
 
+  sel._abrir = abrir;
   caja.addEventListener('click', () => { menu.hidden ? abrir() : cerrar(); });
   caja.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); menu.hidden ? abrir() : cerrar(); }
@@ -415,6 +425,7 @@ function reiniciarSeleccion() {
 function abrirComparar() {
   cmp.activo = true;
   reiniciarSeleccion();
+  limpiarBuscadorPaquete();
   $('vistaInventario').hidden = true;
   $('vistaComparar').hidden = false;
   $('tituloPagina').textContent = 'Comparar';
@@ -445,23 +456,58 @@ function productosDe(paqueteId) { return productos.filter(x => x.paqueteId === N
 function llenarPaqueteComparar() {
   const sel = $('cmpPaquete');
   sel.innerHTML = '';
-  const elegibles = paquetes.filter(p => productosDe(p.id).length >= 2);
   const base = document.createElement('option');
   base.value = '';
-  base.textContent = elegibles.length ? 'Elige un paquete' : 'Ningún paquete tiene 2 productos';
-  base.disabled = elegibles.length === 0;
+  base.textContent = paquetes.length ? 'Elige un paquete' : 'No hay paquetes creados';
+  base.disabled = paquetes.length === 0;
   sel.appendChild(base);
-  elegibles.forEach(p => {
+  // Salen TODOS los paquetes. Los que no tienen al menos 2 productos se ven
+  // apagados y no se pueden elegir (no hay con qué comparar).
+  paquetes.forEach(p => {
+    const n = productosDe(p.id).length;
     const o = document.createElement('option');
     o.value = String(p.id);
-    o.textContent = p.nombre + ' (' + productosDe(p.id).length + ')';
+    if (n === 0) {
+      o.textContent = p.nombre + ' (sin productos)';
+      o.disabled = true;
+    } else if (n === 1) {
+      o.textContent = p.nombre + ' (Solo hay 1 producto)';
+      o.disabled = true;
+    } else {
+      o.textContent = p.nombre + ' (' + n + ')';
+    }
     sel.appendChild(o);
   });
   sel.value = cmp.paqueteId;
   sel._sync();
 }
 
+function limpiarBuscadorPaquete() {
+  $('cmpBuscarPaquete').value = '';
+  $('cmpPaquete')._filtro = '';
+}
+
+// Buscador: filtra la lista de paquetes y la abre para ver los resultados.
+$('cmpBuscarPaquete').addEventListener('input', (e) => {
+  const sel = $('cmpPaquete');
+  sel._filtro = e.target.value.trim();
+  sel._abrir();
+});
+$('cmpBuscarPaquete').addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  // Enter elige el primer paquete elegible que coincida
+  const q = normalizar($('cmpPaquete')._filtro || '');
+  const primero = paquetes.find(p => productosDe(p.id).length >= 2 && (!q || normalizar(p.nombre).includes(q)));
+  if (!primero) return;
+  const sel = $('cmpPaquete');
+  sel.value = String(primero.id);
+  sel._sync();
+  sel.dispatchEvent(new Event('change'));
+});
+
 $('cmpPaquete').addEventListener('change', (e) => {
+  limpiarBuscadorPaquete();
   cmp.paqueteId = e.target.value;
   reiniciarSeleccion();
   renderComparar();
@@ -472,6 +518,7 @@ document.querySelectorAll('.cmp-modo').forEach(btn => {
     if (cmp.modo === btn.dataset.modo) return;
     cmp.modo = btn.dataset.modo;
     cmp.paqueteId = '';
+    limpiarBuscadorPaquete();
     reiniciarSeleccion();
     llenarPaqueteComparar();
     renderComparar();
@@ -516,6 +563,7 @@ function renderComparar() {
   document.querySelectorAll('.cmp-modo').forEach(b => b.classList.toggle('active', b.dataset.modo === cmp.modo));
   $('cmpRegla').textContent = REGLAS[cmp.modo];
   $('cmpPaqueteWrap').style.display = cmp.modo === 'productos' ? '' : 'none';
+  $('cmpBuscadorWrap').style.display = cmp.modo === 'productos' ? '' : 'none';
   renderTarjeta('a');
   renderTarjeta('b');
   renderResultado();
@@ -540,7 +588,7 @@ function renderTarjeta(lado) {
   card.innerHTML =
     '<div class="cmp-card-head"><span class="cmp-letra">' + lado.toUpperCase() + '</span>' + titulo + '</div>' +
     '<div class="cmp-picker">' +
-      '<button type="button" class="cmp-select' + (abierto ? ' open' : '') + (el ? ' tiene' : '') + '"' + (bloqueado ? ' disabled' : '') + '>' +
+      '<button type="button" class="cmp-select' + (abierto ? ' open' : '') + (el ? ' tiene' : '') + (bloqueado ? ' pendiente' : '') + '"' + '>' +
         SVG_LUPA + '<span class="cmp-select-txt">' + etiqueta + '</span>' + SVG_FLECHA +
       '</button>' +
       (abierto
@@ -551,6 +599,7 @@ function renderTarjeta(lado) {
     (chip ? '<div class="cmp-paq">' + SVG_CAJA + '<span>' + chip + '</span></div>' : '');
 
   card.querySelector('.cmp-select').addEventListener('click', () => {
+    if (bloqueado) { pedirPaquete(); return; }
     cmp.abierto = cmp.abierto === lado ? null : lado;
     renderComparar();
     const inp = card.querySelector('.cmp-buscar input');
@@ -563,6 +612,18 @@ function renderTarjeta(lado) {
     input.addEventListener('input', () => { cmp.busq[lado] = input.value; renderLista(lado); });
     renderLista(lado);
   }
+}
+
+// Si intenta elegir un producto sin haber elegido paquete: se marca el
+// selector de paquete (borde rojo + sacudida) y se abre la lista.
+function pedirPaquete() {
+  const wrap = $('cmpPaqueteWrap');
+  wrap.classList.remove('alerta');
+  void wrap.offsetWidth; // reinicia la animación si se pulsa varias veces seguidas
+  wrap.classList.add('alerta');
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => { if ($('cmpPaquete')._abrir) $('cmpPaquete')._abrir(); }, 0);
+  setTimeout(() => wrap.classList.remove('alerta'), 2200);
 }
 
 function renderLista(lado) {
