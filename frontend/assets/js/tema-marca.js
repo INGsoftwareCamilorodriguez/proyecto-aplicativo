@@ -9,7 +9,7 @@
 //   <script src="/frontend/assets/js/tema-marca.js"></script>
 //
 // Cómo funciona:
-//  1. Aplica de inmediato lo último guardado en localStorage
+//  1. Aplica de inmediato lo último guardado en la caché de ESTA pestaña
 //     (para no parpadear al navegar entre páginas).
 //  2. En segundo plano consulta GET /api/configuracion y, si algo
 //     cambió, lo vuelve a aplicar y actualiza la caché local.
@@ -67,12 +67,33 @@ function aplicarMarca(nombreEmpresa, logoUrl) {
   }
 }
 
+// ── Caché POR PESTAÑA ──
+// Antes se guardaba en localStorage, que comparten TODAS las pestañas del navegador:
+// si entrabas con dos cuentas a la vez, el tema/logo de una se pintaba en la otra
+// durante unos segundos, hasta que llegaba la configuración real desde el servidor.
+// sessionStorage es privado de cada pestaña, así cada cuenta solo ve lo suyo.
+function cacheGet(clave) {
+  try { return sessionStorage.getItem(clave); } catch (e) { return null; }
+}
+function cacheSet(clave, valor) {
+  try { sessionStorage.setItem(clave, valor); } catch (e) { /* sin espacio: se ignora */ }
+}
+function cacheDel(clave) {
+  try { sessionStorage.removeItem(clave); } catch (e) { /* nada */ }
+}
+// Limpieza de las claves viejas que quedaron en localStorage (compartidas entre cuentas)
+try {
+  localStorage.removeItem("temaSistema");
+  localStorage.removeItem("nombreEmpresa");
+  localStorage.removeItem("logoEmpresa");
+} catch (e) { /* nada */ }
+
 // ── 1. Aplicar de inmediato lo que haya en caché ──
-aplicarTema(localStorage.getItem("temaSistema") || "claro");
+aplicarTema(cacheGet("temaSistema") || "claro");
 
 function aplicarCacheMarca() {
-  const nombreEmpresa = localStorage.getItem("nombreEmpresa");
-  const logoUrl = localStorage.getItem("logoEmpresa");
+  const nombreEmpresa = cacheGet("nombreEmpresa");
+  const logoUrl = cacheGet("logoEmpresa");
   if (nombreEmpresa || logoUrl) aplicarMarca(nombreEmpresa, logoUrl);
 }
 if (document.readyState === "loading") {
@@ -88,12 +109,12 @@ if (document.readyState === "loading") {
     if (!res.ok) return;
     const config = await res.json();
 
-    localStorage.setItem("temaSistema", config.tema || "claro");
-    if (config.nombreEmpresa) localStorage.setItem("nombreEmpresa", config.nombreEmpresa);
+    cacheSet("temaSistema", config.tema || "claro");
+    if (config.nombreEmpresa) cacheSet("nombreEmpresa", config.nombreEmpresa);
     if (config.logoUrl) {
-      localStorage.setItem("logoEmpresa", config.logoUrl);
+      cacheSet("logoEmpresa", config.logoUrl);
     } else {
-      localStorage.removeItem("logoEmpresa");
+      cacheDel("logoEmpresa");
     }
 
     aplicarTema(config.tema || "claro");

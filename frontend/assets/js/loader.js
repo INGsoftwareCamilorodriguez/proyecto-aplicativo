@@ -24,7 +24,7 @@
   var ESPERA_FINAL_MS  = 150;     // margen para peticiones encadenadas
   var IGNORAR_PETICIONES = /heartbeat|\/auth\/logout|mensajes|asistente|anuncios\/en-vivo/i;
 
-  var PAGINAS_PANEL = /\/(inicio|licencia|ver-inventario|configuracion|registrar-producto|productos-venta|gestion-administradores|gestion-usuario|anuncios)\//i;
+  var PAGINAS_PANEL = /\/(inicio|ver-inventario|configuracion|registrar-producto|productos-venta|gestion-administradores|gestion-usuario|anuncios)\//i;
   var esPanel = PAGINAS_PANEL.test(location.pathname);
 
   var inicio = Date.now();

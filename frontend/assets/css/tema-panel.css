@@ -9,8 +9,8 @@
 
    Lo activa tema-panel.js (le pone la clase "tema-panel" al <html>).
    Páginas que lo usan: inicio, productos-venta, registrar-producto,
-   ver-inventario, gestion-usuario, gestion-administradores,
-   licencia y configuracion. La pantalla de caja del Empleado, el
+   ver-inventario, gestion-usuario, gestion-administradores
+   y configuracion. La pantalla de caja del Empleado, el
    login y la página principal NO lo usan.
 
    ► Para cambiar la paleta edita solo el primer bloque (--dev-*).

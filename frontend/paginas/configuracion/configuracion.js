@@ -101,7 +101,7 @@ async function guardarApariencia() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.mensaje || "No se pudo guardar el tema.");
 
-    localStorage.setItem("temaSistema", data.tema);
+    try { sessionStorage.setItem("temaSistema", data.tema); } catch (e) { /* nada */ }
     aplicarTema(data.tema);
     mostrarAlerta("Apariencia actualizada para todo el panel.", "ok");
   } catch (e) {
@@ -220,12 +220,14 @@ async function guardarMarca() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.mensaje || "No se pudo guardar la marca.");
 
-    localStorage.setItem("nombreEmpresa", data.nombreEmpresa);
-    if (data.logoUrl) {
-      localStorage.setItem("logoEmpresa", data.logoUrl);
-    } else {
-      localStorage.removeItem("logoEmpresa");
-    }
+    try {
+      sessionStorage.setItem("nombreEmpresa", data.nombreEmpresa);
+      if (data.logoUrl) {
+        sessionStorage.setItem("logoEmpresa", data.logoUrl);
+      } else {
+        sessionStorage.removeItem("logoEmpresa");
+      }
+    } catch (e) { /* sin espacio en la caché de la pestaña: no pasa nada */ }
     nuevoLogo = undefined;
     aplicarMarca(data.nombreEmpresa, data.logoUrl);
 

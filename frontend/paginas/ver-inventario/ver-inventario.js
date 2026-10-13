@@ -305,8 +305,7 @@ function mostrarDetalle(prod) {
 
 function cerrarModal() { modalCodigo.classList.add('hidden'); }
 $('btnCerrarModalCodigo').addEventListener('click', cerrarModal);
-modalCodigo.addEventListener('click', (e) => { if (e.target === modalCodigo) cerrarModal(); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModal(); });
+// El modal NO se cierra al hacer clic afuera (así no se pierde lo escrito): solo con la X o el botón Cancelar.
 
 // ── Buscador y filtros ───────────────────────────────────────
 function cambioFiltro() {

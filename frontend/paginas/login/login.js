@@ -134,9 +134,12 @@ async function doLogin() {
     sessionStorage.setItem('token', data.token);
 
     // ── Limpiar la marca (logo/nombre/tema) del admin anterior ──
-    localStorage.removeItem('temaSistema');
-    localStorage.removeItem('nombreEmpresa');
-    localStorage.removeItem('logoEmpresa');
+    // (la caché ahora vive en sessionStorage, por pestaña; se limpian también
+    //  las claves viejas de localStorage por si quedaron de versiones anteriores)
+    ['temaSistema', 'nombreEmpresa', 'logoEmpresa'].forEach(k => {
+      localStorage.removeItem(k);
+      sessionStorage.removeItem(k);
+    });
 
     // ── Recordarme ──
     const recordar = document.getElementById('cb').classList.contains('on');

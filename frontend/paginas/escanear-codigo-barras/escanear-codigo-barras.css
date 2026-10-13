@@ -502,3 +502,14 @@
     #codigoInput { flex-basis: 100%; }
     .manual-btn, .camera-btn { flex: 1; padding: 12px 18px; }
   }
+
+  /* ── Celulares: barra superior compacta para que "Salir" no se salga de la pantalla ── */
+  @media (max-width: 480px) {
+    .topbar { padding: 0 10px; height: 60px; }
+    .topbar-left { gap: 8px; }
+    .topbar-left .brand { font-size: 1.15rem; }
+    .topbar-right { gap: 8px; font-size: .85rem; }
+    .cashier-chip { gap: 6px; }
+    .logout-btn { padding: 4px 12px 4px 4px; gap: 6px; font-size: .8rem; }
+    .modal-box, .modal-box-ticket { width: 94vw; }
+  }

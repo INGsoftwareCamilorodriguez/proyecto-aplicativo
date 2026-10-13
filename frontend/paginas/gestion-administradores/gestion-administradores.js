@@ -178,6 +178,10 @@ function abrirModal(id = null) {
   editingId = id;
   nuevoLogo = undefined;
   const passwordHint = document.getElementById('fPasswordHint');
+  const passwordActual = document.getElementById('fPasswordActual');
+  const passwordInput = document.getElementById('fPassword');
+  // Siempre arranca oculta (tipo password) cada vez que se abre el modal
+  passwordInput.type = 'password';
   document.getElementById('modalTitle').textContent = id ? 'Editar cliente (Administrador)' : 'Añadir cliente (Administrador)';
 
   if (id) {
@@ -190,6 +194,8 @@ function abrirModal(id = null) {
     document.getElementById('fTelefono').value           = a.telefono || '';
     document.getElementById('fEstado').value             = a.activo ? 'Activo' : 'Inactivo';
     passwordHint.style.display = 'block';
+    passwordActual.style.display = 'flex';
+    passwordInput.placeholder = 'Nueva contraseña (opcional)';
     if (a.empresaLogo) pintarLogoPreview(a.empresaLogo); else limpiarLogoPreview();
   } else {
     document.getElementById('fEmpresaNombre').value    = '';
@@ -200,9 +206,17 @@ function abrirModal(id = null) {
     document.getElementById('fTelefono').value           = '';
     document.getElementById('fEstado').value             = 'Activo';
     passwordHint.style.display = 'none';
+    passwordActual.style.display = 'none';
+    passwordInput.placeholder = 'Escribe una contraseña';
     limpiarLogoPreview();
   }
   document.getElementById('modalOverlay').classList.add('show');
+}
+
+// Ojito: muestra u oculta lo que se está escribiendo en el campo de contraseña
+function toggleVerPassword() {
+  const input = document.getElementById('fPassword');
+  input.type = input.type === 'password' ? 'text' : 'password';
 }
 
 function cerrarModal() {
@@ -267,10 +281,7 @@ async function eliminarAdministrador(id) {
   }
 }
 
-// cerrar modal al click fuera
-document.getElementById('modalOverlay').addEventListener('click', function (e) {
-  if (e.target === this) cerrarModal();
-});
+// El modal NO se cierra al hacer clic afuera (así no se pierde lo escrito): solo con la X o el botón Cancelar.
 
 // ── Control de roles (protección directa, además de guardian-dashboard.js) ──
 (function () {

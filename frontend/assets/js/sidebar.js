@@ -51,17 +51,12 @@ const MENU_ITEMS = [
 // ── Menú exclusivo del rol Desarrollador ──
 // Este rol no usa el menú de arriba (esas opciones son del panel de
 // cada empresa cliente): tiene su propio panel para crear/administrar
-// las cuentas de Administrador y para la licencia del software.
+// las cuentas de Administrador (Clientes).
 const MENU_ITEMS_DESARROLLADOR = [
   {
     href: "/frontend/paginas/gestion-administradores/gestion-administradores.html",
     label: "Clientes (Administradores)",
     icon: '<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>'
-  },
-  {
-    href: "/frontend/paginas/licencia/licencia.html",
-    label: "Licencia del software",
-    icon: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'
   }
 ];
 
@@ -82,9 +77,11 @@ async function cerrarSesion() {
   } catch (e) {
     // Si el backend no responde, igual dejamos salir al usuario localmente.
   } finally {
-    localStorage.removeItem("temaSistema");
-    localStorage.removeItem("nombreEmpresa");
-    localStorage.removeItem("logoEmpresa");
+    try {
+      localStorage.removeItem("temaSistema");
+      localStorage.removeItem("nombreEmpresa");
+      localStorage.removeItem("logoEmpresa");
+    } catch (e) { /* claves viejas: solo limpieza */ }
     sessionStorage.clear();
     window.location.href = "/frontend/paginas/login/login.html";
   }
@@ -148,4 +145,36 @@ function renderSidebar() {
     </aside>`;
 }
 
+// ── Menú en celulares y tablets (≤ 900px) ──
+// En pantallas pequeñas el menú lateral se esconde y se abre con el botón ☰.
+// Los estilos están en /frontend/assets/css/responsive.css.
+function iniciarMenuMovil() {
+  const sidebar = document.querySelector(".sidebar");
+  if (!sidebar || document.getElementById("menuToggle")) return;
+
+  const boton = document.createElement("button");
+  boton.id = "menuToggle";
+  boton.type = "button";
+  boton.className = "menu-toggle";
+  boton.setAttribute("aria-label", "Abrir menú");
+  boton.innerHTML = '<svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
+
+  const fondo = document.createElement("div");
+  fondo.className = "sidebar-backdrop";
+
+  document.body.appendChild(boton);
+  document.body.appendChild(fondo);
+
+  const abrir = () => document.body.classList.add("menu-abierto");
+  const cerrar = () => document.body.classList.remove("menu-abierto");
+
+  boton.addEventListener("click", abrir);
+  fondo.addEventListener("click", cerrar);
+  // Al tocar una opción del menú se cierra (la navegación sigue en la misma pestaña)
+  sidebar.addEventListener("click", (e) => { if (e.target.closest("a")) cerrar(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") cerrar(); });
+  window.addEventListener("resize", () => { if (window.innerWidth > 900) cerrar(); });
+}
+
 document.addEventListener("DOMContentLoaded", renderSidebar);
+document.addEventListener("DOMContentLoaded", iniciarMenuMovil);

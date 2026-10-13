@@ -539,9 +539,7 @@ document.getElementById('msgFrases').addEventListener('click', function (e) {
   actualizarContador();
   msgTexto.focus();
 });
-document.addEventListener('keydown', function (e) {
-  if (e.key === 'Escape' && modalMsg.classList.contains('show')) cerrarModal();
-});
+// El modal NO se cierra al hacer clic afuera (así no se pierde lo escrito): solo con la X o el botón Cancelar.
 
 // ── Arranque ─────────────────────────────────────────────────
 cargar();

@@ -3,18 +3,17 @@
    inicio del <script> principal) en TODAS las páginas del
    dashboard que no deben ser vistas por cualquier rol:
    inicio.html, productos-venta.html, registrar-producto.html, ver-inventario.html,
-   gestion-usuario.html, configuracion.html, gestion-administradores.html,
-   licencia.html, etc.
+   gestion-usuario.html, configuracion.html, gestion-administradores.html, etc.
 
    Qué hace:
    - Si nadie inició sesión, manda a login.
    - Si el rol es "Empleado", lo regresa al escáner de inmediato,
      sin dejarlo ver ni un parpadeo del dashboard.
    - Si el rol es "Desarrollador", solo lo deja ver SUS páginas
-     (gestion-administradores, licencia) y Configuración; para
+     (gestion-administradores) y Configuración; para
      cualquier otra página del panel lo manda a su página de inicio.
    - Si el rol NO es "Desarrollador" y la página es una de las suyas
-     (gestion-administradores, licencia), lo saca de ahí — esas
+     (gestion-administradores), lo saca de ahí — esas
      pantallas son exclusivas del Desarrollador.
    - Si el rol NO es "Administrador" y la página actual es la de
      Gestión de Usuarios, lo saca de ahí — esa pantalla es
@@ -40,7 +39,7 @@
   }
 
   const ruta = window.location.pathname.toLowerCase();
-  const esPaginaDesarrollador = ruta.includes('gestion-administradores') || ruta.includes('licencia');
+  const esPaginaDesarrollador = ruta.includes('gestion-administradores');
 
   if (rol === 'Desarrollador') {
     // El Desarrollador solo puede ver sus propias páginas y Configuración

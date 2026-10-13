@@ -337,9 +337,7 @@ function cerrarModal() {
   document.getElementById('modalOverlay').classList.remove('show');
 }
 
-document.getElementById('modalOverlay').addEventListener('click', function(e) {
-  if (e.target === this) cerrarModal();
-});
+// El modal NO se cierra al hacer clic afuera (así no se pierde lo escrito): solo con la X o el botón Cancelar.
 
 // ── Carga inicial: gráficas con "todas las ventas" ──
 cargarDatosVentas('todas');

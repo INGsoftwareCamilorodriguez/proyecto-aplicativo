@@ -294,6 +294,27 @@
     }
     .form-group input:focus,
     .form-group select:focus { border-color: var(--purple); }
+
+    /* ══ CONTRASEÑA (ojito + aviso de contraseña actual) ══ */
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 44px; }
+    .pw-toggle {
+      position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+      width: 32px; height: 32px; border: none; background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; border-radius: 8px;
+    }
+    .pw-toggle:hover { background: var(--gray-light); }
+    .pw-toggle svg { width: 18px; height: 18px; stroke: var(--muted); fill: none; stroke-width: 1.8; }
+    .pw-actual {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 8px; padding: 8px 12px; border-radius: 10px;
+      background: var(--green-light); color: var(--text);
+      font-size: .8rem;
+    }
+    .pw-actual svg { width: 16px; height: 16px; stroke: var(--green); fill: none; stroke-width: 2; flex-shrink: 0; }
+    .pw-actual b { letter-spacing: .12em; }
+    #fPasswordHint { margin-top: 8px; font-size: .74rem; line-height: 1.45; }
     .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
     .btn-cancel {
       flex: 1; padding: 11px;
