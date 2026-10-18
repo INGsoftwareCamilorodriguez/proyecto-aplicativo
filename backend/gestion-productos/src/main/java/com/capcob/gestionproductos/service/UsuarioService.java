@@ -2,6 +2,7 @@ package com.capcob.gestionproductos.service;
 
 import com.capcob.gestionproductos.dto.AdministradorRequest;
 import com.capcob.gestionproductos.dto.AdministradorResponse;
+import com.capcob.gestionproductos.dto.DatosReciboResponse;
 import com.capcob.gestionproductos.dto.PerfilRequest;
 import com.capcob.gestionproductos.dto.PerfilResponse;
 import com.capcob.gestionproductos.dto.UsuarioRequest;
@@ -206,6 +207,29 @@ public class UsuarioService {
     }
 
     // ── Perfil (autoservicio, cualquier rol) ──────────────────────
+
+    // Datos para el recibo de la caja (autoservicio, cualquier usuario con sesión):
+    // el propio usuario como "empleado" y, si es EMPLEADO, los datos de su administrador.
+    public DatosReciboResponse obtenerDatosRecibo() {
+        Usuario actual = contexto.actual();
+        Usuario admin = actual;
+        if (actual.getRol() == Usuario.Rol.EMPLEADO && actual.getAdminId() != null) {
+            admin = usuarioRepository.findById(actual.getAdminId()).orElse(null);
+        }
+        boolean hayAdmin = admin != null && admin.getRol() == Usuario.Rol.ADMIN;
+
+        return new DatosReciboResponse(
+                actual.getNombre(),
+                actual.getUsuario(),
+                actual.getIdentidad(),
+                actual.getRol() == Usuario.Rol.EMPLEADO ? actual.getTelefono() : null,
+                hayAdmin ? admin.getNombre() : null,
+                hayAdmin ? admin.getUsuario() : null,
+                hayAdmin ? admin.getEmpresaNombre() : null,
+                hayAdmin ? admin.getEmpresaIdentidad() : null,
+                hayAdmin ? admin.getTelefono() : null
+        );
+    }
 
     public PerfilResponse obtenerPerfil(Integer id) {
         if (!contexto.actual().getId().equals(id)) {

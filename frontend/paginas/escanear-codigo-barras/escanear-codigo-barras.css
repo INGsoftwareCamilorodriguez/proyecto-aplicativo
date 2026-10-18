@@ -264,11 +264,19 @@
   .recibo hr { border: none; border-top: 1px dashed var(--border); margin: 10px 0; }
   .recibo .r-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
   .recibo .r-total { font-weight: 800; font-size: .95rem; }
+  .recibo .r-line { margin-bottom: 3px; word-break: break-all; }
+  .recibo .r-et { font-weight: 800; }
+  .recibo .r-gap { height: 8px; }
+  .recibo .r-chico { font-size: .72rem; margin-top: 4px; word-break: break-all; }
+  .recibo .r-item { margin-bottom: 8px; }
+  .recibo .r-item-nom { font-weight: 700; }
+  .recibo .r-item-det { color: var(--muted); margin-bottom: 0; }
 
   @media print {
+    @page { margin: 0; }   /* quita la fecha/URL que el navegador pone arriba y abajo */
     body * { visibility: hidden; }
     #modalTicket, #modalTicket * { visibility: visible; }
-    #modalTicket { position: fixed; inset: 0; background: #fff; }
+    #modalTicket { position: fixed; inset: 0; background: #fff; align-items: flex-start; padding-top: 8mm; }
     .no-print { display: none !important; }
     .modal-box-ticket { width: 100%; max-width: 320px; margin: 0 auto; box-shadow: none; border-top: none; }
   }
@@ -524,3 +532,21 @@
     border-radius: 10px;
     display: inline-block;
   }
+
+  /* Cantidad escrita a mano en la tarjeta del producto */
+  .limite-msg[hidden] { display: none; }
+  .qty-stepper .qty-input {
+    width: 62px; height: 36px;
+    text-align: center;
+    font-family: inherit; font-weight: 800; font-size: 1.05rem;
+    color: var(--navy);
+    border: 2px solid var(--yellow);
+    border-radius: 10px;
+    background: #fff;
+    outline: none;
+  }
+  .qty-stepper .qty-input:focus { border-color: var(--yellow-dark); box-shadow: 0 0 0 3px rgba(255, 184, 28, .25); }
+
+  /* Brillo rojo en la tarjeta del producto (límite de stock) */
+  .product-card { transition: box-shadow .2s; }
+  .product-card.flash-err { box-shadow: 0 0 0 4px var(--red-light), 0 0 0 7px var(--red); }

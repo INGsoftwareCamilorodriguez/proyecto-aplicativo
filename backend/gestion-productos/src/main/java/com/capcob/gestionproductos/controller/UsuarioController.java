@@ -90,6 +90,16 @@ public class UsuarioController {
 
     // ── Perfil (autoservicio: el propio usuario logueado, cualquier rol) ──
 
+    // Datos del empleado y del administrador para imprimir en el recibo de la caja.
+    @GetMapping("/datos-recibo")
+    public ResponseEntity<?> datosRecibo() {
+        try {
+            return ResponseEntity.ok(usuarioService.obtenerDatosRecibo());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", e.getMessage()));
+        }
+    }
+
     @GetMapping("/perfil/{id}")
     public ResponseEntity<?> obtenerPerfil(@PathVariable Integer id) {
         try {

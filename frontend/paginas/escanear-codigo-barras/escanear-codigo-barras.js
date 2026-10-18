@@ -11,6 +11,8 @@ let html5QrCode = null;
 let camaraActiva = false;
 let ultimoCodigoCamara = null;
 let ultimoCodigoCamaraTs = 0;
+let datosRecibo = null;     // empleado + administrador que salen en el recibo
+let nombreEmpresa = null;   // nombre del negocio (Configuración)
 let codigoMostrado = null; // código del producto que se ve en la tarjeta de "último producto"
 
 const codigoInput = document.getElementById('codigoInput');
@@ -44,6 +46,22 @@ async function apiFetch(path, options) {
   return data;
 }
 
+function escapar(texto) {
+  return String(texto == null ? '' : texto)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Datos del empleado y del administrador para el recibo. Si algo falla, el recibo
+// sale igual con lo que haya (nunca bloquea una venta).
+async function cargarDatosRecibo() {
+  try { datosRecibo = await apiFetch('/usuarios/datos-recibo'); } catch (e) { datosRecibo = null; }
+  try {
+    const cfg = await apiFetch('/configuracion');
+    if (cfg && cfg.nombreEmpresa) nombreEmpresa = cfg.nombreEmpresa;
+  } catch (e) { /* se usa el nombre de la empresa del administrador o CAPCOB */ }
+}
+
 // Normaliza la respuesta del backend (ProductoResponse) al formato que usa la caja
 function normalizarProducto(p) {
   return {
@@ -68,6 +86,18 @@ async function cargarCatalogo(silencioso) {
   }
   // En un refresco silencioso no se pisa lo que el cajero esté buscando en ese momento
   if (!silencioso || codigoInput.value.trim() === '') renderGridEscaneados();
+}
+
+// Minúsculas y sin tildes: "Éclair" se encuentra escribiendo "eclair"
+function sinTildes(x) {
+  return String(x == null ? '' : x).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+// Productos cuyo nombre EMPIEZA con lo escrito (misma regla de la búsqueda en vivo)
+function buscarPorNombre(texto) {
+  const t = sinTildes(texto.trim());
+  if (!t) return [];
+  return productosCache.filter(p => sinTildes(p.nombre).startsWith(t));
 }
 
 function buscarEnCache(codigo) {
@@ -95,14 +125,15 @@ function renderGridEscaneados() {
 }
 
 // ── Vista mientras se escribe: búsqueda en vivo contra todo el catálogo ──
-// Por nombre: coincidencia parcial (puedes escribir medio nombre).
+// Por nombre: el nombre tiene que EMPEZAR con lo escrito (en orden, desde la primera
+// letra), sin importar mayúsculas ni tildes. Ej.: "l" muestra leche, pero "e" no.
 // Por código: coincidencia EXACTA únicamente, porque el código es único
 // y no tiene sentido listar varios productos a partir de un código parcial.
 function renderGridBusqueda(texto) {
   quickGridLabel.textContent = 'Resultados de búsqueda';
-  const t = texto.trim().toLowerCase();
+  const t = sinTildes(texto.trim());
   const resultados = productosCache
-    .filter(p => p.nombre.toLowerCase().includes(t) || p.codigo.toLowerCase() === t)
+    .filter(p => sinTildes(p.nombre).startsWith(t) || p.codigo.toLowerCase() === t)
     .slice(0, 12);
 
   if (resultados.length === 0) {
@@ -136,20 +167,43 @@ function agregarRapido(codigo) {
 // la respuesta del servidor, y si el servidor tardaba los clics se seguían
 // sumando solos después). Solo si el código no está en memoria se consulta al backend.
 async function procesarCodigo() {
-  const codigo = codigoInput.value.trim();
+  const texto = codigoInput.value.trim();
+  if (!texto) { renderGridEscaneados(); return; }
+
+  // 1) Código de barras exacto
+  let producto = buscarEnCache(texto);
+
+  // 2) Si no es un código: por nombre (Enter funciona igual que hacer clic en el producto)
+  //    · nombre exacto            -> ese producto
+  //    · una sola coincidencia    -> ese producto
+  //    · varias coincidencias     -> no adivina: pide elegir uno de la lista
+  if (!producto) {
+    const coincidencias = buscarPorNombre(texto);
+    const exacto = coincidencias.find(p => sinTildes(p.nombre) === sinTildes(texto));
+    if (exacto) {
+      producto = exacto;
+    } else if (coincidencias.length === 1) {
+      producto = coincidencias[0];
+    } else if (coincidencias.length > 1) {
+      codigoMostrado = null;
+      mostrarVariasCoincidencias(texto, coincidencias.length);
+      flashScanBox(false);
+      return;   // se deja lo escrito y la lista de resultados para que elija
+    }
+  }
+
   codigoInput.value = '';
   renderGridEscaneados(); // el campo quedó vacío: vuelve a la vista de historial
-  if (!codigo) return;
 
-  let producto = buscarEnCache(codigo);
+  // 3) Último recurso: código que no está en memoria (producto nuevo) -> se consulta al backend
   if (!producto) {
     try {
-      const data = await apiFetch(`/productos/codigo/${encodeURIComponent(codigo)}`);
+      const data = await apiFetch(`/productos/codigo/${encodeURIComponent(texto)}`);
       producto = normalizarProducto(data);
       productosCache.push(producto);
     } catch (e) {
       codigoMostrado = null;
-      mostrarNoEncontrado(codigo);
+      mostrarNoEncontrado(texto);
       flashScanBox(false);
       return;
     }
@@ -164,12 +218,12 @@ function intentarAgregar(producto) {
   if (producto.stock <= 0) {
     codigoMostrado = null;
     mostrarSinStock(producto);
-    flashScanBox(false);
+    flashProductCard();
     return;
   }
   if (cantidadEnTicket(producto.codigo) + 1 > producto.stock) {
     mostrarProducto(producto, true);   // con el aviso de "ya no hay más disponible"
-    flashScanBox(false);
+    flashProductCard();
     return;
   }
   agregarAlTicket(producto, 1);
@@ -194,6 +248,15 @@ function flashScanBox(ok) {
   setTimeout(() => scanBox.classList.remove('flash-ok', 'flash-err'), 500);
 }
 
+// Brillo rojo en la tarjeta del PRODUCTO (no en el buscador) cuando se pasa del stock
+function flashProductCard() {
+  productCard.classList.remove('flash-err');
+  void productCard.offsetWidth; // reinicia la animación
+  productCard.classList.add('flash-err');
+  clearTimeout(flashProductCard._t);
+  flashProductCard._t = setTimeout(() => productCard.classList.remove('flash-err'), 700);
+}
+
 function stockBadge(stock) {
   if (stock <= 0) return '<span class="stock-badge stock-out">Sin stock</span>';
   if (stock <= 8) return `<span class="stock-badge stock-low">Quedan ${stock}</span>`;
@@ -212,14 +275,31 @@ function mostrarProducto(producto, sinMas) {
         <span>Cód. ${producto.codigo}</span>
         ${stockBadge(producto.stock)}
       </div>
-      ${sinMas ? `<div class="limite-msg">Ya no hay más disponible: solo hay ${producto.stock} en inventario.</div>` : ''}
+      <div class="limite-msg" id="limiteMsg"${sinMas ? '' : ' hidden'}>Ya no hay más disponible: solo hay ${producto.stock} en inventario.</div>
     </div>
     <div class="qty-stepper">
       <button onclick="cambiarCantidad('${producto.codigo}', -1)">−</button>
-      <span class="qty-val">${cantidad}</span>
+      <input type="text" inputmode="numeric" class="qty-input" value="${cantidad}" maxlength="6" autocomplete="off"
+             title="Escribe la cantidad (máximo ${producto.stock})"
+             onfocus="this.select()"
+             oninput="escribirCantidad(this, '${producto.codigo}')"
+             onblur="restaurarCantidad(this, '${producto.codigo}')"
+             onkeydown="teclaCantidad(event, this)">
       <button onclick="cambiarCantidad('${producto.codigo}', 1)">+</button>
     </div>
     <div class="product-price">${money(producto.precio)}</div>
+  `;
+}
+
+function mostrarVariasCoincidencias(texto, cantidad) {
+  productCard.classList.remove('empty');
+  productCard.innerHTML = `
+    <div class="product-info">
+      <div class="product-name">Hay ${cantidad} productos que empiezan con "${escapar(texto)}"</div>
+      <div class="product-meta">
+        <span>Elige uno de la lista de abajo o escribe el nombre completo.</span>
+      </div>
+    </div>
   `;
 }
 
@@ -269,7 +349,7 @@ function cambiarCantidad(codigo, delta) {
 
   if (nueva > producto.stock) {
     mostrarProducto(producto, true);   // ya no hay más disponible
-    flashScanBox(false);
+    flashProductCard();
     codigoInput.focus();
     return;
   }
@@ -285,6 +365,55 @@ function cambiarCantidad(codigo, delta) {
   renderTicket();
   mostrarProducto(producto);
   codigoInput.focus();
+}
+
+// Cantidad escrita a mano en la tarjeta del producto:
+//  · solo números enteros (se borran letras, símbolos, espacios, signo menos y puntos)
+//  · nunca negativa
+//  · nunca más que el stock disponible (si se pasa, se deja el máximo y se avisa)
+// Se aplica a la factura mientras se escribe.
+function escribirCantidad(inp, codigo) {
+  const producto = buscarEnCache(codigo);
+  if (!producto) return;
+
+  let v = inp.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+  const aviso = document.getElementById('limiteMsg');
+  let pasado = false;
+  if (v !== '' && Number(v) > producto.stock) {
+    v = String(producto.stock);
+    pasado = true;
+  }
+  inp.value = v;
+  if (aviso) aviso.hidden = !pasado;
+  if (pasado) flashProductCard();
+  if (v === '') return;   // campo vacío: no se cambia nada hasta que salga del campo
+
+  const nueva = Number(v);
+  const item = ticket.find(i => i.codigo === codigo);
+  if (nueva === 0) {
+    ticket = ticket.filter(i => i.codigo !== codigo);
+  } else if (item) {
+    item.cantidad = nueva;
+  } else {
+    ticket.push({ productoId: producto.id, codigo: producto.codigo, nombre: producto.nombre, precio: producto.precio, cantidad: nueva });
+  }
+  renderTicket();
+}
+
+// Al salir del campo vacío, vuelve a mostrar la cantidad real de la factura
+function restaurarCantidad(inp, codigo) {
+  if (inp.value === '') inp.value = cantidadEnTicket(codigo);
+}
+
+function teclaCantidad(e, inp) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    inp.blur();
+    codigoInput.focus();
+  } else if (e.key === 'Escape') {
+    inp.blur();
+    codigoInput.focus();
+  }
 }
 
 function eliminarDelTicket(codigo) {
@@ -371,13 +500,13 @@ async function confirmarCobro() {
   const items = ticket.map(item => ({ productoId: item.productoId, cantidad: item.cantidad }));
 
   try {
-    await apiFetch('/ventas', {
+    const venta = await apiFetch('/ventas', {
       method: 'POST',
       body: JSON.stringify({ usuarioId, items })
     });
 
     cerrarModalConfirmar();
-    generarRecibo();
+    generarRecibo(venta);
     document.getElementById('modalTicket').classList.add('show');
     mostrarToast(`Venta registrada — ${totalVal.textContent}`);
     cargarCatalogo(); // refresca el stock en memoria (se descontó en el backend)
@@ -392,20 +521,48 @@ async function confirmarCobro() {
   }
 }
 
-function generarRecibo() {
+// Recibo con el formato de un ticket de caja: negocio, quién atendió (empleado y su
+// correo), administrador, productos con cantidad x precio, y totales.
+function generarRecibo(venta) {
+  const d = datosRecibo || {};
   const fecha = new Date().toLocaleString('es-CO');
-  const cajero = document.getElementById('cajeroNombre').textContent;
+  const cajero = d.empleadoNombre || document.getElementById('cajeroNombre').textContent;
+  const empresa = nombreEmpresa || d.empresaNombre || 'CAPCOB';
+
+  // Línea "Etiqueta: valor" (solo si hay valor)
+  const dato = (etiqueta, valor) => valor
+    ? `<div class="r-line"><span class="r-et">${etiqueta}</span> ${escapar(valor)}</div>`
+    : '';
+
   const filas = ticket.map(item => `
-    <div class="r-row">
-      <span>${item.nombre} x${item.cantidad}</span>
-      <span>${money(item.precio * item.cantidad)}</span>
+    <div class="r-item">
+      <div class="r-item-nom">${escapar(item.nombre)}</div>
+      <div class="r-row r-item-det">
+        <span>${item.cantidad} x ${money(item.precio)}</span>
+        <span>${money(item.precio * item.cantidad)}</span>
+      </div>
     </div>
   `).join('');
 
+  const bloqueEmpleado =
+    dato('Atendió:', cajero) +
+    dato('Correo:', d.empleadoCorreo) +
+    dato('Tel.:', d.empleadoTelefono);
+
+  const bloqueAdmin =
+    dato('Administrador:', d.adminNombre) +
+    dato('Correo:', d.adminCorreo) +
+    dato('Tel.:', d.empresaTelefono);
+
   document.getElementById('reciboContenido').innerHTML = `
-    <div class="r-center r-title">CAPCOB</div>
-    <div class="r-center">Caja 01 · ${cajero}</div>
-    <div class="r-center">${fecha}</div>
+    <div class="r-center r-title">${escapar(empresa)}</div>
+    ${d.empresaIdentidad ? `<div class="r-center">NIT ${escapar(d.empresaIdentidad)}</div>` : ''}
+    <hr/>
+    <div class="r-row"><span>${venta && venta.id ? 'Factura N° ' + escapar(venta.id) : 'Factura'}</span><span>Caja 01</span></div>
+    <div class="r-line">${fecha}</div>
+    <hr/>
+    ${bloqueEmpleado}
+    ${bloqueAdmin ? '<div class="r-gap"></div>' + bloqueAdmin : ''}
     <hr/>
     ${filas}
     <hr/>
@@ -414,6 +571,7 @@ function generarRecibo() {
     <div class="r-row r-total"><span>TOTAL</span><span>${totalVal.textContent}</span></div>
     <hr/>
     <div class="r-center">¡Gracias por su compra!</div>
+    ${d.adminCorreo ? `<div class="r-center r-chico">Contacto: ${escapar(d.adminCorreo)}</div>` : ''}
   `;
 }
 
@@ -506,12 +664,13 @@ codigoInput.addEventListener('keydown', (e) => {
 document.addEventListener('click', (e) => {
   if (camaraActiva) return;
   if (e.target.closest('.modal-overlay')) return;
-  if (!e.target.closest('button') && !e.target.closest('.quick-item')) {
+  if (!e.target.closest('button') && !e.target.closest('.quick-item') && !e.target.closest('.qty-input')) {
     codigoInput.focus();
   }
 });
+function esCampoCantidad(el) { return !!(el && el.classList && el.classList.contains('qty-input')); }
 setInterval(() => {
-  if (!camaraActiva && document.activeElement !== codigoInput && !document.querySelector('.modal-overlay.show')) {
+  if (!camaraActiva && document.activeElement !== codigoInput && !esCampoCantidad(document.activeElement) && !document.querySelector('.modal-overlay.show')) {
     codigoInput.focus();
   }
 }, 3000);
@@ -541,6 +700,7 @@ setInterval(() => {
 })();
 
 cargarCatalogo();
+cargarDatosRecibo();
 codigoInput.focus();
 // Mantiene el stock al día (por si otro cajero vende o se reabastece mientras esta caja está abierta)
 setInterval(() => cargarCatalogo(true), 30000);
