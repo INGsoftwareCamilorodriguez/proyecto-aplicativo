@@ -294,13 +294,17 @@ function renderProductos() {
 
     tr.innerHTML =
       '<td class="celda-prod"></td>' +
+      '<td class="celda-nombre"></td>' +
       '<td><span class="badge ' + (prod.tipoPrecio === 'PESO' ? 'badge-purple' : 'badge-green') + '">' + (prod.tipoPrecio === 'PESO' ? 'Por peso' : 'Fijo') + '</span></td>' +
       '<td>' + precioTexto + '</td>' +
       '<td>' + cantidadTexto + '</td>' +
       '<td style="font-family:monospace;font-size:.75rem;">' + prod.codigoBarras + '</td>' +
+      '<td class="celda-barras"></td>' +
       '<td><div class="row-actions"></div></td>';
 
-    tr.querySelector('.celda-prod').appendChild(crearCeldaProducto(prod));
+    tr.querySelector('.celda-prod').appendChild(crearMiniatura(prod));
+    tr.querySelector('.celda-nombre').appendChild(crearCeldaNombre(prod));
+    tr.querySelector('.celda-barras').appendChild(crearCeldaBarras(prod));
 
     const rowActions = tr.querySelector('.row-actions');
 
@@ -330,15 +334,12 @@ function crearMiniatura(prod) {
   return vacio;
 }
 
-function crearCeldaProducto(prod) {
-  const cont = document.createElement('div');
-  cont.className = 'prod-nombre-celda';
-  const nombre = document.createElement('span');
+// Nombre del producto (si es muy largo, el texto recorre despacio en vez de agrandar la celda).
+function crearCeldaNombre(prod) {
+  const nombre = document.createElement('div');
   nombre.className = 'prod-nombre-txt';
   marquesina(nombre, prod.nombre);
-  cont.appendChild(crearMiniatura(prod));
-  cont.appendChild(nombre);
-  return cont;
+  return nombre;
 }
 
 // Arma el texto de precio de la tabla según la modalidad de venta del producto.
@@ -961,3 +962,63 @@ cargarHistorial();
 // Refresca el historial cada 30 s para ver también lo que hagan otros usuarios.
 setInterval(cargarHistorial, 30000);
 cargarPaquetes();
+
+// ── Imagen del código de barras (EAN-13) ─────────────────────
+// La imagen se dibuja desde el número guardado (codigo-barras.js); no se guarda en la base de datos.
+let barrasActual = null;   // { codigo, nombre } del código que muestra el modal
+
+function crearCeldaBarras(prod) {
+  const codigo = prod.codigoBarras || '';
+
+  // Los productos por peso usan un PLU de 6 dígitos, que no es un EAN-13: no hay imagen.
+  if (!CapcobBarras.esEAN13(codigo)) {
+    const vacio = document.createElement('div');
+    vacio.className = 'barras-vacio';
+    vacio.textContent = '—';
+    vacio.title = 'Este código no es EAN-13 (los productos por peso usan PLU de 6 dígitos).';
+    return vacio;
+  }
+
+  // Botón con el ícono de código de barras; al hacer clic se abre la imagen grande.
+  const btn = document.createElement('div');
+  btn.className = 'icon-btn barras-btn';
+  btn.title = 'Ver código de barras';
+  btn.innerHTML =
+    '<svg viewBox="0 0 24 24">' +
+      '<rect class="bc-fondo" x="2" y="5" width="20" height="14" rx="2.5"/>' +
+      '<g class="bc-barras">' +
+        '<line x1="5" y1="5" x2="5" y2="19" stroke-width="0.9"/>' +
+        '<line x1="7.2" y1="5" x2="7.2" y2="19" stroke-width="1.6"/>' +
+        '<line x1="10.2" y1="5" x2="10.2" y2="19" stroke-width="0.9"/>' +
+        '<line x1="12.4" y1="5" x2="12.4" y2="19" stroke-width="2"/>' +
+        '<line x1="15.4" y1="5" x2="15.4" y2="19" stroke-width="0.9"/>' +
+        '<line x1="17.4" y1="5" x2="17.4" y2="19" stroke-width="1.4"/>' +
+        '<line x1="19.7" y1="5" x2="19.7" y2="19" stroke-width="0.9"/>' +
+      '</g>' +
+    '</svg>';
+  btn.addEventListener('click', () => abrirModalBarras(codigo, prod.nombre));
+  return btn;
+}
+
+function abrirModalBarras(codigo, nombre) {
+  barrasActual = { codigo: codigo, nombre: nombre };
+  ponerTitulo(document.getElementById('modalBarrasTitulo'), 'Código de barras de ', nombre);
+  document.getElementById('modalBarrasImagen').innerHTML = CapcobBarras.svg(codigo);
+  document.getElementById('modalBarras').classList.remove('hidden');
+}
+
+function cerrarModalBarras() {
+  document.getElementById('modalBarras').classList.add('hidden');
+  barrasActual = null;
+}
+
+document.getElementById('btnCerrarBarras').addEventListener('click', cerrarModalBarras);
+document.getElementById('modalBarras').addEventListener('click', (e) => {
+  if (e.target.id === 'modalBarras') cerrarModalBarras();
+});
+document.getElementById('btnDescargarBarras').addEventListener('click', () => {
+  if (barrasActual) CapcobBarras.descargarPNG(barrasActual.codigo, barrasActual.nombre);
+});
+document.getElementById('btnImprimirBarras').addEventListener('click', () => {
+  if (barrasActual) CapcobBarras.imprimir(barrasActual.codigo, barrasActual.nombre);
+});

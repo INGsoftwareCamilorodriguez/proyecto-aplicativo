@@ -19,6 +19,11 @@ public class ContextoUsuario {
 
     private static final String ATRIBUTO = "capcob.usuarioActual";
 
+    // Tiempo máximo que una sesión recién vencida (por el cambio de pantalla) se sigue aceptando.
+    private static final int GRACIA_CAMBIO_PANTALLA_SEGUNDOS = 30;
+    // Mismo valor que SESION_TIMEOUT_SEGUNDOS de AuthController.
+    private static final int SESION_RENOVADA_SEGUNDOS = 60;
+
     private final UsuarioRepository usuarioRepository;
 
     public ContextoUsuario(UsuarioRepository usuarioRepository) {
@@ -51,10 +56,22 @@ public class ContextoUsuario {
         }
 
         Usuario usuario = usuarioRepository.findById(id).orElseThrow(this::noAutenticado);
-        if (!token.equals(usuario.getSesionToken())
-                || usuario.getSesionExpiraEn() == null
-                || !LocalDateTime.now(ZoneOffset.UTC).isBefore(usuario.getSesionExpiraEn())) {
+        if (!token.equals(usuario.getSesionToken()) || usuario.getSesionExpiraEn() == null) {
             throw noAutenticado();
+        }
+
+        // Al cambiar de pantalla, "pagehide" -> /auth/cerrando deja la sesión vencida "ahora"
+        // y la página nueva la renueva con su latido. Pero la página nueva pide sus datos
+        // (categorías, productos...) al mismo tiempo que el latido, y a veces llegan antes:
+        // eso daba "Sesión no válida" de forma intermitente. Por eso, si el token coincide y
+        // la sesión venció hace muy poco, se acepta y se renueva aquí mismo.
+        LocalDateTime ahora = LocalDateTime.now(ZoneOffset.UTC);
+        if (!ahora.isBefore(usuario.getSesionExpiraEn())) {
+            if (ahora.isAfter(usuario.getSesionExpiraEn().plusSeconds(GRACIA_CAMBIO_PANTALLA_SEGUNDOS))) {
+                throw noAutenticado();
+            }
+            usuario.setSesionExpiraEn(ahora.plusSeconds(SESION_RENOVADA_SEGUNDOS));
+            usuarioRepository.save(usuario);
         }
 
         request.setAttribute(ATRIBUTO, usuario);

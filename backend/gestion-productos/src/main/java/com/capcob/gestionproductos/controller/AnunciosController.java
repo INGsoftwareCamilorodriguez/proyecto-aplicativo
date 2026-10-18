@@ -48,7 +48,14 @@ public class AnunciosController {
         Usuario u = usuarioRepository.findById(id).orElse(null);
         if (u == null || u.getRol() != Usuario.Rol.ADMIN) return null;
         if (!token.equals(u.getSesionToken())) return null;
-        if (u.getSesionExpiraEn() == null || !ahoraUtc().isBefore(u.getSesionExpiraEn())) return null;
+        if (u.getSesionExpiraEn() == null) return null;
+        // Tolerancia al cambio de pantalla (ver ContextoUsuario): si venció hace pocos segundos, se renueva.
+        LocalDateTime ahora = ahoraUtc();
+        if (!ahora.isBefore(u.getSesionExpiraEn())) {
+            if (ahora.isAfter(u.getSesionExpiraEn().plusSeconds(30))) return null;
+            u.setSesionExpiraEn(ahora.plusSeconds(60));
+            usuarioRepository.save(u);
+        }
         return u;
     }
 

@@ -168,7 +168,7 @@
       <div class="card-title" id="productosTitle">Productos de la categoría</div>
       <table class="act-table">
         <thead>
-          <tr><th>Producto</th><th>Tipo</th><th>Precio</th><th>Cantidad</th><th>Código</th><th></th></tr>
+          <tr><th>Producto</th><th class="col-nombre">Nombre</th><th>Tipo</th><th>Precio</th><th>Cantidad</th><th>Código</th><th class="col-barras">Código de barras</th><th></th></tr>
         </thead>
         <tbody id="productosBody"></tbody>
       </table>
@@ -200,9 +200,23 @@
   </div>
 </div>
 
+<!-- Modal imagen del código de barras -->
+<div class="modal-overlay hidden" id="modalBarras">
+  <div class="modal-box modal-barras-box">
+    <div class="card-title" id="modalBarrasTitulo">Código de barras</div>
+    <div class="barras-grande" id="modalBarrasImagen"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" id="btnCerrarBarras">Cerrar</button>
+      <button class="modal-cancel" id="btnImprimirBarras">Imprimir</button>
+      <button class="modal-confirm" id="btnDescargarBarras">Descargar PNG</button>
+    </div>
+  </div>
+</div>
+
 <script src="/frontend/assets/js/api-config.js"></script>
 <script src="/frontend/assets/js/session-heartbeat.js"></script>
 <script src="/frontend/assets/js/tema-marca.js"></script>
+<script src="/frontend/assets/js/codigo-barras.js"></script>
 <script src="/frontend/paginas/registrar-producto/registar-producto.js"></script>
 <script src="/frontend/assets/js/sidebar.js"></script>
 <script src="/frontend/assets/js/asistente.js"></script>
