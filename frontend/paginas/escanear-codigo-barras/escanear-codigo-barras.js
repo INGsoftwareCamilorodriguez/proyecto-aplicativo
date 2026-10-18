@@ -11,6 +11,7 @@ let html5QrCode = null;
 let camaraActiva = false;
 let ultimoCodigoCamara = null;
 let ultimoCodigoCamaraTs = 0;
+let codigoMostrado = null; // código del producto que se ve en la tarjeta de "último producto"
 
 const codigoInput = document.getElementById('codigoInput');
 const productCard = document.getElementById('productCard');
@@ -57,15 +58,25 @@ function normalizarProducto(p) {
 }
 
 // ── Cargar catálogo completo (queda en memoria para la búsqueda en vivo) ──
-async function cargarCatalogo() {
+async function cargarCatalogo(silencioso) {
   try {
     const data = await apiFetch('/productos');
     productosCache = data.map(normalizarProducto);
   } catch (e) {
-    quickGrid.innerHTML = `<div class="quick-loading">No se pudo cargar el catálogo: ${e.message}</div>`;
+    if (!silencioso) quickGrid.innerHTML = `<div class="quick-loading">No se pudo cargar el catálogo: ${e.message}</div>`;
     return;
   }
-  renderGridEscaneados();
+  // En un refresco silencioso no se pisa lo que el cajero esté buscando en ese momento
+  if (!silencioso || codigoInput.value.trim() === '') renderGridEscaneados();
+}
+
+function buscarEnCache(codigo) {
+  return productosCache.find(p => p.codigo === codigo);
+}
+
+function cantidadEnTicket(codigo) {
+  const item = ticket.find(i => i.codigo === codigo);
+  return item ? item.cantidad : 0;
 }
 
 // ── Vista por defecto: historial de lo escaneado en esta venta ──
@@ -120,29 +131,50 @@ function agregarRapido(codigo) {
 }
 
 // ── Buscar y agregar producto por código escaneado/tecleado ────
+// Primero se busca en el catálogo que ya está en memoria: así el producto se
+// agrega al instante y cada clic cuenta una sola vez (antes cada clic esperaba
+// la respuesta del servidor, y si el servidor tardaba los clics se seguían
+// sumando solos después). Solo si el código no está en memoria se consulta al backend.
 async function procesarCodigo() {
   const codigo = codigoInput.value.trim();
   codigoInput.value = '';
   renderGridEscaneados(); // el campo quedó vacío: vuelve a la vista de historial
   if (!codigo) return;
 
-  try {
-    const data = await apiFetch(`/productos/codigo/${encodeURIComponent(codigo)}`);
-    const producto = normalizarProducto(data);
-    registrarEscaneado(producto);
-
-    if (producto.stock <= 0) {
-      mostrarSinStock(producto);
+  let producto = buscarEnCache(codigo);
+  if (!producto) {
+    try {
+      const data = await apiFetch(`/productos/codigo/${encodeURIComponent(codigo)}`);
+      producto = normalizarProducto(data);
+      productosCache.push(producto);
+    } catch (e) {
+      codigoMostrado = null;
+      mostrarNoEncontrado(codigo);
       flashScanBox(false);
       return;
     }
-    agregarAlTicket(producto, 1);
-    mostrarProducto(producto);
-    flashScanBox(true);
-  } catch (e) {
-    mostrarNoEncontrado(codigo);
-    flashScanBox(false);
   }
+  intentarAgregar(producto);
+}
+
+// Agrega UNA unidad respetando el stock disponible
+function intentarAgregar(producto) {
+  registrarEscaneado(producto);
+
+  if (producto.stock <= 0) {
+    codigoMostrado = null;
+    mostrarSinStock(producto);
+    flashScanBox(false);
+    return;
+  }
+  if (cantidadEnTicket(producto.codigo) + 1 > producto.stock) {
+    mostrarProducto(producto, true);   // con el aviso de "ya no hay más disponible"
+    flashScanBox(false);
+    return;
+  }
+  agregarAlTicket(producto, 1);
+  mostrarProducto(producto);
+  flashScanBox(true);
 }
 
 // Mientras el cajero escribe, filtra en vivo; al borrar todo, vuelve al historial
@@ -168,9 +200,9 @@ function stockBadge(stock) {
   return `<span class="stock-badge stock-ok">Disponible</span>`;
 }
 
-function mostrarProducto(producto) {
-  const enTicket = ticket.find(i => i.codigo === producto.codigo);
-  const cantidad = enTicket ? enTicket.cantidad : 1;
+function mostrarProducto(producto, sinMas) {
+  codigoMostrado = producto.codigo;
+  const cantidad = cantidadEnTicket(producto.codigo);
   productCard.classList.remove('empty');
   productCard.innerHTML = `
     <div class="product-info">
@@ -180,6 +212,7 @@ function mostrarProducto(producto) {
         <span>Cód. ${producto.codigo}</span>
         ${stockBadge(producto.stock)}
       </div>
+      ${sinMas ? `<div class="limite-msg">Ya no hay más disponible: solo hay ${producto.stock} en inventario.</div>` : ''}
     </div>
     <div class="qty-stepper">
       <button onclick="cambiarCantidad('${producto.codigo}', -1)">−</button>
@@ -224,22 +257,44 @@ function agregarAlTicket(producto, cantidad) {
   renderTicket();
 }
 
+// Botones − / + de la tarjeta del producto. Funcionan siempre, aunque el producto
+// ya no esté en la factura (por ejemplo, después de quitarlo con la ✕ o de llegar a 0).
 function cambiarCantidad(codigo, delta) {
+  const producto = buscarEnCache(codigo);
+  if (!producto) return;
+
+  const actual = cantidadEnTicket(codigo);
+  const nueva = actual + delta;
+  if (nueva < 0) { codigoInput.focus(); return; }
+
+  if (nueva > producto.stock) {
+    mostrarProducto(producto, true);   // ya no hay más disponible
+    flashScanBox(false);
+    codigoInput.focus();
+    return;
+  }
+
   const item = ticket.find(i => i.codigo === codigo);
-  if (!item) return;
-  item.cantidad += delta;
-  if (item.cantidad <= 0) {
+  if (nueva === 0) {
     ticket = ticket.filter(i => i.codigo !== codigo);
+  } else if (item) {
+    item.cantidad = nueva;
+  } else {
+    ticket.push({ productoId: producto.id, codigo: producto.codigo, nombre: producto.nombre, precio: producto.precio, cantidad: nueva });
   }
   renderTicket();
-  const producto = productosCache.find(p => p.codigo === codigo);
-  if (producto && ticket.find(i => i.codigo === codigo)) mostrarProducto(producto);
+  mostrarProducto(producto);
   codigoInput.focus();
 }
 
 function eliminarDelTicket(codigo) {
   ticket = ticket.filter(i => i.codigo !== codigo);
   renderTicket();
+  // Si la tarjeta de arriba muestra ese producto, se actualiza (cantidad 0) para que el + siga funcionando
+  if (codigoMostrado === codigo) {
+    const producto = buscarEnCache(codigo);
+    if (producto) mostrarProducto(producto);
+  }
   codigoInput.focus();
 }
 
@@ -280,6 +335,7 @@ function renderTicket() {
 
 function limpiarVentaEnCurso() {
   ticket = [];
+  codigoMostrado = null;
   renderTicket();
   productCard.classList.add('empty');
   productCard.innerHTML = `<div>Aún no has escaneado ningún producto</div><div style="font-size:.76rem;">El último producto leído aparecerá aquí</div>`;
@@ -486,6 +542,8 @@ setInterval(() => {
 
 cargarCatalogo();
 codigoInput.focus();
+// Mantiene el stock al día (por si otro cajero vende o se reabastece mientras esta caja está abierta)
+setInterval(() => cargarCatalogo(true), 30000);
 
 // ── Cerrar sesión (botón "Salir"): libera el token en el backend para poder volver
 // a iniciar sesión (login de un solo dispositivo) y limpia la sesión local. Es la misma

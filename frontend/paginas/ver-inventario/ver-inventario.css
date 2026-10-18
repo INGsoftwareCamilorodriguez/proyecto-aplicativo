@@ -1141,3 +1141,60 @@ html.tema-panel[data-tema="oscuro"] .pg-btn:hover:not(:disabled):not(.active) { 
 .inv-table-card { flex: 1; display: flex; flex-direction: column; min-height: 360px; overflow: hidden; }
 .inv-table-wrap { flex: 1; overflow: auto; }
 .inv-footer { flex-shrink: 0; }
+
+/* ── Código de barras: botón de descarga, columna y modal ── */
+.btn-descargar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 1.5px solid var(--dev-accent, #1F8A2B);
+  border-radius: 10px;
+  background: var(--card, #fff);
+  color: var(--dev-accent, #1F8A2B);
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-descargar:hover { background: var(--dev-tint, #E8F5E9); }
+.btn-descargar svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.header-right { gap: 14px; }
+
+.inv-table th.th-barras, .inv-table td.td-barras { text-align: center; }
+.barras-btn {
+  width: 36px; height: 36px;
+  border: 1px solid var(--border, #E5E7EB);
+  border-radius: 10px;
+  background: var(--card, #fff);
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.barras-btn svg { width: 20px; height: 20px; stroke: none; }
+.barras-btn .bc-fondo { fill: #6b7280; stroke: none; }
+.barras-btn .bc-barras line { stroke: #fff; fill: none; }
+.barras-btn:hover { background: var(--dev-tint, #E8F5E9); }
+.barras-btn:hover .bc-fondo { fill: var(--dev-accent, #1F8A2B); }
+.barras-plu { font-family: 'Courier New', monospace; font-weight: 700; letter-spacing: 1px; color: var(--muted); cursor: help; }
+
+.barcode-visual { padding: 12px; letter-spacing: normal; font-size: 1rem; }
+.barcode-visual .bc-texto { font-family: 'Courier New', monospace; font-size: 1.1rem; font-weight: 700; letter-spacing: 3px; margin-bottom: 8px; }
+.barcode-visual .bc-imagen { background: #fff; border-radius: 8px; padding: 6px; line-height: 0; }
+.barcode-visual .bc-imagen svg { width: 100%; height: auto; display: block; }
+.barcode-visual .bc-sin-imagen { font-family: inherit; font-size: .75rem; font-weight: 500; color: var(--muted); letter-spacing: normal; }
+.modal-actions .modal-cancel { background: var(--dev-tint, #E8F5E9); color: var(--dev-deep, #1B6B24); }
+
+/* ── TABLA DE INVENTARIO: columnas fijas y centradas (mismo orden que Registrar producto) ── */
+.inv-table { table-layout: fixed; width: 100%; min-width: 760px; }
+.inv-table th:nth-child(1) { width: 18%; }   /* Producto */
+.inv-table th:nth-child(2) { width: 15%; }   /* Paquete */
+.inv-table th:nth-child(3) { width: 10%; }   /* Tipo */
+.inv-table th:nth-child(4) { width: 11%; }   /* Cantidad */
+.inv-table th:nth-child(5) { width: 11%; }   /* Precio */
+.inv-table th:nth-child(6) { width: 13%; }   /* Estado */
+.inv-table th:nth-child(7) { width: 12%; }   /* Código de barras */
+.inv-table th:nth-child(8) { width: 10%; }   /* Acciones */
+.inv-table th, .inv-table td { text-align: center; vertical-align: middle; padding-left: 8px; padding-right: 8px; }
+.inv-table td.td-nombre { max-width: none; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.inv-table td .tag { max-width: 100%; }
+/* La columna Producto se queda alineada a la izquierda como estaba */
+.inv-table th:first-child, .inv-table td:first-child { text-align: left; padding-left: 14px; }

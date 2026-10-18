@@ -10,6 +10,7 @@
 //   CapcobBarras.esEAN13(codigo)          -> true si son 13 dígitos con verificador correcto
 //   CapcobBarras.svg(codigo)              -> texto SVG de la imagen ('' si no es EAN-13 válido)
 //   CapcobBarras.descargarPNG(codigo, n)  -> descarga la imagen como PNG
+//   CapcobBarras.descargarHoja(items, n)  -> descarga UNA imagen con varios códigos [{codigo, nombre}]
 //   CapcobBarras.imprimir(codigo, n)      -> abre la ventana de impresión
 // ══════════════════════════════════════════════════════════════
 
@@ -107,6 +108,60 @@ const CapcobBarras = (function () {
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(texto);
   }
 
+
+  // Descarga UNA imagen PNG (hoja) con los códigos de varios productos:
+  // nombre arriba, barras y número debajo. items = [{ codigo, nombre }]
+  // Solo se incluyen los EAN-13 válidos. Devuelve cuántos códigos se dibujaron.
+  function descargarHoja(items, nombreArchivoHoja) {
+    const validos = (items || []).filter(function (it) { return esEAN13(it.codigo); });
+    if (validos.length === 0) return Promise.resolve(0);
+
+    const escala = 3;
+    const cols = Math.min(3, validos.length);
+    const filas = Math.ceil(validos.length / cols);
+    const anchoCod = ANCHO * escala, altoCod = ALTO * escala;
+    const margen = 30, hueco = 24, altoTitulo = 34;
+    const celdaAncho = anchoCod, celdaAlto = altoTitulo + altoCod;
+    const canvas = document.createElement('canvas');
+    canvas.width = margen * 2 + cols * celdaAncho + (cols - 1) * hueco;
+    canvas.height = margen * 2 + filas * celdaAlto + (filas - 1) * hueco;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const cargar = function (it) {
+      return new Promise(function (resolve) {
+        const img = new Image();
+        img.onload = function () { resolve(img); };
+        img.onerror = function () { resolve(null); };
+        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg(it.codigo));
+      });
+    };
+
+    return Promise.all(validos.map(cargar)).then(function (imgs) {
+      imgs.forEach(function (img, i) {
+        if (!img) return;
+        const x = margen + (i % cols) * (celdaAncho + hueco);
+        const y = margen + Math.floor(i / cols) * (celdaAlto + hueco);
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 20px Arial, Helvetica, sans-serif';
+        ctx.textAlign = 'center';
+        let titulo = String(validos[i].nombre || '');
+        while (titulo.length > 1 && ctx.measureText(titulo).width > celdaAncho - 10) titulo = titulo.slice(0, -1);
+        if (titulo !== String(validos[i].nombre || '')) titulo += '…';
+        ctx.fillText(titulo, x + celdaAncho / 2, y + 22);
+        ctx.drawImage(img, x, y + altoTitulo, anchoCod, altoCod);
+      });
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = nombreArchivoHoja || 'codigos-de-barras.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      return validos.length;
+    });
+  }
+
   function imprimir(codigo, nombre) {
     const texto = svg(codigo);
     if (!texto) return;
@@ -122,5 +177,5 @@ const CapcobBarras = (function () {
     setTimeout(function () { w.print(); }, 250);
   }
 
-  return { esEAN13: esEAN13, svg: svg, descargarPNG: descargarPNG, imprimir: imprimir };
+  return { esEAN13: esEAN13, svg: svg, descargarPNG: descargarPNG, descargarHoja: descargarHoja, imprimir: imprimir };
 })();

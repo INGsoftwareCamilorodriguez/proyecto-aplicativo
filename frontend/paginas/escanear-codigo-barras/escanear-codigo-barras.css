@@ -513,3 +513,14 @@
     .logout-btn { padding: 4px 12px 4px 4px; gap: 6px; font-size: .8rem; }
     .modal-box, .modal-box-ticket { width: 94vw; }
   }
+
+  /* Aviso cuando se intenta pasar del stock disponible */
+  .limite-msg {
+    margin-top: 8px;
+    font-size: .78rem; font-weight: 700;
+    color: #be123c;
+    background: var(--red-light);
+    padding: 6px 12px;
+    border-radius: 10px;
+    display: inline-block;
+  }

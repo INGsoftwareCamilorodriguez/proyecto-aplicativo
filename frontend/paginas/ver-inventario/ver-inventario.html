@@ -27,6 +27,7 @@
         <div class="page-sub" id="subPagina">Consulta, analiza y compara tus productos por paquete.</div>
       </div>
       <div class="header-right">
+        <button type="button" class="btn-descargar" id="btnDescargarCodigos" title="Descargar los códigos de barras de los productos que se ven en la lista"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Descargar códigos</button>
         <button type="button" class="btn-comparar" id="btnComparar">Comparar</button>
         <div class="logo-badge">
           <div class="licon">
@@ -126,6 +127,7 @@
               <th>Cantidad</th>
               <th>Precio</th>
               <th>Estado</th>
+              <th class="th-barras">Código de barras</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -183,6 +185,7 @@
     <div class="barcode-visual" id="modalCodigoValor"></div>
     <dl class="modal-detalle" id="modalCodigoDetalle"></dl>
     <div class="modal-actions">
+      <button class="modal-cancel" id="btnDescargarModalCodigo">Descargar código</button>
       <button class="modal-confirm" id="btnCerrarModalCodigo">Cerrar</button>
     </div>
   </div>
@@ -194,6 +197,7 @@
 <script src="/frontend/assets/js/api-config.js"></script>
 <script src="/frontend/assets/js/session-heartbeat.js"></script>
 <script src="/frontend/assets/js/tema-marca.js"></script>
+<script src="/frontend/assets/js/codigo-barras.js"></script>
 <script src="/frontend/paginas/ver-inventario/ver-inventario.js"></script>
 <script src="/frontend/assets/js/sidebar.js"></script>
 <script src="/frontend/assets/js/asistente.js"></script>

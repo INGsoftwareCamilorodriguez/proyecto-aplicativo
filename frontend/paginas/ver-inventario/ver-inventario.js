@@ -152,6 +152,33 @@ function productosFiltrados() {
 }
 
 // ── Render ───────────────────────────────────────────────────
+// Botón pequeño con el ícono de código de barras: al hacer clic abre el detalle
+// con la imagen grande del código (y el botón para descargarla).
+// Los productos por peso usan PLU de 6 dígitos (no es EAN-13): se muestra solo el número.
+function crearBotonBarras(prod) {
+  const codigo = prod.codigoBarras || '';
+  if (!CapcobBarras.esEAN13(codigo)) {
+    const plu = document.createElement('span');
+    plu.className = 'barras-plu';
+    plu.textContent = codigo || '—';
+    plu.title = 'Los productos por peso usan un PLU de 6 dígitos, que no se dibuja como EAN-13.';
+    return plu;
+  }
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'barras-btn';
+  btn.title = 'Ver código de barras';
+  btn.innerHTML =
+    '<svg viewBox="0 0 24 24"><rect class="bc-fondo" x="2" y="5" width="20" height="14" rx="2.5"/>' +
+    '<g class="bc-barras">' +
+    '<line x1="5" y1="5" x2="5" y2="19" stroke-width="0.9"/><line x1="7.2" y1="5" x2="7.2" y2="19" stroke-width="1.6"/>' +
+    '<line x1="10.2" y1="5" x2="10.2" y2="19" stroke-width="0.9"/><line x1="12.4" y1="5" x2="12.4" y2="19" stroke-width="2"/>' +
+    '<line x1="15.4" y1="5" x2="15.4" y2="19" stroke-width="0.9"/><line x1="17.4" y1="5" x2="17.4" y2="19" stroke-width="1.4"/>' +
+    '<line x1="19.7" y1="5" x2="19.7" y2="19" stroke-width="0.9"/></g></svg>';
+  btn.addEventListener('click', () => mostrarDetalle(prod));
+  return btn;
+}
+
 function renderTodo() {
   renderResumen();
   renderTabla();
@@ -212,6 +239,7 @@ function renderTabla() {
       '<td>' + escapar(formatearCantidad(prod)) + '</td>' +
       '<td>' + escapar(precioTexto) + '</td>' +
       '<td><span class="estado estado-' + estado + '"><i></i>' + ETIQUETA_ESTADO[estado] + '</span></td>' +
+      '<td class="td-barras"></td>' +
       '<td></td>';
 
     const btnVer = document.createElement('button');
@@ -221,6 +249,7 @@ function renderTabla() {
     btnVer.innerHTML = '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
     btnVer.addEventListener('click', () => mostrarDetalle(prod));
     tr.lastElementChild.appendChild(btnVer);
+    tr.querySelector('.td-barras').appendChild(crearBotonBarras(prod));
 
     inventarioBody.appendChild(tr);
   });
@@ -272,11 +301,20 @@ function irAPagina(n) {
 }
 
 // ── Modal: detalle + código de barras ────────────────────────
+let codigoModalActual = null;   // { codigo, nombre } del producto que muestra el modal
 function mostrarDetalle(prod) {
   const esPeso = prod.tipoPrecio === 'PESO';
   modalCodigoNombre.textContent = prod.nombre;
   modalCodigoTipo.textContent = esPeso ? 'PLU por peso' : 'EAN-13 fijo';
-  modalCodigoValor.textContent = prod.codigoBarras || '—';
+  const codigo = prod.codigoBarras || '';
+  codigoModalActual = { codigo: codigo, nombre: prod.nombre };
+  // Arriba el código en texto; debajo la imagen del código de barras (con su número).
+  modalCodigoValor.innerHTML =
+    '<div class="bc-texto">' + escapar(codigo || '—') + '</div>' +
+    (CapcobBarras.esEAN13(codigo)
+      ? '<div class="bc-imagen">' + CapcobBarras.svg(codigo) + '</div>'
+      : '<div class="bc-sin-imagen">Este código es un PLU por peso: no se dibuja como EAN-13.</div>');
+  $('btnDescargarModalCodigo').style.display = CapcobBarras.esEAN13(codigo) ? '' : 'none';
 
   const filas = [
     ['Paquete', prod.paqueteNombre || 'Sin paquete'],
@@ -305,6 +343,22 @@ function mostrarDetalle(prod) {
 
 function cerrarModal() { modalCodigo.classList.add('hidden'); }
 $('btnCerrarModalCodigo').addEventListener('click', cerrarModal);
+$('btnDescargarModalCodigo').addEventListener('click', () => {
+  if (codigoModalActual) CapcobBarras.descargarPNG(codigoModalActual.codigo, codigoModalActual.nombre);
+});
+
+// Botón de arriba: descarga una imagen con los códigos de los productos que se ven
+// en la lista (respeta la búsqueda y los filtros activos; incluye todas las páginas).
+$('btnDescargarCodigos').addEventListener('click', () => {
+  const lista = productosFiltrados().map(p => ({ codigo: p.codigoBarras || '', nombre: p.nombre }));
+  const validos = lista.filter(i => CapcobBarras.esEAN13(i.codigo));
+  if (validos.length === 0) { mostrarAviso('No hay códigos de barras para descargar.'); return; }
+  CapcobBarras.descargarHoja(validos, 'codigos-de-barras-inventario.png').then(n => {
+    const omitidos = lista.length - n;
+    mostrarAviso('Descargados ' + n + ' código' + (n === 1 ? '' : 's') + ' de barras' +
+      (omitidos > 0 ? ' (' + omitidos + ' por peso sin imagen)' : '') + '.');
+  });
+});
 // El modal NO se cierra al hacer clic afuera (así no se pierde lo escrito): solo con la X o el botón Cancelar.
 
 // ── Buscador y filtros ───────────────────────────────────────
@@ -427,6 +481,7 @@ function abrirComparar() {
   limpiarBuscadorPaquete();
   $('vistaInventario').hidden = true;
   $('vistaComparar').hidden = false;
+  $('btnDescargarCodigos').style.display = 'none';
   $('tituloPagina').textContent = 'Comparar';
   $('subPagina').textContent = 'Pon dos elementos lado a lado y mira en qué se diferencian.';
   const btn = $('btnComparar');
@@ -440,6 +495,7 @@ function cerrarComparar() {
   cmp.activo = false;
   $('vistaComparar').hidden = true;
   $('vistaInventario').hidden = false;
+  $('btnDescargarCodigos').style.display = '';
   $('tituloPagina').textContent = 'Ver inventario';
   $('subPagina').textContent = 'Consulta, analiza y compara tus productos por paquete.';
   const btn = $('btnComparar');
