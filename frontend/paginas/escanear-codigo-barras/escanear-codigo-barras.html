@@ -37,15 +37,15 @@
     <div class="scan-panel">
 
       <div class="scan-box" id="scanBox">
-        <div class="scan-label"><span class="dot"></span> Lector activo</div>
+        <div class="scan-label"><span class="dot"></span> Lector activo <span class="scan-mode" id="modoEscaneo"></span></div>
         <div class="scan-input-row">
           <input type="text" id="codigoInput" placeholder="Escanea o escribe el código..." autofocus autocomplete="off"/>
           <button class="manual-btn" onclick="procesarCodigo()">Agregar</button>
-          <button class="camera-btn" id="btnCamara" onclick="toggleCamara()">📷 Cámara</button>
+          <button class="camera-btn" id="btnCamara" onclick="toggleCamara()">📷 Escanear</button>
         </div>
         <div class="camera-wrap" id="camaraWrap" style="display:none;">
           <div id="camaraReader"></div>
-          <div class="camera-hint">Apunta la cámara al código de barras — se agrega automáticamente al detectarlo.</div>
+          <div class="camera-hint">Apunta la cámara al código de barras: se agrega automáticamente al detectarlo.</div>
         </div>
       </div>
 
@@ -110,10 +110,65 @@
       <h3>✓ Venta registrada</h3>
       <p>Puedes imprimir el ticket o cerrar.</p>
     </div>
-    <div id="reciboContenido" class="recibo"></div>
+    <div class="papel-selector no-print">
+      <span>Papel:</span>
+      <button class="papel-opt" data-mm="58" onclick="aplicarPapel(58)">58 mm</button>
+      <button class="papel-opt" data-mm="80" onclick="aplicarPapel(80)">80 mm</button>
+    </div>
+    <div id="reciboContenido" class="recibo papel-80"></div>
     <div class="modal-actions no-print">
       <button class="btn btn-cancel" onclick="cerrarModalTicket()">Cerrar</button>
-      <button class="btn btn-confirm" onclick="window.print()">Imprimir ticket</button>
+      <button class="btn btn-confirm" onclick="imprimirTicket()">Imprimir ticket</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal: cómo escanear -->
+<div class="modal-overlay" id="modalEscaner">
+  <div class="modal-box modal-box-escaner">
+    <h3>¿Cómo quieres escanear?</h3>
+    <p>Elige el dispositivo con el que vas a leer los códigos de barras.</p>
+    <div class="scan-options">
+      <button class="scan-opt" data-opt="camara-dispositivo" onclick="elegirOpcionEscaneo('camara-dispositivo')">
+        <span class="so-ico">📱</span>
+        <span><b>Cámara del dispositivo</b><small>La cámara del celular, tablet o portátil.</small></span>
+      </button>
+      <button class="scan-opt" data-opt="camara-externa" onclick="elegirOpcionEscaneo('camara-externa')">
+        <span class="so-ico">🎥</span>
+        <span><b>Cámara externa</b><small>Webcam USB u otra cámara conectada (te dejo elegir cuál).</small></span>
+      </button>
+      <button class="scan-opt" data-opt="lector-usb" onclick="elegirOpcionEscaneo('lector-usb')">
+        <span class="so-ico">🔌</span>
+        <span><b>Lector USB / Bluetooth</b><small>Pistola de código de barras que funciona como teclado.</small></span>
+      </button>
+      <button class="scan-opt" id="optSerial" data-opt="serial" onclick="elegirOpcionEscaneo('serial')">
+        <span class="so-ico">🖨️</span>
+        <span><b>Escáner serial (COM)</b><small>Escáner por puerto serie. Solo Chrome o Edge.</small></span>
+      </button>
+    </div>
+
+    <div class="scan-panel-extra" id="panelCamaras" hidden>
+      <label for="selCamara">Cámara a usar</label>
+      <select id="selCamara"></select>
+      <button class="btn btn-confirm" onclick="usarCamaraSeleccionada()">Usar esta cámara</button>
+    </div>
+
+    <div class="scan-panel-extra" id="panelSerial" hidden>
+      <label for="selBaud">Velocidad (baudios)</label>
+      <select id="selBaud">
+        <option value="9600" selected>9600</option>
+        <option value="19200">19200</option>
+        <option value="38400">38400</option>
+        <option value="57600">57600</option>
+        <option value="115200">115200</option>
+      </select>
+      <button class="btn btn-confirm" onclick="conectarSerial()">Conectar escáner</button>
+    </div>
+
+    <div class="scan-msg" id="escanerMsg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="cerrarModalEscaner()">Cerrar</button>
     </div>
   </div>
 </div>

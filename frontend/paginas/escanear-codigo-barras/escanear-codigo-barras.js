@@ -6,14 +6,20 @@
 
 let ticket = []; // { codigo, nombre, precio, cantidad }
 let productosCache = []; // catálogo completo del backend (para la búsqueda en vivo)
-let escaneados = []; // historial de productos escaneados en esta venta (más reciente primero)
+let recientes = [];  // ids de producto en orden de uso (más reciente primero). Lo que se muestra en
+                     // "Productos escaneados" sale SIEMPRE de la factura, así nunca quedan desfasados.
 let html5QrCode = null;
 let camaraActiva = false;
+let procesandoCodigo = false;   // evita lecturas duplicadas mientras se consulta al servidor
+let modoEscaneo = 'usb';        // 'usb' | 'camara' | 'serial'
+let serialPort = null, serialReader = null, serialActivo = false;
+const LS_ESCANEO = 'capcob_escaneo';
+const LS_PAPEL = 'capcob_papel_mm';
 let ultimoCodigoCamara = null;
 let ultimoCodigoCamaraTs = 0;
 let datosRecibo = null;     // empleado + administrador que salen en el recibo
 let nombreEmpresa = null;   // nombre del negocio (Configuración)
-let codigoMostrado = null; // código del producto que se ve en la tarjeta de "último producto"
+let idMostrado = null;     // id del producto que se ve en la tarjeta de "último producto"
 
 const codigoInput = document.getElementById('codigoInput');
 const productCard = document.getElementById('productCard');
@@ -104,31 +110,62 @@ function buscarEnCache(codigo) {
   return productosCache.find(p => p.codigo === codigo);
 }
 
-function cantidadEnTicket(codigo) {
-  const item = ticket.find(i => i.codigo === codigo);
+function buscarPorId(id) {
+  return productosCache.find(p => p.id === Number(id));
+}
+
+// Cantidad de un producto en la factura (siempre por id: dos productos nunca se mezclan)
+function cantidadEnTicket(id) {
+  const item = ticket.find(i => i.productoId === Number(id));
   return item ? item.cantidad : 0;
 }
 
-// ── Vista por defecto: historial de lo escaneado en esta venta ──
+// Limpia lo que llega del teclado, lector o cámara: sin caracteres de control,
+// espacios repetidos ni textos kilométricos
+function limpiarEntrada(texto) {
+  return String(texto == null ? '' : texto)
+    .replace(/[\u0000-\u001f\u007f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 60);
+}
+
+// ¿Tiene pinta de código de barras? (sin espacios, 6+ caracteres y al menos un número).
+// Solo en ese caso se consulta al servidor; escribir "quso" o "12" nunca genera una solicitud.
+function pareceCodigo(texto) {
+  return /^[0-9A-Za-z\-._]{6,40}$/.test(texto) && /\d/.test(texto);
+}
+
+// ── "Productos escaneados": exactamente los productos que están en la factura ──
+function marcarReciente(id) {
+  id = Number(id);
+  recientes = recientes.filter(x => x !== id);
+  recientes.unshift(id);
+}
+
 function renderGridEscaneados() {
   quickGridLabel.textContent = 'Productos escaneados';
-  if (escaneados.length === 0) {
+  const lista = recientes
+    .map(id => ({ p: buscarPorId(id), cant: cantidadEnTicket(id) }))
+    .filter(x => x.p && x.cant > 0)
+    .slice(0, 12);
+
+  if (lista.length === 0) {
     quickGrid.innerHTML = '<div class="quick-loading">Los productos que escanees en esta venta van a aparecer aquí.</div>';
     return;
   }
-  quickGrid.innerHTML = escaneados.map(p => `
-    <div class="quick-item" onclick="agregarRapido('${p.codigo}')">
-      <div class="qi-name">${p.nombre}</div>
+  quickGrid.innerHTML = lista.map(({ p, cant }) => `
+    <div class="quick-item" data-id="${p.id}" data-modo="ver" title="Ver / cambiar la cantidad de ${escapar(p.nombre)}">
+      <span class="qi-qty">x${cant}</span>
+      <div class="qi-name">${escapar(p.nombre)}</div>
       <div class="qi-price">${money(p.precio)}</div>
     </div>
   `).join('');
 }
 
 // ── Vista mientras se escribe: búsqueda en vivo contra todo el catálogo ──
-// Por nombre: el nombre tiene que EMPEZAR con lo escrito (en orden, desde la primera
-// letra), sin importar mayúsculas ni tildes. Ej.: "l" muestra leche, pero "e" no.
-// Por código: coincidencia EXACTA únicamente, porque el código es único
-// y no tiene sentido listar varios productos a partir de un código parcial.
+// Por nombre: el nombre tiene que EMPEZAR con lo escrito, sin importar mayúsculas ni tildes.
+// Por código: coincidencia EXACTA únicamente.
 function renderGridBusqueda(texto) {
   quickGridLabel.textContent = 'Resultados de búsqueda';
   const t = sinTildes(texto.trim());
@@ -137,46 +174,48 @@ function renderGridBusqueda(texto) {
     .slice(0, 12);
 
   if (resultados.length === 0) {
-    quickGrid.innerHTML = `<div class="quick-loading">Sin coincidencias para "${texto}"</div>`;
+    quickGrid.innerHTML = `<div class="quick-loading">Sin coincidencias para "${escapar(texto)}"</div>`;
     return;
   }
   quickGrid.innerHTML = resultados.map(p => `
-    <div class="quick-item" onclick="agregarRapido('${p.codigo}')">
-      <div class="qi-name">${p.nombre}</div>
+    <div class="quick-item" data-id="${p.id}" data-modo="agregar">
+      <div class="qi-name">${escapar(p.nombre)}</div>
       <div class="qi-price">${money(p.precio)}</div>
     </div>
   `).join('');
 }
 
-// Guarda el producto en el historial de esta venta (sin duplicados, el más reciente primero)
-function registrarEscaneado(producto) {
-  escaneados = escaneados.filter(p => p.codigo !== producto.codigo);
-  escaneados.unshift(producto);
-  if (escaneados.length > 12) escaneados = escaneados.slice(0, 12);
-  renderGridEscaneados();
-}
-
-function agregarRapido(codigo) {
-  codigoInput.value = codigo;
-  procesarCodigo();
-}
+// Un clic en una tarjeta:
+//  · resultado de búsqueda   -> agrega UNA unidad de ESE producto
+//  · producto ya escaneado   -> solo lo muestra arriba (no suma nada); ahí se cambia la cantidad
+quickGrid.addEventListener('click', (e) => {
+  const tarjeta = e.target.closest('.quick-item');
+  if (!tarjeta) return;
+  const producto = buscarPorId(tarjeta.dataset.id);
+  if (!producto) return;
+  if (tarjeta.dataset.modo === 'agregar') {
+    codigoInput.value = '';
+    renderGridEscaneados();
+    intentarAgregar(producto);
+  } else {
+    mostrarProducto(producto);
+    codigoInput.focus();
+  }
+});
 
 // ── Buscar y agregar producto por código escaneado/tecleado ────
-// Primero se busca en el catálogo que ya está en memoria: así el producto se
-// agrega al instante y cada clic cuenta una sola vez (antes cada clic esperaba
-// la respuesta del servidor, y si el servidor tardaba los clics se seguían
-// sumando solos después). Solo si el código no está en memoria se consulta al backend.
+// Se busca en el catálogo en memoria. Si no hay NADA relacionado, lo escrito se queda en el
+// buscador (no se borra) y no se hace ninguna solicitud al servidor, salvo que lo escrito
+// tenga forma de código de barras (producto nuevo que aún no está en memoria).
 async function procesarCodigo() {
-  const texto = codigoInput.value.trim();
+  const texto = limpiarEntrada(codigoInput.value);
   if (!texto) { renderGridEscaneados(); return; }
+  if (procesandoCodigo) return;
 
   // 1) Código de barras exacto
   let producto = buscarEnCache(texto);
 
-  // 2) Si no es un código: por nombre (Enter funciona igual que hacer clic en el producto)
-  //    · nombre exacto            -> ese producto
-  //    · una sola coincidencia    -> ese producto
-  //    · varias coincidencias     -> no adivina: pide elegir uno de la lista
+  // 2) Por nombre: exacto -> ese; una sola coincidencia -> esa; varias -> pide elegir
   if (!producto) {
     const coincidencias = buscarPorNombre(texto);
     const exacto = coincidencias.find(p => sinTildes(p.nombre) === sinTildes(texto));
@@ -185,43 +224,60 @@ async function procesarCodigo() {
     } else if (coincidencias.length === 1) {
       producto = coincidencias[0];
     } else if (coincidencias.length > 1) {
-      codigoMostrado = null;
+      idMostrado = null;
       mostrarVariasCoincidencias(texto, coincidencias.length);
       flashScanBox(false);
       return;   // se deja lo escrito y la lista de resultados para que elija
     }
   }
 
-  codigoInput.value = '';
-  renderGridEscaneados(); // el campo quedó vacío: vuelve a la vista de historial
-
-  // 3) Último recurso: código que no está en memoria (producto nuevo) -> se consulta al backend
-  if (!producto) {
+  // 3) Código que no está en memoria -> se consulta al backend (solo si parece un código)
+  if (!producto && pareceCodigo(texto)) {
+    procesandoCodigo = true;
     try {
       const data = await apiFetch(`/productos/codigo/${encodeURIComponent(texto)}`);
       producto = normalizarProducto(data);
-      productosCache.push(producto);
+      if (!buscarPorId(producto.id)) productosCache.push(producto);
     } catch (e) {
-      codigoMostrado = null;
-      mostrarNoEncontrado(texto);
-      flashScanBox(false);
-      return;
+      producto = null;
+    } finally {
+      procesandoCodigo = false;
     }
   }
+
+  // 4) Nada relacionado: NO se borra lo escrito, queda ahí para corregirlo
+  if (!producto) {
+    idMostrado = null;
+    mostrarNoEncontrado(texto);
+    marcarBusquedaFallida(true);
+    flashScanBox(false);
+    codigoInput.focus();
+    codigoInput.select();
+    renderGridBusqueda(texto);
+    return;
+  }
+
+  // Encontrado: ahora sí se limpia el campo
+  marcarBusquedaFallida(false);
+  codigoInput.value = '';
+  renderGridEscaneados();
   intentarAgregar(producto);
+}
+
+// Borde rojo en el buscador mientras lo escrito no corresponda a ningún producto
+function marcarBusquedaFallida(si) {
+  codigoInput.classList.toggle('no-encontrado', !!si);
 }
 
 // Agrega UNA unidad respetando el stock disponible
 function intentarAgregar(producto) {
-  registrarEscaneado(producto);
-
   if (producto.stock <= 0) {
-    codigoMostrado = null;
+    idMostrado = null;
     mostrarSinStock(producto);
     flashProductCard();
     return;
   }
-  if (cantidadEnTicket(producto.codigo) + 1 > producto.stock) {
+  if (cantidadEnTicket(producto.id) + 1 > producto.stock) {
     mostrarProducto(producto, true);   // con el aviso de "ya no hay más disponible"
     flashProductCard();
     return;
@@ -233,6 +289,7 @@ function intentarAgregar(producto) {
 
 // Mientras el cajero escribe, filtra en vivo; al borrar todo, vuelve al historial
 codigoInput.addEventListener('input', () => {
+  marcarBusquedaFallida(false);
   const val = codigoInput.value;
   if (val.trim().length === 0) {
     renderGridEscaneados();
@@ -264,28 +321,28 @@ function stockBadge(stock) {
 }
 
 function mostrarProducto(producto, sinMas) {
-  codigoMostrado = producto.codigo;
-  const cantidad = cantidadEnTicket(producto.codigo);
+  idMostrado = producto.id;
+  const cantidad = cantidadEnTicket(producto.id);
   productCard.classList.remove('empty');
   productCard.innerHTML = `
     <div class="product-info">
-      <div class="product-name">${producto.nombre}</div>
+      <div class="product-name">${escapar(producto.nombre)}</div>
       <div class="product-meta">
-        <span>${producto.cat || ''}</span>
-        <span>Cód. ${producto.codigo}</span>
+        <span>${escapar(producto.cat || '')}</span>
+        <span>Cód. ${escapar(producto.codigo)}</span>
         ${stockBadge(producto.stock)}
       </div>
       <div class="limite-msg" id="limiteMsg"${sinMas ? '' : ' hidden'}>Ya no hay más disponible: solo hay ${producto.stock} en inventario.</div>
     </div>
     <div class="qty-stepper">
-      <button onclick="cambiarCantidad('${producto.codigo}', -1)">−</button>
+      <button onclick="cambiarCantidad(${producto.id}, -1)">−</button>
       <input type="text" inputmode="numeric" class="qty-input" value="${cantidad}" maxlength="6" autocomplete="off"
              title="Escribe la cantidad (máximo ${producto.stock})"
              onfocus="this.select()"
-             oninput="escribirCantidad(this, '${producto.codigo}')"
-             onblur="restaurarCantidad(this, '${producto.codigo}')"
+             oninput="escribirCantidad(this, ${producto.id})"
+             onblur="restaurarCantidad(this, ${producto.id})"
              onkeydown="teclaCantidad(event, this)">
-      <button onclick="cambiarCantidad('${producto.codigo}', 1)">+</button>
+      <button onclick="cambiarCantidad(${producto.id}, 1)">+</button>
     </div>
     <div class="product-price">${money(producto.precio)}</div>
   `;
@@ -303,13 +360,13 @@ function mostrarVariasCoincidencias(texto, cantidad) {
   `;
 }
 
-function mostrarNoEncontrado(codigo) {
+function mostrarNoEncontrado(texto) {
   productCard.classList.remove('empty');
   productCard.innerHTML = `
     <div class="product-info">
       <div class="product-name">Código no encontrado</div>
       <div class="product-meta">
-        <span>"${codigo}" no está registrado en el inventario</span>
+        <span>"${escapar(texto)}" no está registrado en el inventario. Revísalo y corrígelo en el buscador.</span>
       </div>
     </div>
   `;
@@ -319,7 +376,7 @@ function mostrarSinStock(producto) {
   productCard.classList.remove('empty');
   productCard.innerHTML = `
     <div class="product-info">
-      <div class="product-name">${producto.nombre}</div>
+      <div class="product-name">${escapar(producto.nombre)}</div>
       <div class="product-meta">
         <span>Sin unidades disponibles en este momento</span>
       </div>
@@ -328,23 +385,38 @@ function mostrarSinStock(producto) {
 }
 
 function agregarAlTicket(producto, cantidad) {
-  const existente = ticket.find(i => i.codigo === producto.codigo);
+  const existente = ticket.find(i => i.productoId === producto.id);
   if (existente) {
     existente.cantidad += cantidad;
   } else {
     ticket.push({ productoId: producto.id, codigo: producto.codigo, nombre: producto.nombre, precio: producto.precio, cantidad });
   }
+  marcarReciente(producto.id);
   renderTicket();
 }
 
-// Botones − / + de la tarjeta del producto. Funcionan siempre, aunque el producto
-// ya no esté en la factura (por ejemplo, después de quitarlo con la ✕ o de llegar a 0).
-function cambiarCantidad(codigo, delta) {
-  const producto = buscarEnCache(codigo);
+// Fija la cantidad EXACTA de UN producto en la factura (0 = quitarlo). Nunca toca otros productos.
+function fijarCantidad(producto, nueva) {
+  const item = ticket.find(i => i.productoId === producto.id);
+  if (nueva <= 0) {
+    ticket = ticket.filter(i => i.productoId !== producto.id);
+    recientes = recientes.filter(x => x !== producto.id);
+  } else if (item) {
+    item.cantidad = nueva;
+    marcarReciente(producto.id);
+  } else {
+    ticket.push({ productoId: producto.id, codigo: producto.codigo, nombre: producto.nombre, precio: producto.precio, cantidad: nueva });
+    marcarReciente(producto.id);
+  }
+  renderTicket();
+}
+
+// Botones − / + de la tarjeta del producto: solo afectan al producto que se ve en la tarjeta.
+function cambiarCantidad(id, delta) {
+  const producto = buscarPorId(id);
   if (!producto) return;
 
-  const actual = cantidadEnTicket(codigo);
-  const nueva = actual + delta;
+  const nueva = cantidadEnTicket(id) + delta;
   if (nueva < 0) { codigoInput.focus(); return; }
 
   if (nueva > producto.stock) {
@@ -353,27 +425,14 @@ function cambiarCantidad(codigo, delta) {
     codigoInput.focus();
     return;
   }
-
-  const item = ticket.find(i => i.codigo === codigo);
-  if (nueva === 0) {
-    ticket = ticket.filter(i => i.codigo !== codigo);
-  } else if (item) {
-    item.cantidad = nueva;
-  } else {
-    ticket.push({ productoId: producto.id, codigo: producto.codigo, nombre: producto.nombre, precio: producto.precio, cantidad: nueva });
-  }
-  renderTicket();
+  fijarCantidad(producto, nueva);
   mostrarProducto(producto);
   codigoInput.focus();
 }
 
-// Cantidad escrita a mano en la tarjeta del producto:
-//  · solo números enteros (se borran letras, símbolos, espacios, signo menos y puntos)
-//  · nunca negativa
-//  · nunca más que el stock disponible (si se pasa, se deja el máximo y se avisa)
-// Se aplica a la factura mientras se escribe.
-function escribirCantidad(inp, codigo) {
-  const producto = buscarEnCache(codigo);
+// Cantidad escrita a mano: solo enteros, nunca negativa, nunca más que el stock.
+function escribirCantidad(inp, id) {
+  const producto = buscarPorId(id);
   if (!producto) return;
 
   let v = inp.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
@@ -388,21 +447,12 @@ function escribirCantidad(inp, codigo) {
   if (pasado) flashProductCard();
   if (v === '') return;   // campo vacío: no se cambia nada hasta que salga del campo
 
-  const nueva = Number(v);
-  const item = ticket.find(i => i.codigo === codigo);
-  if (nueva === 0) {
-    ticket = ticket.filter(i => i.codigo !== codigo);
-  } else if (item) {
-    item.cantidad = nueva;
-  } else {
-    ticket.push({ productoId: producto.id, codigo: producto.codigo, nombre: producto.nombre, precio: producto.precio, cantidad: nueva });
-  }
-  renderTicket();
+  fijarCantidad(producto, Number(v));
 }
 
 // Al salir del campo vacío, vuelve a mostrar la cantidad real de la factura
-function restaurarCantidad(inp, codigo) {
-  if (inp.value === '') inp.value = cantidadEnTicket(codigo);
+function restaurarCantidad(inp, id) {
+  if (inp.value === '') inp.value = cantidadEnTicket(id);
 }
 
 function teclaCantidad(e, inp) {
@@ -416,13 +466,15 @@ function teclaCantidad(e, inp) {
   }
 }
 
-function eliminarDelTicket(codigo) {
-  ticket = ticket.filter(i => i.codigo !== codigo);
+// Quitar de la factura (✕): también sale de "Productos escaneados"
+function eliminarDelTicket(id) {
+  id = Number(id);
+  ticket = ticket.filter(i => i.productoId !== id);
+  recientes = recientes.filter(x => x !== id);
   renderTicket();
-  // Si la tarjeta de arriba muestra ese producto, se actualiza (cantidad 0) para que el + siga funcionando
-  if (codigoMostrado === codigo) {
-    const producto = buscarEnCache(codigo);
-    if (producto) mostrarProducto(producto);
+  if (idMostrado === id) {
+    const producto = buscarPorId(id);
+    if (producto) mostrarProducto(producto);   // queda en 0 para que el + siga funcionando
   }
   codigoInput.focus();
 }
@@ -438,12 +490,12 @@ function renderTicket() {
     ticketList.innerHTML = ticket.map(item => `
       <div class="ticket-row">
         <div class="tr-name">
-          <div class="tn">${item.nombre}</div>
+          <div class="tn">${escapar(item.nombre)}</div>
           <div class="tp">${money(item.precio)} c/u</div>
         </div>
         <div class="tr-qty">x${item.cantidad}</div>
         <div class="tr-sub">${money(item.precio * item.cantidad)}</div>
-        <button class="tr-del" onclick="eliminarDelTicket('${item.codigo}')" title="Quitar">✕</button>
+        <button class="tr-del" onclick="eliminarDelTicket(${item.productoId})" title="Quitar">✕</button>
       </div>
     `).join('');
   }
@@ -460,11 +512,19 @@ function renderTicket() {
   totalVal.textContent = money(total);
 
   btnCobrar.disabled = ticket.length === 0;
+  renderGridEscaneados_siCorresponde();
+}
+
+// Si el cajero no está buscando nada, "Productos escaneados" se mantiene al día con la factura
+function renderGridEscaneados_siCorresponde() {
+  if (codigoInput.value.trim() === '') renderGridEscaneados();
 }
 
 function limpiarVentaEnCurso() {
   ticket = [];
-  codigoMostrado = null;
+  recientes = [];
+  idMostrado = null;
+  marcarBusquedaFallida(false);
   renderTicket();
   productCard.classList.add('empty');
   productCard.innerHTML = `<div>Aún no has escaneado ningún producto</div><div style="font-size:.76rem;">El último producto leído aparecerá aquí</div>`;
@@ -575,6 +635,28 @@ function generarRecibo(venta) {
   `;
 }
 
+// Papel de ticket (58 mm o 80 mm): ajusta el tamaño de página de impresión y el ancho del recibo
+function aplicarPapel(mm) {
+  mm = (mm === 58) ? 58 : 80;
+  let estilo = document.getElementById('estiloPapel');
+  if (!estilo) {
+    estilo = document.createElement('style');
+    estilo.id = 'estiloPapel';
+    document.head.appendChild(estilo);
+  }
+  // alto automático: la hoja mide lo que mida el ticket (no es una hoja carta/A4)
+  estilo.textContent = `@page { size: ${mm}mm auto; margin: 0; }`;
+  const recibo = document.getElementById('reciboContenido');
+  recibo.classList.remove('papel-58', 'papel-80');
+  recibo.classList.add('papel-' + mm);
+  document.querySelectorAll('.papel-opt').forEach(b => b.classList.toggle('sel', Number(b.dataset.mm) === mm));
+  try { localStorage.setItem(LS_PAPEL, String(mm)); } catch (e) {}
+}
+
+function imprimirTicket() {
+  window.print();
+}
+
 function cerrarModalTicket() {
   document.getElementById('modalTicket').classList.remove('show');
   limpiarVentaEnCurso();
@@ -588,59 +670,217 @@ function mostrarToast(msg) {
   setTimeout(() => toast.classList.remove('show'), 2600);
 }
 
-// ── Escaneo por cámara (mientras no hay lector físico) ──────────
+// ── Elegir cómo escanear: cámara del dispositivo, cámara externa, lector USB/Bluetooth o escáner serial ──
+const modalEscaner = document.getElementById('modalEscaner');
+const modoEscaneoTxt = document.getElementById('modoEscaneo');
+const panelCamaras = document.getElementById('panelCamaras');
+const panelSerial = document.getElementById('panelSerial');
+const selCamara = document.getElementById('selCamara');
+const escanerMsg = document.getElementById('escanerMsg');
+
+function guardarPreferencia(obj) {
+  try { localStorage.setItem(LS_ESCANEO, JSON.stringify(obj)); } catch (e) { /* sin almacenamiento */ }
+}
+function leerPreferencia() {
+  try { return JSON.parse(localStorage.getItem(LS_ESCANEO)) || {}; } catch (e) { return {}; }
+}
+
+function setModo(modo, etiqueta) {
+  modoEscaneo = modo;
+  modoEscaneoTxt.textContent = etiqueta ? '· ' + etiqueta : '';
+  btnCamara.classList.toggle('active', modo !== 'usb' || camaraActiva);
+}
+
+function msgEscaner(texto, error) {
+  escanerMsg.textContent = texto || '';
+  escanerMsg.classList.toggle('error', !!error);
+}
+
+// El botón principal: si la cámara está encendida la apaga; si no, pregunta cómo escanear
 function toggleCamara() {
-  if (camaraActiva) {
-    detenerCamara();
-  } else {
-    iniciarCamara();
+  if (camaraActiva) { detenerCamara(); return; }
+  abrirModalEscaner();
+}
+
+function abrirModalEscaner() {
+  panelCamaras.hidden = true;
+  panelSerial.hidden = true;
+  msgEscaner('');
+  const serialOk = 'serial' in navigator;
+  document.getElementById('optSerial').hidden = !serialOk;
+  const pref = leerPreferencia();
+  document.querySelectorAll('.scan-opt').forEach(b => b.classList.toggle('sel', b.dataset.opt === pref.opt));
+  modalEscaner.classList.add('show');
+}
+
+function cerrarModalEscaner() {
+  modalEscaner.classList.remove('show');
+  codigoInput.focus();
+}
+
+async function elegirOpcionEscaneo(opt) {
+  msgEscaner('');
+  panelCamaras.hidden = true;
+  panelSerial.hidden = true;
+
+  if (opt === 'camara-dispositivo') {
+    guardarPreferencia({ opt });
+    cerrarModalEscaner();
+    iniciarCamara(null, 'Cámara del dispositivo');
+  } else if (opt === 'camara-externa') {
+    await listarCamaras();
+  } else if (opt === 'lector-usb') {
+    guardarPreferencia({ opt });
+    await detenerSerial();
+    if (camaraActiva) await detenerCamara();
+    setModo('usb', 'Lector USB / Bluetooth');
+    btnCamara.classList.add('active');
+    cerrarModalEscaner();
+    mostrarToast('Lector USB listo: escanea y el código se agrega solo');
+  } else if (opt === 'serial') {
+    panelSerial.hidden = false;
+    msgEscaner('Conecta el escáner por cable serial/COM y pulsa "Conectar escáner".');
   }
 }
 
-function iniciarCamara() {
+// Pide permiso (sin él el navegador oculta los nombres) y lista TODAS las cámaras conectadas
+async function listarCamaras() {
+  if (typeof Html5Qrcode === 'undefined') { msgEscaner('No se pudo cargar el lector de cámara. Revisa tu conexión a internet.', true); return; }
+  if (!window.isSecureContext) { msgEscaner('El navegador solo permite usar la cámara en https o localhost.', true); return; }
+  msgEscaner('Buscando cámaras…');
+  try {
+    const tmp = await navigator.mediaDevices.getUserMedia({ video: true });
+    tmp.getTracks().forEach(t => t.stop());
+    const camaras = await Html5Qrcode.getCameras();
+    if (!camaras || camaras.length === 0) { msgEscaner('No se detectó ninguna cámara. Conecta la cámara externa y vuelve a intentar.', true); return; }
+    const pref = leerPreferencia();
+    selCamara.innerHTML = camaras.map((c, i) =>
+      `<option value="${escapar(c.id)}">${escapar(c.label || ('Cámara ' + (i + 1)))}</option>`).join('');
+    if (pref.camaraId && camaras.some(c => c.id === pref.camaraId)) selCamara.value = pref.camaraId;
+    else if (camaras.length > 1) selCamara.selectedIndex = camaras.length - 1;   // normalmente la externa se lista al final
+    panelCamaras.hidden = false;
+    msgEscaner(camaras.length === 1 ? 'Solo se detectó una cámara.' : `${camaras.length} cámaras detectadas. Elige la que quieres usar.`);
+  } catch (err) {
+    msgEscaner('No se pudo acceder a las cámaras: permiso denegado o cámara en uso.', true);
+  }
+}
+
+function usarCamaraSeleccionada() {
+  const id = selCamara.value;
+  if (!id) return;
+  const nombre = selCamara.options[selCamara.selectedIndex].text;
+  guardarPreferencia({ opt: 'camara-externa', camaraId: id });
+  cerrarModalEscaner();
+  iniciarCamara(id, nombre);
+}
+
+// ── Cámara (html5-qrcode) ──
+async function iniciarCamara(camaraId, etiqueta) {
   if (typeof Html5Qrcode === 'undefined') {
     alert('No se pudo cargar el lector de cámara. Revisa tu conexión a internet.');
     return;
   }
+  await detenerSerial();
+  if (camaraActiva) await detenerCamara();
+
   camaraWrap.style.display = 'block';
   btnCamara.classList.add('active');
   btnCamara.textContent = '⏹ Detener cámara';
   camaraActiva = true;
+  setModo('camara', etiqueta || 'Cámara');
 
-  html5QrCode = new Html5Qrcode('camaraReader');
+  html5QrCode = new Html5Qrcode('camaraReader', { experimentalFeatures: { useBarCodeDetectorIfSupported: true } });
   const config = { fps: 10, qrbox: { width: 260, height: 140 } };
+  const ok = (texto) => onCodigoExterno(texto);
+  const ignorar = () => {};
 
-  html5QrCode.start(
-    { facingMode: 'environment' },
-    config,
-    (decodedText) => onCodigoDeCamara(decodedText),
-    () => { /* frame sin código detectado, se ignora */ }
-  ).catch(() => {
-    // si no hay cámara trasera (típico en laptop), usa la cámara disponible
-    html5QrCode.start(
-      { facingMode: 'user' },
-      config,
-      (decodedText) => onCodigoDeCamara(decodedText),
-      () => {}
-    ).catch((err) => {
-      alert('No se pudo acceder a la cámara: ' + err);
-      detenerCamara();
-    });
-  });
+  try {
+    if (camaraId) {
+      await html5QrCode.start(camaraId, config, ok, ignorar);
+    } else {
+      try {
+        await html5QrCode.start({ facingMode: 'environment' }, config, ok, ignorar);
+      } catch (e) {
+        // sin cámara trasera (laptop): usa la que haya
+        await html5QrCode.start({ facingMode: 'user' }, config, ok, ignorar);
+      }
+    }
+  } catch (err) {
+    alert('No se pudo acceder a la cámara: ' + err);
+    detenerCamara();
+  }
 }
 
-function detenerCamara() {
+async function detenerCamara() {
   camaraActiva = false;
-  btnCamara.classList.remove('active');
-  btnCamara.textContent = '📷 Cámara';
+  btnCamara.textContent = '📷 Escanear';
   camaraWrap.style.display = 'none';
-  if (html5QrCode) {
-    html5QrCode.stop().then(() => html5QrCode.clear()).catch(() => {});
+  const qr = html5QrCode;
+  html5QrCode = null;
+  if (qr) {
+    try { await qr.stop(); qr.clear(); } catch (e) { /* ya estaba detenida */ }
   }
+  setModo('usb', 'Lector USB / teclado');
+  btnCamara.classList.remove('active');
   codigoInput.focus();
 }
 
-function onCodigoDeCamara(codigo) {
+// ── Escáner serial (puerto COM) con Web Serial: Chrome / Edge ──
+async function conectarSerial() {
+  if (!('serial' in navigator)) { msgEscaner('Este navegador no soporta escáneres serial. Usa Chrome o Edge.', true); return; }
+  try {
+    if (camaraActiva) await detenerCamara();
+    await detenerSerial();
+    const baudRate = Number(document.getElementById('selBaud').value) || 9600;
+    const port = await navigator.serial.requestPort();
+    await port.open({ baudRate });
+    serialPort = port;
+    serialActivo = true;
+    guardarPreferencia({ opt: 'serial' });
+    setModo('serial', 'Escáner serial');
+    btnCamara.classList.add('active');
+    cerrarModalEscaner();
+    mostrarToast('Escáner serial conectado');
+    leerSerial(port);
+  } catch (err) {
+    msgEscaner('No se pudo conectar el escáner (cancelado, en uso o velocidad incorrecta).', true);
+  }
+}
+
+async function leerSerial(port) {
+  const decoder = new TextDecoderStream();
+  const cerrado = port.readable.pipeTo(decoder.writable).catch(() => {});
+  serialReader = decoder.readable.getReader();
+  let buffer = '';
+  try {
+    while (serialActivo) {
+      const { value, done } = await serialReader.read();
+      if (done) break;
+      buffer += value;
+      const partes = buffer.split(/[\r\n]+/);
+      buffer = partes.pop();           // lo que aún no terminó de llegar
+      partes.map(limpiarEntrada).filter(Boolean).forEach(onCodigoExterno);
+    }
+  } catch (e) { /* puerto desconectado */ }
+  finally {
+    try { serialReader.releaseLock(); } catch (e) {}
+    await cerrado;
+  }
+}
+
+async function detenerSerial() {
+  if (!serialPort) return;
+  serialActivo = false;
+  try { if (serialReader) await serialReader.cancel(); } catch (e) {}
+  try { await serialPort.close(); } catch (e) {}
+  serialPort = null; serialReader = null;
+  setModo('usb', 'Lector USB / teclado');
+}
+
+// Código recibido de la cámara o de un escáner externo
+function onCodigoExterno(codigo) {
+  codigo = limpiarEntrada(codigo);
+  if (!codigo) return;
   // evita agregar el mismo código varias veces seguidas mientras la cámara sigue enfocando
   const ahora = Date.now();
   if (codigo === ultimoCodigoCamara && (ahora - ultimoCodigoCamaraTs) < 2500) return;
@@ -650,6 +890,11 @@ function onCodigoDeCamara(codigo) {
   codigoInput.value = codigo;
   procesarCodigo();
 }
+
+window.addEventListener('beforeunload', () => {
+  try { if (html5QrCode) html5QrCode.stop(); } catch (e) {}
+  try { if (serialPort) serialPort.close(); } catch (e) {}
+});
 
 /* Enter dispara el agregado — así funciona con cualquier lector físico de código de barras */
 codigoInput.addEventListener('keydown', (e) => {
@@ -699,8 +944,10 @@ setInterval(() => {
   }
 })();
 
+setModo('usb', 'Lector USB / teclado');
 cargarCatalogo();
 cargarDatosRecibo();
+aplicarPapel(Number((function(){ try { return localStorage.getItem(LS_PAPEL); } catch (e) { return null; } })()) || 80);
 codigoInput.focus();
 // Mantiene el stock al día (por si otro cajero vende o se reabastece mientras esta caja está abierta)
 setInterval(() => cargarCatalogo(true), 30000);

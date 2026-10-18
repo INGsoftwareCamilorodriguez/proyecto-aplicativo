@@ -272,13 +272,60 @@
   .recibo .r-item-nom { font-weight: 700; }
   .recibo .r-item-det { color: var(--muted); margin-bottom: 0; }
 
+  /* ── Ticket para impresora térmica (58 / 80 mm) ── */
+  .papel-selector { display: flex; align-items: center; gap: 8px; margin: 8px 0 4px; font-size: .8rem; color: var(--muted); }
+  .papel-opt { border: 2px solid var(--border); background: #fff; border-radius: 20px; padding: 4px 14px; font-weight: 700; cursor: pointer; }
+  .papel-opt.sel { border-color: var(--green); background: var(--green-light); color: var(--green-dark); }
+  .recibo.papel-80 { width: 72mm; margin: 0 auto; }
+  .recibo.papel-58 { width: 48mm; margin: 0 auto; font-size: .7rem; }
+
   @media print {
-    @page { margin: 0; }   /* quita la fecha/URL que el navegador pone arriba y abajo */
-    body * { visibility: hidden; }
-    #modalTicket, #modalTicket * { visibility: visible; }
-    #modalTicket { position: fixed; inset: 0; background: #fff; align-items: flex-start; padding-top: 8mm; }
+    html, body { height: auto !important; overflow: visible !important; background: #fff !important; }
+    .app, .toast, .modal-overlay:not(#modalTicket) { display: none !important; }
     .no-print { display: none !important; }
-    .modal-box-ticket { width: 100%; max-width: 320px; margin: 0 auto; box-shadow: none; border-top: none; }
+    #modalTicket { display: block !important; position: static !important; background: none !important; }
+    #modalTicket .modal-box-ticket {
+      width: auto; max-width: none; max-height: none; overflow: visible;
+      margin: 0; padding: 0; border: none; border-radius: 0; box-shadow: none; background: none;
+    }
+    .recibo { color: #000 !important; padding: 2mm 0 6mm !important; font-size: 10.5pt; line-height: 1.25; }
+    .recibo.papel-58 { font-size: 8.5pt; }
+    .recibo hr { border-top: 1px dashed #000 !important; }
+    .recibo .r-item-det { color: #000 !important; }
+    .recibo .r-item, .recibo .r-row { break-inside: avoid; }
+  }
+
+  /* ── Modal: cómo escanear ── */
+  .modal-box-escaner { width: 460px; }
+  .scan-mode { text-transform: none; letter-spacing: 0; font-weight: 600; color: var(--green-dark); }
+  .scan-options { display: grid; gap: 10px; margin-top: 16px; }
+  .scan-opt {
+    display: flex; align-items: center; gap: 14px; text-align: left;
+    border: 2px solid var(--border); background: #fff; border-radius: 14px;
+    padding: 12px 14px; cursor: pointer; transition: border-color .2s, background .2s, transform .2s;
+  }
+  .scan-opt:hover { border-color: var(--yellow); transform: translateY(-2px); }
+  .scan-opt.sel { border-color: var(--green); background: var(--green-light); }
+  .scan-opt[hidden] { display: none; }
+  .scan-opt .so-ico { font-size: 1.6rem; }
+  .scan-opt b { display: block; color: var(--navy); font-size: .95rem; }
+  .scan-opt small { display: block; color: var(--muted); font-size: .76rem; margin-top: 2px; }
+  .scan-panel-extra { margin-top: 14px; display: grid; gap: 8px; }
+  .scan-panel-extra[hidden] { display: none; }
+  .scan-panel-extra label { font-size: .78rem; font-weight: 700; color: var(--muted); }
+  .scan-panel-extra select { padding: 10px 12px; border: 2px solid var(--border); border-radius: 10px; font-size: .9rem; }
+  .scan-msg { min-height: 1.2em; margin-top: 12px; font-size: .8rem; color: var(--muted); }
+  .scan-msg.error { color: #be123c; }
+
+  /* Buscador sin coincidencias: se queda el texto y se marca en rojo */
+  #codigoInput.no-encontrado { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-light); }
+
+  /* Cantidad de cada producto sobre su tarjeta de "Productos escaneados" */
+  .quick-item { position: relative; }
+  .quick-item .qi-qty {
+    position: absolute; top: 8px; right: 8px;
+    background: var(--yellow); color: #333; font-size: .72rem; font-weight: 800;
+    padding: 2px 9px; border-radius: 20px;
   }
 
   /* Producto encontrado */
