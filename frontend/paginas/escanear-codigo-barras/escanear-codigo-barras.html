@@ -142,28 +142,12 @@
         <span class="so-ico">🔌</span>
         <span><b>Lector USB / Bluetooth</b><small>Pistola de código de barras que funciona como teclado.</small></span>
       </button>
-      <button class="scan-opt" id="optSerial" data-opt="serial" onclick="elegirOpcionEscaneo('serial')">
-        <span class="so-ico">🖨️</span>
-        <span><b>Escáner serial (COM)</b><small>Escáner por puerto serie. Solo Chrome o Edge.</small></span>
-      </button>
     </div>
 
     <div class="scan-panel-extra" id="panelCamaras" hidden>
       <label for="selCamara">Cámara a usar</label>
       <select id="selCamara"></select>
       <button class="btn btn-confirm" onclick="usarCamaraSeleccionada()">Usar esta cámara</button>
-    </div>
-
-    <div class="scan-panel-extra" id="panelSerial" hidden>
-      <label for="selBaud">Velocidad (baudios)</label>
-      <select id="selBaud">
-        <option value="9600" selected>9600</option>
-        <option value="19200">19200</option>
-        <option value="38400">38400</option>
-        <option value="57600">57600</option>
-        <option value="115200">115200</option>
-      </select>
-      <button class="btn btn-confirm" onclick="conectarSerial()">Conectar escáner</button>
     </div>
 
     <div class="scan-msg" id="escanerMsg"></div>

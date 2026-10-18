@@ -11,8 +11,7 @@ let recientes = [];  // ids de producto en orden de uso (más reciente primero).
 let html5QrCode = null;
 let camaraActiva = false;
 let procesandoCodigo = false;   // evita lecturas duplicadas mientras se consulta al servidor
-let modoEscaneo = 'usb';        // 'usb' | 'camara' | 'serial'
-let serialPort = null, serialReader = null, serialActivo = false;
+let modoEscaneo = 'usb';        // 'usb' | 'camara'
 const LS_ESCANEO = 'capcob_escaneo';
 const LS_PAPEL = 'capcob_papel_mm';
 let ultimoCodigoCamara = null;
@@ -670,11 +669,10 @@ function mostrarToast(msg) {
   setTimeout(() => toast.classList.remove('show'), 2600);
 }
 
-// ── Elegir cómo escanear: cámara del dispositivo, cámara externa, lector USB/Bluetooth o escáner serial ──
+// ── Elegir cómo escanear: cámara del dispositivo, cámara externa, lector USB/Bluetooth ──
 const modalEscaner = document.getElementById('modalEscaner');
 const modoEscaneoTxt = document.getElementById('modoEscaneo');
 const panelCamaras = document.getElementById('panelCamaras');
-const panelSerial = document.getElementById('panelSerial');
 const selCamara = document.getElementById('selCamara');
 const escanerMsg = document.getElementById('escanerMsg');
 
@@ -704,10 +702,7 @@ function toggleCamara() {
 
 function abrirModalEscaner() {
   panelCamaras.hidden = true;
-  panelSerial.hidden = true;
   msgEscaner('');
-  const serialOk = 'serial' in navigator;
-  document.getElementById('optSerial').hidden = !serialOk;
   const pref = leerPreferencia();
   document.querySelectorAll('.scan-opt').forEach(b => b.classList.toggle('sel', b.dataset.opt === pref.opt));
   modalEscaner.classList.add('show');
@@ -721,7 +716,6 @@ function cerrarModalEscaner() {
 async function elegirOpcionEscaneo(opt) {
   msgEscaner('');
   panelCamaras.hidden = true;
-  panelSerial.hidden = true;
 
   if (opt === 'camara-dispositivo') {
     guardarPreferencia({ opt });
@@ -731,15 +725,11 @@ async function elegirOpcionEscaneo(opt) {
     await listarCamaras();
   } else if (opt === 'lector-usb') {
     guardarPreferencia({ opt });
-    await detenerSerial();
     if (camaraActiva) await detenerCamara();
     setModo('usb', 'Lector USB / Bluetooth');
     btnCamara.classList.add('active');
     cerrarModalEscaner();
     mostrarToast('Lector USB listo: escanea y el código se agrega solo');
-  } else if (opt === 'serial') {
-    panelSerial.hidden = false;
-    msgEscaner('Conecta el escáner por cable serial/COM y pulsa "Conectar escáner".');
   }
 }
 
@@ -780,7 +770,6 @@ async function iniciarCamara(camaraId, etiqueta) {
     alert('No se pudo cargar el lector de cámara. Revisa tu conexión a internet.');
     return;
   }
-  await detenerSerial();
   if (camaraActiva) await detenerCamara();
 
   camaraWrap.style.display = 'block';
@@ -825,59 +814,7 @@ async function detenerCamara() {
   codigoInput.focus();
 }
 
-// ── Escáner serial (puerto COM) con Web Serial: Chrome / Edge ──
-async function conectarSerial() {
-  if (!('serial' in navigator)) { msgEscaner('Este navegador no soporta escáneres serial. Usa Chrome o Edge.', true); return; }
-  try {
-    if (camaraActiva) await detenerCamara();
-    await detenerSerial();
-    const baudRate = Number(document.getElementById('selBaud').value) || 9600;
-    const port = await navigator.serial.requestPort();
-    await port.open({ baudRate });
-    serialPort = port;
-    serialActivo = true;
-    guardarPreferencia({ opt: 'serial' });
-    setModo('serial', 'Escáner serial');
-    btnCamara.classList.add('active');
-    cerrarModalEscaner();
-    mostrarToast('Escáner serial conectado');
-    leerSerial(port);
-  } catch (err) {
-    msgEscaner('No se pudo conectar el escáner (cancelado, en uso o velocidad incorrecta).', true);
-  }
-}
-
-async function leerSerial(port) {
-  const decoder = new TextDecoderStream();
-  const cerrado = port.readable.pipeTo(decoder.writable).catch(() => {});
-  serialReader = decoder.readable.getReader();
-  let buffer = '';
-  try {
-    while (serialActivo) {
-      const { value, done } = await serialReader.read();
-      if (done) break;
-      buffer += value;
-      const partes = buffer.split(/[\r\n]+/);
-      buffer = partes.pop();           // lo que aún no terminó de llegar
-      partes.map(limpiarEntrada).filter(Boolean).forEach(onCodigoExterno);
-    }
-  } catch (e) { /* puerto desconectado */ }
-  finally {
-    try { serialReader.releaseLock(); } catch (e) {}
-    await cerrado;
-  }
-}
-
-async function detenerSerial() {
-  if (!serialPort) return;
-  serialActivo = false;
-  try { if (serialReader) await serialReader.cancel(); } catch (e) {}
-  try { await serialPort.close(); } catch (e) {}
-  serialPort = null; serialReader = null;
-  setModo('usb', 'Lector USB / teclado');
-}
-
-// Código recibido de la cámara o de un escáner externo
+// Código recibido de la cámara
 function onCodigoExterno(codigo) {
   codigo = limpiarEntrada(codigo);
   if (!codigo) return;
@@ -893,7 +830,6 @@ function onCodigoExterno(codigo) {
 
 window.addEventListener('beforeunload', () => {
   try { if (html5QrCode) html5QrCode.stop(); } catch (e) {}
-  try { if (serialPort) serialPort.close(); } catch (e) {}
 });
 
 /* Enter dispara el agregado — así funciona con cualquier lector físico de código de barras */
