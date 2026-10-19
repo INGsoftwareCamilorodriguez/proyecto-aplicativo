@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="/frontend/assets/css/responsive.css">
   <link rel="stylesheet" href="/frontend/assets/css/loader.css">
   <script src="/frontend/assets/js/loader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
 <script src="/frontend/assets/js/guardian-dashboard.js"></script>
@@ -62,7 +63,13 @@
     <div class="fila-principal">
 
       <div class="card" id="formCard">
-        <div class="card-title" id="formTitle">Datos del producto</div>
+        <div class="form-head">
+          <div class="card-title" id="formTitle">Datos del producto</div>
+          <button type="button" class="btn-escanear-producto" id="btnEscanearProducto" title="Escanear el código de barras que ya trae el producto">
+            <svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="8" x2="7" y2="16"/><line x1="11" y1="8" x2="11" y2="16"/><line x1="14" y1="8" x2="14" y2="16"/><line x1="17" y1="8" x2="17" y2="16"/></svg>
+            Escanear producto
+          </button>
+        </div>
         <p class="empty-hint" id="sinPaqueteHint">Selecciona o crea una categoría arriba para empezar a registrar productos.</p>
 
         <form id="productoForm" onsubmit="return false;" class="producto-form-grid" style="display:none;">
@@ -71,6 +78,15 @@
           <div class="campo">
             <label class="form-label">NOMBRE DEL PRODUCTO</label>
             <input type="text" id="nombre" class="form-input"/>
+          </div>
+
+          <div class="campo" id="campoCodigoBarras">
+            <label class="form-label">CÓDIGO DE BARRAS</label>
+            <div class="codigo-barras-row">
+              <input type="text" id="codigoBarrasInput" class="form-input" inputmode="numeric" maxlength="20" autocomplete="off" placeholder="Vacío = el sistema genera uno al guardar"/>
+              <button type="button" class="btn-quitar-codigo" id="btnQuitarCodigo" style="display:none;" title="Quitar el código y dejar que el sistema genere uno">Quitar</button>
+            </div>
+            <p class="modalidad-hint">Si el producto ya trae código de barras (en la caja o la etiqueta), usa «Escanear producto» o escríbelo aquí. Si lo dejas vacío, el sistema genera uno.</p>
           </div>
 
           <div class="campo">
@@ -196,6 +212,45 @@
     <div class="modal-actions">
       <button class="modal-cancel" id="btnCancelarPaquete">Cancelar</button>
       <button class="modal-confirm" id="btnConfirmarPaquete">Crear categoría</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal escanear el código de barras que ya trae el producto -->
+<div class="modal-overlay hidden" id="modalEscanerProducto">
+  <div class="modal-box modal-escaner-box">
+    <div class="card-title">Escanear código de barras</div>
+    <p class="modalidad-hint" style="margin-top:0;">Lee el código que ya trae el producto. Se registra con ese mismo código y no se genera uno nuevo.</p>
+
+    <div class="escaner-opciones" id="escanerOpciones">
+      <button type="button" class="escaner-opt" data-opt="camara-dispositivo">
+        <span class="eo-ico">📱</span>
+        <span><b>Cámara del dispositivo</b><small>La cámara del celular, tablet o portátil.</small></span>
+      </button>
+      <button type="button" class="escaner-opt" data-opt="camara-externa">
+        <span class="eo-ico">🎥</span>
+        <span><b>Cámara externa</b><small>Webcam USB u otra cámara conectada (eliges cuál).</small></span>
+      </button>
+      <button type="button" class="escaner-opt" data-opt="lector-usb">
+        <span class="eo-ico">🔌</span>
+        <span><b>Lector USB / Bluetooth</b><small>Pistola de código de barras que funciona como teclado.</small></span>
+      </button>
+    </div>
+
+    <div class="escaner-extra" id="panelCamarasReg" hidden>
+      <label class="form-label" for="selCamaraReg">CÁMARA A USAR</label>
+      <select id="selCamaraReg" class="form-select"></select>
+      <button type="button" class="escaner-usar" id="btnUsarCamaraReg">Usar esta cámara</button>
+    </div>
+
+    <div id="escanerVista" style="display:none;">
+      <div id="camaraReaderReg"></div>
+      <p class="modalidad-hint">Apunta la cámara al código de barras: se llena solo al detectarlo.</p>
+    </div>
+
+    <div class="form-msg" id="escanerMsgReg"></div>
+    <div class="modal-actions">
+      <button type="button" class="modal-cancel" id="btnCerrarEscaner">Cerrar</button>
     </div>
   </div>
 </div>

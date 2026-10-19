@@ -8,7 +8,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "producto")
+// El código de barras es único POR ADMINISTRADOR (dos tiendas pueden vender el mismo
+// producto de fábrica con el mismo código). Ver sql/permitir-codigos-de-fabrica.sql.
+@Table(name = "producto",
+       uniqueConstraints = @UniqueConstraint(name = "uq_producto_admin_codigo",
+                                             columnNames = {"admin_id", "codigo_barras"}))
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -61,7 +65,7 @@ public class Producto {
     @Column(name = "imagen")
     private String imagen;
 
-    @Column(name = "codigo_barras", nullable = false, unique = true, length = 20)
+    @Column(name = "codigo_barras", nullable = false, length = 20)
     private String codigoBarras;
 
     @Column(nullable = false)

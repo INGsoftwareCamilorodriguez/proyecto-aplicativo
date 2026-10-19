@@ -4,6 +4,7 @@ import com.capcob.gestionproductos.model.Producto;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -37,4 +38,10 @@ public class ProductoRequest {
 
     // Foto opcional como data URL; null o vacío = sin imagen
     private String imagen;
+
+    // Opcional. Código de barras que YA trae el producto (el del fabricante, leído con
+    // cámara o lector). Si viene, se usa este en lugar de generar uno nuevo.
+    // Solo aplica a productos de precio FIJO.
+    @Size(max = 20, message = "El código de barras no puede pasar de 20 caracteres")
+    private String codigoBarras;
 }

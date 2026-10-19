@@ -246,6 +246,7 @@ async function seleccionarPaquete(id) {
   const paquete = paquetes.find(p => p.id === id);
   sinPaqueteHint.style.display = 'none';
   productoForm.style.display = 'flex';
+  actualizarCampoCodigo();
   ponerTitulo(formTitle, 'Nuevo producto en', paquete.nombre);
   productosCard.style.display = 'block';
   sinProductosCard.style.display = 'none';
@@ -377,6 +378,7 @@ function seleccionarTipoPrecio(tipo) {
     document.getElementById('cantidad').placeholder = '0';
     actualizarModalidadVenta();
   }
+  actualizarCampoCodigo();
 }
 optFijo.addEventListener('click', () => seleccionarTipoPrecio('FIJO'));
 optPeso.addEventListener('click', () => seleccionarTipoPrecio('PESO'));
@@ -464,6 +466,16 @@ document.getElementById('btnGuardar').addEventListener('click', async () => {
     imagen: imagenActual
   };
 
+  // Código de barras que ya trae el producto (escaneado o tecleado). Vacío = el sistema genera uno.
+  const codigoPropio = tipoPrecioActual === 'FIJO' ? regEl('codigoBarrasInput').value.trim() : '';
+  if (codigoPropio) {
+    if (!REG_CODIGO_RE.test(codigoPropio) || !/\d/.test(codigoPropio)) {
+      mostrarMsg(formMsg, 'El código de barras no es válido (6 a 20 caracteres: números, letras o guiones).', 'error');
+      return;
+    }
+    body.codigoBarras = codigoPropio;
+  }
+
   if (tipoPrecioActual === 'PESO') {
     // El precio en pesos colombianos no maneja decimales -> el punto siempre es de miles.
     const precio = parseNumeroCO(precioTexto, false);
@@ -511,7 +523,9 @@ document.getElementById('btnGuardar').addEventListener('click', async () => {
         method: 'POST',
         body: JSON.stringify(body)
       });
-      mensajeOk = 'Producto guardado. Código de barras generado: ' + resultado.codigoBarras;
+      mensajeOk = codigoPropio
+        ? 'Producto guardado con el código de barras ' + resultado.codigoBarras
+        : 'Producto guardado. Código de barras generado: ' + resultado.codigoBarras;
     }
 
     cancelarEdicion();
@@ -527,6 +541,8 @@ document.getElementById('btnGuardar').addEventListener('click', async () => {
 
 function cargarProductoEnFormulario(prod) {
   editandoProductoId = prod.id;
+  regCodigoActual = prod.codigoBarras || null;   // se conserva si no se escanea otro
+  regEl('codigoBarrasInput').value = '';
   document.getElementById('nombre').value = prod.nombre;
   document.getElementById('cantidad').value = prod.cantidad;
 
@@ -556,6 +572,8 @@ function cargarProductoEnFormulario(prod) {
 
 function cancelarEdicion() {
   editandoProductoId = null;
+  regCodigoActual = null;
+  regEl('codigoBarrasInput').value = '';
   document.getElementById('nombre').value = '';
   document.getElementById('precio').value = '';
   document.getElementById('cantidad').value = '';
@@ -803,6 +821,7 @@ btnEliminarPaquete.addEventListener('click', async () => {
     todosLosProductos = null;
     paqueteSeleccionadoId = null;
     productoForm.style.display = 'none';
+    actualizarCampoCodigo();
     productosCard.style.display = 'none';
     sinProductosCard.style.display = 'flex';
     buscarProductoInput.value = '';
@@ -975,7 +994,7 @@ function crearCeldaBarras(prod) {
     const vacio = document.createElement('div');
     vacio.className = 'barras-vacio';
     vacio.textContent = '—';
-    vacio.title = 'Este código no es EAN-13 (los productos por peso usan PLU de 6 dígitos).';
+    vacio.title = 'Sin imagen: solo se dibujan códigos EAN-13 (los productos por peso usan PLU de 6 dígitos y algunos productos de fábrica traen otro formato).';
     return vacio;
   }
 
@@ -1021,4 +1040,284 @@ document.getElementById('btnDescargarBarras').addEventListener('click', () => {
 });
 document.getElementById('btnImprimirBarras').addEventListener('click', () => {
   if (barrasActual) CapcobBarras.imprimir(barrasActual.codigo, barrasActual.nombre);
+});
+
+
+// ══════════════════════════════════════════════════════════════
+// CÓDIGO DE BARRAS QUE YA TRAE EL PRODUCTO (escaneo con cámara o lector)
+// ──────────────────────────────────────────────────────────────
+// Aquí la cámara NO busca un producto para venderlo (eso es la caja del empleado):
+// solo LEE el código de fábrica para registrar el producto con ese mismo código.
+// Si el campo queda vacío, el sistema genera uno como siempre.
+// ══════════════════════════════════════════════════════════════
+const REG_LS_ESCANEO = 'capcob_escaneo_registro';
+const REG_CODIGO_RE = /^[0-9A-Za-z\-._]{6,20}$/;   // igual que el backend (columna de 20 caracteres)
+var regCodigoActual = null;                         // código actual del producto que se está editando
+var regEscaner = { qr: null, activa: false, procesando: false };
+
+function regEl(id) { return document.getElementById(id); }
+
+// Muestra/oculta el campo del código y el botón "Escanear producto" según el estado del formulario.
+// Los productos por peso usan un PLU del sistema, así que ahí no aplica escanear.
+function actualizarCampoCodigo() {
+  const campo = regEl('campoCodigoBarras');
+  const btn = regEl('btnEscanearProducto');
+  const input = regEl('codigoBarrasInput');
+  if (!campo || !btn || !input) return;
+
+  const formVisible = productoForm.style.display !== 'none' && !!paqueteSeleccionadoId;
+  const esPeso = tipoPrecioActual === 'PESO';
+  if (esPeso) input.value = '';
+
+  campo.style.display = esPeso ? 'none' : 'block';
+  btn.style.display = (formVisible && !esPeso) ? 'inline-flex' : 'none';
+  input.placeholder = (editandoProductoId && regCodigoActual)
+    ? 'Vacío = se conserva el actual (' + regCodigoActual + ')'
+    : 'Vacío = el sistema genera uno al guardar';
+  regEl('btnQuitarCodigo').style.display = input.value ? 'inline-flex' : 'none';
+}
+
+regEl('codigoBarrasInput').addEventListener('input', () => {
+  regEl('btnQuitarCodigo').style.display = regEl('codigoBarrasInput').value ? 'inline-flex' : 'none';
+});
+regEl('btnQuitarCodigo').addEventListener('click', () => {
+  regEl('codigoBarrasInput').value = '';
+  actualizarCampoCodigo();
+  mostrarMsg(formMsg, '', '');
+});
+// El lector USB/Bluetooth escribe el código y manda Enter. Sin esto, el Enter dispararía "Guardar producto".
+regEl('codigoBarrasInput').addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  regAplicarCodigo(regEl('codigoBarrasInput').value);
+});
+
+// ── Preferencia de escaneo (se recuerda en este navegador) ──
+function regGuardarPref(obj) { try { localStorage.setItem(REG_LS_ESCANEO, JSON.stringify(obj)); } catch (e) { /* sin almacenamiento */ } }
+function regLeerPref() { try { return JSON.parse(localStorage.getItem(REG_LS_ESCANEO)) || {}; } catch (e) { return {}; } }
+function regMsg(texto, error) {
+  const el = regEl('escanerMsgReg');
+  el.textContent = texto || '';
+  el.className = 'form-msg ' + (error ? 'error' : '');
+}
+
+// ── Modal "¿Cómo quieres escanear?" ──
+function regAbrirModalEscaner() {
+  regMsg('');
+  regEl('panelCamarasReg').hidden = true;
+  regEl('escanerVista').style.display = 'none';
+  regEl('escanerOpciones').style.display = 'grid';
+  const pref = regLeerPref();
+  document.querySelectorAll('#escanerOpciones .escaner-opt').forEach(b => b.classList.toggle('sel', b.dataset.opt === pref.opt));
+  regEl('modalEscanerProducto').classList.remove('hidden');
+}
+
+async function regCerrarModalEscaner() {
+  await regDetenerCamara();
+  regEl('modalEscanerProducto').classList.add('hidden');
+}
+
+regEl('btnEscanearProducto').addEventListener('click', regAbrirModalEscaner);
+regEl('btnCerrarEscaner').addEventListener('click', regCerrarModalEscaner);
+regEl('modalEscanerProducto').addEventListener('click', (e) => {
+  if (e.target.id === 'modalEscanerProducto') regCerrarModalEscaner();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !regEl('modalEscanerProducto').classList.contains('hidden')) regCerrarModalEscaner();
+});
+document.querySelectorAll('#escanerOpciones .escaner-opt').forEach(b => {
+  b.addEventListener('click', () => regElegirOpcion(b.dataset.opt));
+});
+regEl('btnUsarCamaraReg').addEventListener('click', () => {
+  const sel = regEl('selCamaraReg');
+  if (!sel.value) return;
+  regGuardarPref({ opt: 'camara-externa', camaraId: sel.value });
+  regIniciarCamara(sel.value);
+});
+
+async function regElegirOpcion(opt) {
+  regMsg('');
+  regEl('panelCamarasReg').hidden = true;
+  if (opt === 'camara-dispositivo') {
+    regGuardarPref({ opt: opt });
+    regIniciarCamara(null);
+  } else if (opt === 'camara-externa') {
+    await regListarCamaras();
+  } else if (opt === 'lector-usb') {
+    regGuardarPref({ opt: opt });
+    await regCerrarModalEscaner();
+    const input = regEl('codigoBarrasInput');
+    input.focus();
+    mostrarMsg(formMsg, 'Lector listo: escanea el producto con la pistola y el código se llena solo.', 'ok');
+  }
+}
+
+// Pide permiso (sin él el navegador oculta los nombres) y lista TODAS las cámaras conectadas
+async function regListarCamaras() {
+  if (typeof Html5Qrcode === 'undefined') { regMsg('No se pudo cargar el lector de cámara. Revisa tu conexión a internet.', true); return; }
+  if (!window.isSecureContext) { regMsg('El navegador solo permite usar la cámara en https o localhost.', true); return; }
+  regMsg('Buscando cámaras…');
+  try {
+    const tmp = await navigator.mediaDevices.getUserMedia({ video: true });
+    tmp.getTracks().forEach(t => t.stop());
+    const camaras = await Html5Qrcode.getCameras();
+    if (!camaras || camaras.length === 0) { regMsg('No se detectó ninguna cámara. Conecta la cámara externa y vuelve a intentar.', true); return; }
+    const pref = regLeerPref();
+    const sel = regEl('selCamaraReg');
+    sel.innerHTML = '';
+    camaras.forEach((c, i) => {
+      const op = document.createElement('option');
+      op.value = c.id;
+      op.textContent = c.label || ('Cámara ' + (i + 1));
+      sel.appendChild(op);
+    });
+    if (pref.camaraId && camaras.some(c => c.id === pref.camaraId)) sel.value = pref.camaraId;
+    else if (camaras.length > 1) sel.selectedIndex = camaras.length - 1;   // normalmente la externa se lista al final
+    regEl('panelCamarasReg').hidden = false;
+    regMsg(camaras.length === 1 ? 'Solo se detectó una cámara.' : camaras.length + ' cámaras detectadas. Elige la que quieres usar.');
+  } catch (err) {
+    regMsg('No se pudo acceder a las cámaras: permiso denegado o cámara en uso.', true);
+  }
+}
+
+// ── Cámara (html5-qrcode, la misma librería de la caja del empleado) ──
+async function regIniciarCamara(camaraId) {
+  if (typeof Html5Qrcode === 'undefined') { regMsg('No se pudo cargar el lector de cámara. Revisa tu conexión a internet.', true); return; }
+  if (!window.isSecureContext) { regMsg('El navegador solo permite usar la cámara en https o localhost.', true); return; }
+  await regDetenerCamara();
+
+  regEl('escanerOpciones').style.display = 'none';
+  regEl('panelCamarasReg').hidden = true;
+  regEl('escanerVista').style.display = 'block';
+  regMsg('Iniciando cámara…');
+  regEscaner.activa = true;
+  regEscaner.procesando = false;
+
+  // Solo códigos de productos (1D), así no se pierde tiempo ni se leen QR por error.
+  const cfg = { experimentalFeatures: { useBarCodeDetectorIfSupported: true } };
+  if (typeof Html5QrcodeSupportedFormats !== 'undefined') {
+    const F = Html5QrcodeSupportedFormats;
+    cfg.formatsToSupport = [F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E, F.CODE_128, F.CODE_39, F.ITF];
+  }
+  regEscaner.qr = new Html5Qrcode('camaraReaderReg', cfg);
+  const config = { fps: 10, qrbox: { width: 280, height: 130 } };
+  const ok = (texto) => regOnCodigoCamara(texto);
+  const ignorar = () => {};
+
+  try {
+    if (camaraId) {
+      await regEscaner.qr.start(camaraId, config, ok, ignorar);
+    } else {
+      try {
+        await regEscaner.qr.start({ facingMode: 'environment' }, config, ok, ignorar);
+      } catch (e) {
+        // sin cámara trasera (portátil): usa la que haya
+        await regEscaner.qr.start({ facingMode: 'user' }, config, ok, ignorar);
+      }
+    }
+    regMsg('');
+  } catch (err) {
+    await regDetenerCamara();
+    regEl('escanerOpciones').style.display = 'grid';
+    regMsg('No se pudo acceder a la cámara: ' + err, true);
+  }
+}
+
+async function regDetenerCamara() {
+  regEscaner.activa = false;
+  const qr = regEscaner.qr;
+  regEscaner.qr = null;
+  if (qr) {
+    try { await qr.stop(); qr.clear(); } catch (e) { /* ya estaba detenida */ }
+  }
+  const vista = regEl('escanerVista');
+  if (vista) vista.style.display = 'none';
+}
+
+async function regOnCodigoCamara(texto) {
+  if (regEscaner.procesando) return;
+  const codigo = regLimpiarCodigo(texto);
+  // lecturas raras (QR, texto largo) se ignoran y la cámara sigue buscando
+  if (!REG_CODIGO_RE.test(codigo) || !/\d/.test(codigo)) return;
+  regEscaner.procesando = true;
+  await regCerrarModalEscaner();
+  await regAplicarCodigo(codigo);
+}
+
+// Sin caracteres de control ni espacios sobrantes
+function regLimpiarCodigo(texto) {
+  return String(texto == null ? '' : texto).replace(/[\u0000-\u001f\u007f]/g, '').replace(/\s+/g, '').trim().slice(0, 40);
+}
+
+// Pone el código en el formulario, avisa si ya existe en el inventario y, si falta, sugiere el nombre.
+async function regAplicarCodigo(crudo) {
+  const codigo = regLimpiarCodigo(crudo);
+  const input = regEl('codigoBarrasInput');
+  if (!codigo) return;
+  if (!REG_CODIGO_RE.test(codigo) || !/\d/.test(codigo)) {
+    mostrarMsg(formMsg, 'Ese código no parece válido (6 a 20 caracteres: números, letras o guiones).', 'error');
+    return;
+  }
+  input.value = codigo;
+  actualizarCampoCodigo();
+  mostrarMsg(formMsg, 'Código leído: ' + codigo + '. Revisando…', '');
+
+  // 1) ¿Ya está registrado en este inventario?
+  try {
+    const existente = await apiFetch('/productos/codigo/' + encodeURIComponent(codigo));
+    if (existente && existente.id !== editandoProductoId) {
+      input.value = '';
+      actualizarCampoCodigo();
+      mostrarMsg(formMsg, 'Ese código ya está registrado en "' + existente.nombre + '" (categoría ' + existente.paqueteNombre + '). Búscalo arriba para editarlo.', 'error');
+      return;
+    }
+  } catch (e) {
+    // 404 = no existe (lo normal). Si fue un problema de conexión, el servidor lo vuelve a validar al guardar.
+  }
+
+  // 2) Nombre sugerido (opcional, solo si el nombre está vacío)
+  const sugerido = await regSugerirNombre(codigo);
+  if (sugerido) {
+    mostrarMsg(formMsg, 'Código leído: ' + codigo + '. Nombre sugerido desde Open Food Facts: revísalo antes de guardar.', 'ok');
+  } else if (!regEl('nombre').value.trim()) {
+    mostrarMsg(formMsg, 'Código leído: ' + codigo + '. Escribe el nombre del producto.', 'ok');
+  } else {
+    mostrarMsg(formMsg, 'Código leído: ' + codigo + '.', 'ok');
+  }
+}
+
+// Busca el producto por su código en Open Food Facts (base pública y gratuita) para adelantar el nombre.
+// Es solo una ayuda: si no hay internet o no lo conocen, simplemente no se llena nada.
+async function regSugerirNombre(codigo) {
+  const nombreEl = regEl('nombre');
+  if (nombreEl.value.trim() || !/^\d{8,14}$/.test(codigo)) return false;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 6000);
+  try {
+    const res = await fetch('https://world.openfoodfacts.org/api/v2/product/' + codigo +
+      '.json?fields=product_name,product_name_es,brands,quantity', { signal: ctrl.signal });
+    if (!res.ok) return false;
+    const data = await res.json();
+    const p = data && data.status === 1 ? data.product : null;
+    if (!p) return false;
+
+    let nombre = String(p.product_name_es || p.product_name || '').trim();
+    if (!nombre) return false;
+    const marca = String(p.brands || '').split(',')[0].trim();
+    if (marca && !nombre.toLowerCase().includes(marca.toLowerCase())) nombre += ' ' + marca;
+    const cantidad = String(p.quantity || '').trim();
+    if (cantidad && !nombre.toLowerCase().includes(cantidad.toLowerCase())) nombre += ' ' + cantidad;
+
+    if (nombreEl.value.trim()) return false;   // mientras tanto la persona ya escribió algo
+    nombreEl.value = nombre.slice(0, MAX_NOMBRE_PRODUCTO);
+    return true;
+  } catch (e) {
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+window.addEventListener('beforeunload', () => {
+  try { if (regEscaner.qr) regEscaner.qr.stop(); } catch (e) {}
 });
