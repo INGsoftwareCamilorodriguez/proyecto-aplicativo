@@ -236,7 +236,7 @@ quickGrid.addEventListener('click', (e) => {
     intentarAgregar(producto);
   } else {
     mostrarProducto(producto);
-    codigoInput.focus();
+    enfocarBuscador();
   }
 });
 
@@ -288,7 +288,7 @@ async function procesarCodigo() {
     mostrarNoEncontrado(texto);
     marcarBusquedaFallida(true);
     flashScanBox(false);
-    codigoInput.focus();
+    enfocarBuscador();
     codigoInput.select();
     renderGridBusqueda(texto);
     return;
@@ -317,7 +317,7 @@ function intentarAgregar(producto) {
   if (esPeso(producto)) {
     // Por peso no se suma "1": se muestra el producto y el cajero elige cuánto lleva el cliente.
     mostrarProducto(producto);
-    flashScanBox(true);
+    flashProductOk();
     return;
   }
   if (cantidadEnTicket(producto.id) + 1 > producto.stock) {
@@ -327,7 +327,7 @@ function intentarAgregar(producto) {
   }
   agregarAlTicket(producto, 1);
   mostrarProducto(producto);
-  flashScanBox(true);
+  flashProductOk();
 }
 
 // Mientras el cajero escribe, filtra en vivo; al borrar todo, vuelve al historial
@@ -341,6 +341,14 @@ codigoInput.addEventListener('input', () => {
   }
 });
 
+// En celular/tablet NO se le devuelve el foco al buscador: subía la pantalla y abría el teclado
+// cada vez que se tocaba un botón de la tarjeta. En PC (lector USB) sigue igual, pero sin hacer scroll.
+const ES_TACTIL = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+function enfocarBuscador() {
+  if (ES_TACTIL) return;
+  codigoInput.focus({ preventScroll: true });
+}
+
 function flashScanBox(ok) {
   scanBox.classList.remove('flash-ok', 'flash-err');
   void scanBox.offsetWidth; // reinicia la animación
@@ -350,11 +358,20 @@ function flashScanBox(ok) {
 
 // Brillo rojo en la tarjeta del PRODUCTO (no en el buscador) cuando se pasa del stock
 function flashProductCard() {
-  productCard.classList.remove('flash-err');
+  productCard.classList.remove('flash-ok', 'flash-err');
   void productCard.offsetWidth; // reinicia la animación
   productCard.classList.add('flash-err');
   clearTimeout(flashProductCard._t);
   flashProductCard._t = setTimeout(() => productCard.classList.remove('flash-err'), 700);
+}
+
+// Brillo verde en la tarjeta del PRODUCTO cuando la acción salió bien (peso elegido, cantidad cambiada…)
+function flashProductOk() {
+  productCard.classList.remove('flash-ok', 'flash-err');
+  void productCard.offsetWidth; // reinicia la animación
+  productCard.classList.add('flash-ok');
+  clearTimeout(flashProductOk._t);
+  flashProductOk._t = setTimeout(() => productCard.classList.remove('flash-ok'), 600);
 }
 
 function stockBadge(stock, peso) {
@@ -406,29 +423,34 @@ function mostrarProductoPeso(producto, sinMas) {
 
   productCard.classList.remove('empty');
   productCard.innerHTML = `
-    <div class="product-info">
-      <div class="product-name">${escapar(producto.nombre)}</div>
-      <div class="product-meta">
-        <span>${escapar(producto.cat || '')}</span>
-        <span>Cód. ${escapar(producto.codigo)}</span>
-        ${stockBadge(producto.stock, true)}
+    <div class="peso-layout">
+      <div class="product-info">
+        <div class="product-name">${escapar(producto.nombre)}</div>
+        <div class="product-meta">
+          <span>${escapar(producto.cat || '')}</span>
+          <span>Cód. ${escapar(producto.codigo)}</span>
+          ${stockBadge(producto.stock, true)}
+        </div>
+        <div class="limite-msg" id="limiteMsg"${sinMas ? '' : ' hidden'}>No alcanza: solo hay ${formatearPeso(producto.stock)} en inventario.</div>
+        <div class="peso-actual">${actual}</div>
       </div>
-      <div class="limite-msg" id="limiteMsg"${sinMas ? '' : ' hidden'}>No alcanza: solo hay ${formatearPeso(producto.stock)} en inventario.</div>
-      <div class="peso-actual">${actual}</div>
-      <div class="peso-rapidos">${rapidos}
-      </div>
-      <div class="peso-custom">
-        <input type="text" inputmode="decimal" class="peso-input" id="pesoInput" placeholder="Otra cantidad" maxlength="8" autocomplete="off"
-               onkeydown="if(event.key==='Enter'){event.preventDefault();aplicarPesoPersonalizado(${producto.id});}">
-        <select class="peso-unidad" id="pesoUnidad">
-          <option value="g">gramos</option>
-          <option value="lb">libras</option>
-          <option value="kg">kilos</option>
-        </select>
-        <button type="button" class="peso-aplicar" onclick="aplicarPesoPersonalizado(${producto.id})">Poner</button>
+      <div class="product-price">${money(producto.precio)}<small class="por-kg">por kg</small></div>
+
+      <div class="peso-controles">
+        <div class="peso-rapidos">${rapidos}
+        </div>
+        <div class="peso-custom">
+          <input type="text" inputmode="decimal" class="peso-input" id="pesoInput" placeholder="Otra cantidad" maxlength="8" autocomplete="off"
+                 onkeydown="if(event.key==='Enter'){event.preventDefault();aplicarPesoPersonalizado(${producto.id});}">
+          <select class="peso-unidad" id="pesoUnidad">
+            <option value="g">gramos</option>
+            <option value="lb">libras</option>
+            <option value="kg">kilos</option>
+          </select>
+          <button type="button" class="peso-aplicar" onclick="aplicarPesoPersonalizado(${producto.id})">Poner</button>
+        </div>
       </div>
     </div>
-    <div class="product-price">${money(producto.precio)}<small class="por-kg">por kg</small></div>
   `;
 }
 
@@ -445,8 +467,8 @@ function elegirPeso(id, kg) {
   }
   fijarCantidad(producto, kg);
   mostrarProducto(producto);
-  flashScanBox(true);
-  codigoInput.focus();
+  flashProductOk();
+  enfocarBuscador();
 }
 
 function aplicarPesoPersonalizado(id) {
@@ -526,17 +548,18 @@ function cambiarCantidad(id, delta) {
   if (!producto) return;
 
   const nueva = cantidadEnTicket(id) + delta;
-  if (nueva < 0) { codigoInput.focus(); return; }
+  if (nueva < 0) { enfocarBuscador(); return; }
 
   if (nueva > producto.stock) {
     mostrarProducto(producto, true);   // ya no hay más disponible
     flashProductCard();
-    codigoInput.focus();
+    enfocarBuscador();
     return;
   }
   fijarCantidad(producto, nueva);
   mostrarProducto(producto);
-  codigoInput.focus();
+  flashProductOk();
+  enfocarBuscador();
 }
 
 // Cantidad escrita a mano: solo enteros, nunca negativa, nunca más que el stock.
@@ -568,10 +591,10 @@ function teclaCantidad(e, inp) {
   if (e.key === 'Enter') {
     e.preventDefault();
     inp.blur();
-    codigoInput.focus();
+    enfocarBuscador();
   } else if (e.key === 'Escape') {
     inp.blur();
-    codigoInput.focus();
+    enfocarBuscador();
   }
 }
 
@@ -585,7 +608,7 @@ function eliminarDelTicket(id) {
     const producto = buscarPorId(id);
     if (producto) mostrarProducto(producto);   // queda en 0 para que el + siga funcionando
   }
-  codigoInput.focus();
+  enfocarBuscador();
 }
 
 function renderTicket() {
@@ -644,7 +667,7 @@ function cancelarVenta() {
   if (ticket.length === 0) return;
   if (!confirm('¿Cancelar la venta en curso? Se perderán los productos escaneados.')) return;
   limpiarVentaEnCurso();
-  codigoInput.focus();
+  enfocarBuscador();
 }
 
 // ── Cobrar: primero confirmación, luego ticket imprimible ──────
@@ -770,7 +793,7 @@ function imprimirTicket() {
 function cerrarModalTicket() {
   document.getElementById('modalTicket').classList.remove('show');
   limpiarVentaEnCurso();
-  codigoInput.focus();
+  enfocarBuscador();
 }
 
 function mostrarToast(msg) {
@@ -821,7 +844,7 @@ function abrirModalEscaner() {
 
 function cerrarModalEscaner() {
   modalEscaner.classList.remove('show');
-  codigoInput.focus();
+  enfocarBuscador();
 }
 
 async function elegirOpcionEscaneo(opt) {
@@ -922,7 +945,7 @@ async function detenerCamara() {
   }
   setModo('usb', 'Lector USB / teclado');
   btnCamara.classList.remove('active');
-  codigoInput.focus();
+  enfocarBuscador();
 }
 
 // Código recibido de la cámara
@@ -957,13 +980,13 @@ document.addEventListener('click', (e) => {
   if (camaraActiva) return;
   if (e.target.closest('.modal-overlay')) return;
   if (!e.target.closest('button') && !e.target.closest('.quick-item') && !e.target.closest('.qty-input') && !e.target.closest('.peso-custom')) {
-    codigoInput.focus();
+    enfocarBuscador();
   }
 });
 function esCampoCantidad(el) { return !!(el && el.classList && (el.classList.contains('qty-input') || el.classList.contains('peso-input') || el.classList.contains('peso-unidad'))); }
 setInterval(() => {
   if (!camaraActiva && document.activeElement !== codigoInput && !esCampoCantidad(document.activeElement) && !document.querySelector('.modal-overlay.show')) {
-    codigoInput.focus();
+    enfocarBuscador();
   }
 }, 3000);
 
@@ -995,7 +1018,7 @@ setModo('usb', 'Lector USB / teclado');
 cargarCatalogo();
 cargarDatosRecibo();
 aplicarPapel(Number((function(){ try { return localStorage.getItem(LS_PAPEL); } catch (e) { return null; } })()) || 80);
-codigoInput.focus();
+enfocarBuscador();
 // Mantiene el stock al día (por si otro cajero vende o se reabastece mientras esta caja está abierta)
 setInterval(() => cargarCatalogo(true), 30000);
 
