@@ -363,6 +363,7 @@ function seleccionarTipoPrecio(tipo) {
   tipoPrecioActual = tipo;
   optFijo.classList.toggle('active', tipo === 'FIJO');
   optPeso.classList.toggle('active', tipo === 'PESO');
+  document.getElementById('pesoHint').style.display = tipo === 'PESO' ? 'block' : 'none';
 
   if (tipo === 'PESO') {
     modalidadVentaWrap.style.display = 'none';
