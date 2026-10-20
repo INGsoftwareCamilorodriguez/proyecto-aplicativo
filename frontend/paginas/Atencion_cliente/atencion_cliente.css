@@ -391,6 +391,18 @@ section { padding: 70px 0; }
   text-align: center;
 }
 
+.ac-ok {
+  display: none;
+  margin-top: 12px;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 12px;
+  padding: 9px 14px;
+  font-size: .8rem;
+  color: var(--green-dark);
+  text-align: center;
+}
+
 /* ══════════════════════════
    EQUIPO
 ══════════════════════════ */

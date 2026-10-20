@@ -109,23 +109,10 @@
         <textarea id="acMensaje" rows="5" placeholder="CUÉNTANOS QUÉ NECESITAS..."></textarea>
       </div>
       <button type="submit" class="btn-login" id="acEnviar">Enviar mensaje</button>
-      <p class="ac-form-note" id="acNota">Al enviar, se abrirá tu cliente de correo con el mensaje ya redactado para <strong>camilo_rodriguezva@fet.edu.co</strong>.</p>
+      <p class="ac-form-note" id="acNota">Tu mensaje llegará directamente a nuestro equipo y te responderemos a tu correo.</p>
       <div class="err" id="acErr">Por favor completa todos los campos.</div>
 
-      <div class="ac-fallback" id="acFallback">
-        <p class="ac-fallback-title">✅ Tu mensaje quedó listo</p>
-        <p class="ac-fallback-text">
-          Si no se abrió automáticamente tu programa de correo (Outlook, Mail, etc.),
-          es porque tu computador no tiene uno configurado. No hay problema: copia el
-          mensaje y pégalo en tu correo web (Gmail, Outlook.com...) dirigido a
-          <strong>camilo_rodriguezva@fet.edu.co</strong>.
-        </p>
-        <textarea class="ac-fallback-box" id="acFallbackTexto" readonly rows="7"></textarea>
-        <div class="ac-fallback-actions">
-          <button type="button" class="btn-copiar" id="acCopiar">Copiar mensaje</button>
-          <span class="ac-copiado" id="acCopiado">¡Copiado!</span>
-        </div>
-      </div>
+      <div class="ac-ok" id="acOk">¡Mensaje enviado! Te responderemos pronto a tu correo.</div>
     </form>
   </div>
 </section>
@@ -192,6 +179,7 @@
   </div>
 </footer>
 
-<script src="/frontend/paginas/atencion-al-cliente/atencion-al-cliente.js"></script>
+<script src="/frontend/assets/js/api-config.js"></script>
+<script src="/frontend/paginas/Atencion_cliente/atencion_cliente.js"></script>
 </body>
 </html>
