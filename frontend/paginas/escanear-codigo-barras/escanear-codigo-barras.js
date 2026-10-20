@@ -113,6 +113,44 @@ function buscarPorId(id) {
   return productosCache.find(p => p.id === Number(id));
 }
 
+// ── Productos por peso (carne, queso por kilo...) ──
+// El administrador solo define el PRECIO POR KILO. Aquí el cajero elige cuánto lleva el cliente
+// (kilo, libra, media libra, cuarto de libra o gramos) y se convierte SIEMPRE a kilos:
+// así el precio, el inventario y el recibo usan la misma unidad. 1 libra = 500 g.
+const UNIDADES_PESO = { kg: 1, lb: 0.5, g: 0.001 };
+const PESOS_RAPIDOS = [
+  { etq: '¼ libra', sub: '125 g', kg: 0.125 },
+  { etq: '½ libra', sub: '250 g', kg: 0.25 },
+  { etq: '1 libra', sub: '500 g', kg: 0.5 },
+  { etq: '1 kilo',  sub: '1 kg',  kg: 1 }
+];
+
+function esPeso(p) { return !!p && p.tipoPrecio === 'PESO'; }
+function redondearKg(x) { return Math.round(x * 1000) / 1000; }
+
+function formatearPeso(kg) {
+  kg = redondearKg(kg);
+  if (kg < 1) return Math.round(kg * 1000) + ' g';
+  return kg.toLocaleString('es-CO', { maximumFractionDigits: 3 }) + ' kg';
+}
+
+function equivalenciaLibras(kg) {
+  const lb = Math.round(kg * 2 * 100) / 100;
+  const ent = Math.floor(lb);
+  const dec = Math.round((lb - ent) * 100) / 100;
+  const fr = { 0.25: '¼', 0.5: '½', 0.75: '¾' }[dec];
+  let t;
+  if (dec === 0) t = String(ent);
+  else if (fr) t = (ent ? ent + ' ' : '') + fr;
+  else t = lb.toLocaleString('es-CO', { maximumFractionDigits: 2 });
+  return t + ' lb';
+}
+
+// Texto de la cantidad de una línea de la factura: "x3" o "250 g"
+function textoCantidad(item) {
+  return item.tipoPrecio === 'PESO' ? formatearPeso(item.cantidad) : 'x' + item.cantidad;
+}
+
 // Cantidad de un producto en la factura (siempre por id: dos productos nunca se mezclan)
 function cantidadEnTicket(id) {
   const item = ticket.find(i => i.productoId === Number(id));
@@ -155,7 +193,7 @@ function renderGridEscaneados() {
   }
   quickGrid.innerHTML = lista.map(({ p, cant }) => `
     <div class="quick-item" data-id="${p.id}" data-modo="ver" title="Ver / cambiar la cantidad de ${escapar(p.nombre)}">
-      <span class="qi-qty">x${cant}</span>
+      <span class="qi-qty">${esPeso(p) ? formatearPeso(cant) : 'x' + cant}</span>
       <div class="qi-name">${escapar(p.nombre)}</div>
       <div class="qi-price">${money(p.precio)}</div>
     </div>
@@ -198,7 +236,7 @@ quickGrid.addEventListener('click', (e) => {
     intentarAgregar(producto);
   } else {
     mostrarProducto(producto);
-    codigoInput.focus();
+    enfocarBuscador();
   }
 });
 
@@ -250,7 +288,7 @@ async function procesarCodigo() {
     mostrarNoEncontrado(texto);
     marcarBusquedaFallida(true);
     flashScanBox(false);
-    codigoInput.focus();
+    enfocarBuscador();
     codigoInput.select();
     renderGridBusqueda(texto);
     return;
@@ -276,6 +314,12 @@ function intentarAgregar(producto) {
     flashProductCard();
     return;
   }
+  if (esPeso(producto)) {
+    // Por peso no se suma "1": se muestra el producto y el cajero elige cuánto lleva el cliente.
+    mostrarProducto(producto);
+    flashProductOk();
+    return;
+  }
   if (cantidadEnTicket(producto.id) + 1 > producto.stock) {
     mostrarProducto(producto, true);   // con el aviso de "ya no hay más disponible"
     flashProductCard();
@@ -283,7 +327,7 @@ function intentarAgregar(producto) {
   }
   agregarAlTicket(producto, 1);
   mostrarProducto(producto);
-  flashScanBox(true);
+  flashProductOk();
 }
 
 // Mientras el cajero escribe, filtra en vivo; al borrar todo, vuelve al historial
@@ -297,6 +341,14 @@ codigoInput.addEventListener('input', () => {
   }
 });
 
+// En celular/tablet NO se le devuelve el foco al buscador: subía la pantalla y abría el teclado
+// cada vez que se tocaba un botón de la tarjeta. En PC (lector USB) sigue igual, pero sin hacer scroll.
+const ES_TACTIL = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+function enfocarBuscador() {
+  if (ES_TACTIL) return;
+  codigoInput.focus({ preventScroll: true });
+}
+
 function flashScanBox(ok) {
   scanBox.classList.remove('flash-ok', 'flash-err');
   void scanBox.offsetWidth; // reinicia la animación
@@ -306,20 +358,30 @@ function flashScanBox(ok) {
 
 // Brillo rojo en la tarjeta del PRODUCTO (no en el buscador) cuando se pasa del stock
 function flashProductCard() {
-  productCard.classList.remove('flash-err');
+  productCard.classList.remove('flash-ok', 'flash-err');
   void productCard.offsetWidth; // reinicia la animación
   productCard.classList.add('flash-err');
   clearTimeout(flashProductCard._t);
   flashProductCard._t = setTimeout(() => productCard.classList.remove('flash-err'), 700);
 }
 
-function stockBadge(stock) {
+// Brillo verde en la tarjeta del PRODUCTO cuando la acción salió bien (peso elegido, cantidad cambiada…)
+function flashProductOk() {
+  productCard.classList.remove('flash-ok', 'flash-err');
+  void productCard.offsetWidth; // reinicia la animación
+  productCard.classList.add('flash-ok');
+  clearTimeout(flashProductOk._t);
+  flashProductOk._t = setTimeout(() => productCard.classList.remove('flash-ok'), 600);
+}
+
+function stockBadge(stock, peso) {
   if (stock <= 0) return '<span class="stock-badge stock-out">Sin stock</span>';
-  if (stock <= 8) return `<span class="stock-badge stock-low">Quedan ${stock}</span>`;
+  if (stock <= 8) return `<span class="stock-badge stock-low">Quedan ${peso ? formatearPeso(stock) : stock}</span>`;
   return `<span class="stock-badge stock-ok">Disponible</span>`;
 }
 
 function mostrarProducto(producto, sinMas) {
+  if (esPeso(producto)) { mostrarProductoPeso(producto, sinMas); return; }
   idMostrado = producto.id;
   const cantidad = cantidadEnTicket(producto.id);
   productCard.classList.remove('empty');
@@ -345,6 +407,76 @@ function mostrarProducto(producto, sinMas) {
     </div>
     <div class="product-price">${money(producto.precio)}</div>
   `;
+}
+
+// Tarjeta de un producto por peso: botones rápidos + cantidad a la medida (gramos, libras o kilos)
+function mostrarProductoPeso(producto, sinMas) {
+  idMostrado = producto.id;
+  const kg = cantidadEnTicket(producto.id);
+  const actual = kg > 0
+    ? `En la factura: <b>${formatearPeso(kg)}</b> <span class="peso-eq">(${equivalenciaLibras(kg)})</span>`
+    : 'Elige cuánto lleva el cliente';
+  const rapidos = PESOS_RAPIDOS.map(r => `
+        <button type="button" class="peso-rapido${redondearKg(kg) === r.kg ? ' sel' : ''}" onclick="elegirPeso(${producto.id}, ${r.kg})">
+          ${r.etq}<small>${r.sub}</small>
+        </button>`).join('');
+
+  productCard.classList.remove('empty');
+  productCard.innerHTML = `
+    <div class="peso-layout">
+      <div class="product-info">
+        <div class="product-name">${escapar(producto.nombre)}</div>
+        <div class="product-meta">
+          <span>${escapar(producto.cat || '')}</span>
+          <span>Cód. ${escapar(producto.codigo)}</span>
+          ${stockBadge(producto.stock, true)}
+        </div>
+        <div class="limite-msg" id="limiteMsg"${sinMas ? '' : ' hidden'}>No alcanza: solo hay ${formatearPeso(producto.stock)} en inventario.</div>
+        <div class="peso-actual">${actual}</div>
+      </div>
+      <div class="product-price">${money(producto.precio)}<small class="por-kg">por kg</small></div>
+
+      <div class="peso-controles">
+        <div class="peso-rapidos">${rapidos}
+        </div>
+        <div class="peso-custom">
+          <input type="text" inputmode="decimal" class="peso-input" id="pesoInput" placeholder="Otra cantidad" maxlength="8" autocomplete="off"
+                 onkeydown="if(event.key==='Enter'){event.preventDefault();aplicarPesoPersonalizado(${producto.id});}">
+          <select class="peso-unidad" id="pesoUnidad">
+            <option value="g">gramos</option>
+            <option value="lb">libras</option>
+            <option value="kg">kilos</option>
+          </select>
+          <button type="button" class="peso-aplicar" onclick="aplicarPesoPersonalizado(${producto.id})">Poner</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Fija el peso (en kilos) que lleva el cliente de ese producto
+function elegirPeso(id, kg) {
+  const producto = buscarPorId(id);
+  if (!producto) return;
+  kg = redondearKg(kg);
+  if (kg < 0.001) { flashProductCard(); return; }
+  if (kg > producto.stock) {
+    mostrarProducto(producto, true);   // no alcanza el inventario
+    flashProductCard();
+    return;
+  }
+  fijarCantidad(producto, kg);
+  mostrarProducto(producto);
+  flashProductOk();
+  enfocarBuscador();
+}
+
+function aplicarPesoPersonalizado(id) {
+  const inp = document.getElementById('pesoInput');
+  const unidad = document.getElementById('pesoUnidad').value;
+  const n = parseFloat(String(inp.value).replace(',', '.'));
+  if (!isFinite(n) || n <= 0) { flashProductCard(); inp.focus(); return; }
+  elegirPeso(id, n * UNIDADES_PESO[unidad]);
 }
 
 function mostrarVariasCoincidencias(texto, cantidad) {
@@ -388,7 +520,7 @@ function agregarAlTicket(producto, cantidad) {
   if (existente) {
     existente.cantidad += cantidad;
   } else {
-    ticket.push({ productoId: producto.id, codigo: producto.codigo, nombre: producto.nombre, precio: producto.precio, cantidad });
+    ticket.push({ productoId: producto.id, codigo: producto.codigo, nombre: producto.nombre, precio: producto.precio, tipoPrecio: producto.tipoPrecio, cantidad });
   }
   marcarReciente(producto.id);
   renderTicket();
@@ -404,7 +536,7 @@ function fijarCantidad(producto, nueva) {
     item.cantidad = nueva;
     marcarReciente(producto.id);
   } else {
-    ticket.push({ productoId: producto.id, codigo: producto.codigo, nombre: producto.nombre, precio: producto.precio, cantidad: nueva });
+    ticket.push({ productoId: producto.id, codigo: producto.codigo, nombre: producto.nombre, precio: producto.precio, tipoPrecio: producto.tipoPrecio, cantidad: nueva });
     marcarReciente(producto.id);
   }
   renderTicket();
@@ -416,17 +548,18 @@ function cambiarCantidad(id, delta) {
   if (!producto) return;
 
   const nueva = cantidadEnTicket(id) + delta;
-  if (nueva < 0) { codigoInput.focus(); return; }
+  if (nueva < 0) { enfocarBuscador(); return; }
 
   if (nueva > producto.stock) {
     mostrarProducto(producto, true);   // ya no hay más disponible
     flashProductCard();
-    codigoInput.focus();
+    enfocarBuscador();
     return;
   }
   fijarCantidad(producto, nueva);
   mostrarProducto(producto);
-  codigoInput.focus();
+  flashProductOk();
+  enfocarBuscador();
 }
 
 // Cantidad escrita a mano: solo enteros, nunca negativa, nunca más que el stock.
@@ -458,10 +591,10 @@ function teclaCantidad(e, inp) {
   if (e.key === 'Enter') {
     e.preventDefault();
     inp.blur();
-    codigoInput.focus();
+    enfocarBuscador();
   } else if (e.key === 'Escape') {
     inp.blur();
-    codigoInput.focus();
+    enfocarBuscador();
   }
 }
 
@@ -475,7 +608,7 @@ function eliminarDelTicket(id) {
     const producto = buscarPorId(id);
     if (producto) mostrarProducto(producto);   // queda en 0 para que el + siga funcionando
   }
-  codigoInput.focus();
+  enfocarBuscador();
 }
 
 function renderTicket() {
@@ -490,16 +623,17 @@ function renderTicket() {
       <div class="ticket-row">
         <div class="tr-name">
           <div class="tn">${escapar(item.nombre)}</div>
-          <div class="tp">${money(item.precio)} c/u</div>
+          <div class="tp">${money(item.precio)} ${item.tipoPrecio === 'PESO' ? 'por kg' : 'c/u'}</div>
         </div>
-        <div class="tr-qty">x${item.cantidad}</div>
+        <div class="tr-qty">${textoCantidad(item)}</div>
         <div class="tr-sub">${money(item.precio * item.cantidad)}</div>
         <button class="tr-del" onclick="eliminarDelTicket(${item.productoId})" title="Quitar">✕</button>
       </div>
     `).join('');
   }
 
-  const totalItems = ticket.reduce((a, i) => a + i.cantidad, 0);
+  // un producto por peso cuenta como 1 ítem (no como sus kilos)
+  const totalItems = ticket.reduce((a, i) => a + (i.tipoPrecio === 'PESO' ? 1 : i.cantidad), 0);
   ticketCount.textContent = `${totalItems} item${totalItems === 1 ? '' : 's'}`;
 
   const subtotal = ticket.reduce((a, i) => a + i.precio * i.cantidad, 0);
@@ -533,7 +667,7 @@ function cancelarVenta() {
   if (ticket.length === 0) return;
   if (!confirm('¿Cancelar la venta en curso? Se perderán los productos escaneados.')) return;
   limpiarVentaEnCurso();
-  codigoInput.focus();
+  enfocarBuscador();
 }
 
 // ── Cobrar: primero confirmación, luego ticket imprimible ──────
@@ -597,7 +731,7 @@ function generarRecibo(venta) {
     <div class="r-item">
       <div class="r-item-nom">${escapar(item.nombre)}</div>
       <div class="r-row r-item-det">
-        <span>${item.cantidad} x ${money(item.precio)}</span>
+        <span>${item.tipoPrecio === 'PESO' ? formatearPeso(item.cantidad) + ' x ' + money(item.precio) + '/kg' : item.cantidad + ' x ' + money(item.precio)}</span>
         <span>${money(item.precio * item.cantidad)}</span>
       </div>
     </div>
@@ -659,7 +793,7 @@ function imprimirTicket() {
 function cerrarModalTicket() {
   document.getElementById('modalTicket').classList.remove('show');
   limpiarVentaEnCurso();
-  codigoInput.focus();
+  enfocarBuscador();
 }
 
 function mostrarToast(msg) {
@@ -710,7 +844,7 @@ function abrirModalEscaner() {
 
 function cerrarModalEscaner() {
   modalEscaner.classList.remove('show');
-  codigoInput.focus();
+  enfocarBuscador();
 }
 
 async function elegirOpcionEscaneo(opt) {
@@ -811,7 +945,7 @@ async function detenerCamara() {
   }
   setModo('usb', 'Lector USB / teclado');
   btnCamara.classList.remove('active');
-  codigoInput.focus();
+  enfocarBuscador();
 }
 
 // Código recibido de la cámara
@@ -845,14 +979,14 @@ codigoInput.addEventListener('keydown', (e) => {
 document.addEventListener('click', (e) => {
   if (camaraActiva) return;
   if (e.target.closest('.modal-overlay')) return;
-  if (!e.target.closest('button') && !e.target.closest('.quick-item') && !e.target.closest('.qty-input')) {
-    codigoInput.focus();
+  if (!e.target.closest('button') && !e.target.closest('.quick-item') && !e.target.closest('.qty-input') && !e.target.closest('.peso-custom')) {
+    enfocarBuscador();
   }
 });
-function esCampoCantidad(el) { return !!(el && el.classList && el.classList.contains('qty-input')); }
+function esCampoCantidad(el) { return !!(el && el.classList && (el.classList.contains('qty-input') || el.classList.contains('peso-input') || el.classList.contains('peso-unidad'))); }
 setInterval(() => {
   if (!camaraActiva && document.activeElement !== codigoInput && !esCampoCantidad(document.activeElement) && !document.querySelector('.modal-overlay.show')) {
-    codigoInput.focus();
+    enfocarBuscador();
   }
 }, 3000);
 
@@ -884,7 +1018,7 @@ setModo('usb', 'Lector USB / teclado');
 cargarCatalogo();
 cargarDatosRecibo();
 aplicarPapel(Number((function(){ try { return localStorage.getItem(LS_PAPEL); } catch (e) { return null; } })()) || 80);
-codigoInput.focus();
+enfocarBuscador();
 // Mantiene el stock al día (por si otro cajero vende o se reabastece mientras esta caja está abierta)
 setInterval(() => cargarCatalogo(true), 30000);
 

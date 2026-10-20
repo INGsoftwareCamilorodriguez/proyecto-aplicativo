@@ -596,4 +596,54 @@
 
   /* Brillo rojo en la tarjeta del producto (límite de stock) */
   .product-card { transition: box-shadow .2s; }
+  .product-card.flash-ok { box-shadow: 0 0 0 4px var(--green-light), 0 0 0 7px #22c55e; }
   .product-card.flash-err { box-shadow: 0 0 0 4px var(--red-light), 0 0 0 7px var(--red); }
+
+  /* ── PRODUCTOS POR PESO: la tarjeta ocupa todo el ancho, con los controles en su propia fila ── */
+  .peso-layout {
+    flex: 1; min-width: 0;
+    display: grid; grid-template-columns: 1fr auto; gap: 14px 28px; align-items: start;
+  }
+  .peso-layout .product-price { text-align: right; line-height: 1.1; }
+  .product-card .product-price small.por-kg { display: block; font-size: .72rem; font-weight: 600; color: var(--muted); margin-top: 2px; }
+  .product-card:has(.peso-layout) { padding: 26px 30px; }
+  .peso-actual { margin-top: 14px; font-size: .95rem; color: var(--navy); }
+  .peso-actual .peso-eq { color: var(--muted); font-size: .82rem; }
+
+  .peso-controles {
+    grid-column: 1 / -1;
+    display: grid; gap: 18px;
+    margin-top: 10px; padding-top: 22px; border-top: 1px solid var(--border);
+  }
+  .peso-rapidos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .peso-rapido {
+    border: 2px solid var(--yellow); background: #fff; color: var(--navy);
+    border-radius: 14px; padding: 20px 10px; cursor: pointer; font-weight: 800; font-size: 1.05rem; font-family: inherit;
+    line-height: 1.25; text-align: center; transition: all .15s;
+  }
+  .peso-rapido small { display: block; font-size: .74rem; font-weight: 600; color: var(--muted); margin-top: 2px; }
+  .peso-rapido:hover { background: var(--yellow); transform: translateY(-2px); }
+  .peso-rapido.sel { background: var(--yellow); box-shadow: 0 0 0 3px rgba(255, 184, 28, .25); }
+
+  .peso-custom { display: grid; grid-template-columns: 1fr 170px auto; gap: 16px; align-items: stretch; }
+  .peso-input, .peso-unidad {
+    width: 100%; border: 2px solid var(--border); border-radius: 12px; padding: 15px 16px;
+    font-size: .95rem; font-family: inherit; background: #fff; color: var(--navy);
+  }
+  .peso-input:focus, .peso-unidad:focus { outline: none; border-color: var(--yellow-dark); box-shadow: 0 0 0 3px rgba(255, 184, 28, .25); }
+  .peso-aplicar {
+    border: none; background: var(--yellow); color: var(--navy); border-radius: 12px; padding: 15px 36px;
+    font-weight: 800; font-size: .95rem; cursor: pointer; font-family: inherit; transition: all .15s;
+  }
+  .peso-aplicar:hover { background: var(--yellow-dark); transform: translateY(-2px); }
+
+  @media (max-width: 560px) {
+    .product-card:has(.peso-layout) { padding: 20px 18px; }
+    .peso-rapidos { gap: 12px; }
+    .peso-rapido { padding: 16px 8px; }
+    .peso-layout { grid-template-columns: 1fr; }
+    .peso-layout .product-price { text-align: left; }
+    .peso-rapidos { grid-template-columns: repeat(2, 1fr); }
+    .peso-custom { grid-template-columns: 1fr 1fr; }
+    .peso-aplicar { grid-column: 1 / -1; }
+  }
