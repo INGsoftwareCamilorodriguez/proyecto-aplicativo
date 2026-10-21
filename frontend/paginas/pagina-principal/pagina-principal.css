@@ -432,3 +432,178 @@ footer {
     border-top: 3px solid var(--yellow);
   }
 }
+
+/* ══════════════════════════
+   NUEVAS SECCIONES (info adicional)
+══════════════════════════ */
+.seccion-alterna { background: #fff; }
+
+/* ¿Cómo funciona? */
+.pasos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 26px;
+}
+.paso-card {
+  background: #f4f4f4;
+  border-top: 6px solid var(--green);
+  border-radius: 16px;
+  padding: 36px 28px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  transition: transform .3s, box-shadow .3s;
+}
+.paso-card:hover { transform: translateY(-6px); box-shadow: 0 12px 28px rgba(0,0,0,.16); }
+.paso-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: var(--yellow);
+  color: #333;
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+.paso-card h3 { color: var(--navy); font-size: 1.3rem; margin-bottom: 10px; }
+.paso-card p { color: #374151; }
+
+/* Funcionalidades */
+.func-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 24px;
+}
+.func-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 30px 24px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  border-bottom: 5px solid var(--yellow);
+  transition: transform .3s, box-shadow .3s;
+}
+.func-card:hover { transform: translateY(-6px); box-shadow: 0 12px 28px rgba(0,0,0,.16); }
+.func-icono { font-size: 2.6rem; margin-bottom: 12px; }
+.func-card h3 { color: var(--green-dark); margin-bottom: 8px; }
+.func-card p { color: #374151; font-size: .98rem; }
+
+/* Beneficios */
+.beneficios-lista {
+  list-style: none;
+  max-width: 760px;
+  margin: 0 auto;
+  display: grid;
+  gap: 14px;
+}
+.beneficios-lista li {
+  background: #f4f4f4;
+  border-left: 6px solid var(--green);
+  border-radius: 10px;
+  padding: 16px 20px;
+  font-size: 1.05rem;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.beneficios-lista li span { color: var(--green); font-weight: 800; font-size: 1.2rem; }
+
+/* ¿Para quién? */
+.para-quien-intro {
+  text-align: center;
+  max-width: 700px;
+  margin: -20px auto 34px;
+  color: #374151;
+  font-size: 1.05rem;
+}
+.negocios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+.negocio-card {
+  background: linear-gradient(135deg, rgba(34,139,34,.95), rgba(18,77,18,.98));
+  color: #fff;
+  border-radius: 14px;
+  padding: 26px 20px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.05rem;
+  box-shadow: var(--shadow);
+  transition: transform .3s;
+}
+.negocio-card:hover { transform: translateY(-6px); }
+
+/* Preguntas frecuentes */
+.faq { max-width: 800px; margin: 0 auto; display: grid; gap: 12px; }
+.faq details {
+  background: #f4f4f4;
+  border-radius: 12px;
+  border-left: 6px solid var(--yellow);
+  padding: 16px 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+.faq summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--navy);
+  font-size: 1.05rem;
+}
+.faq details[open] summary { color: var(--green-dark); margin-bottom: 10px; }
+.faq details p { color: #374151; }
+.faq-soporte { text-align: center; margin-top: 34px; }
+.faq-soporte p { margin-bottom: 14px; font-weight: 600; color: #374151; }
+
+@media (max-width: 768px) {
+  .para-quien-intro { margin-top: -20px; }
+}
+
+
+/* ══════════════════════════
+   MENÚ: página activa
+══════════════════════════ */
+nav ul li a.activo { color: var(--yellow); }
+nav ul li a.activo::after { width: 100%; }
+
+/* ══════════════════════════
+   BANNER DE PÁGINAS INTERNAS
+══════════════════════════ */
+.page-banner {
+  background: linear-gradient(135deg, var(--green), var(--green-deep));
+  color: #fff;
+  text-align: center;
+  padding: 60px 0;
+  border-bottom: 5px solid var(--yellow);
+}
+.page-banner h1 { font-size: 2.6rem; font-weight: 800; margin-bottom: 10px; text-shadow: 2px 2px 6px rgba(0,0,0,.4); }
+.page-banner p { font-size: 1.15rem; color: #e8f3e8; }
+
+/* ══════════════════════════
+   TARJETAS "CONOCE MÁS" (página principal)
+══════════════════════════ */
+.teaser-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 26px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.teaser-card {
+  display: block;
+  background: #f4f4f4;
+  border-top: 6px solid var(--green);
+  border-radius: 16px;
+  padding: 34px 28px;
+  text-align: center;
+  text-decoration: none;
+  color: #374151;
+  box-shadow: var(--shadow);
+  transition: transform .3s, box-shadow .3s;
+}
+.teaser-card:hover { transform: translateY(-6px); box-shadow: 0 12px 28px rgba(0,0,0,.16); }
+.teaser-card h3 { color: var(--navy); font-size: 1.3rem; margin-bottom: 10px; }
+.teaser-link { display: inline-block; margin-top: 14px; font-weight: 800; color: var(--green-dark); }
+.teaser-card:hover .teaser-link { color: var(--yellow-dark); }

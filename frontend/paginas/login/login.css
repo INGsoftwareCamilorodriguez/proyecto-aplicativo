@@ -102,6 +102,8 @@ nav ul li a::after {
 
 nav ul li a:hover { color: var(--yellow); }
 nav ul li a:hover::after { width: 100%; }
+nav ul li a.activo { color: var(--yellow); }
+nav ul li a.activo::after { width: 100%; }
 
 /* ── MAIN: foto del edificio FET oscurecida (como el hero) ── */
 .main {
