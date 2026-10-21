@@ -218,7 +218,7 @@ section { padding: 70px 0; }
 .ac-quick { padding: 50px 0 0; }
 .ac-quick-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
   gap: 22px;
   margin-top: -70px;
   position: relative;
@@ -416,7 +416,7 @@ section { padding: 70px 0; }
 }
 .ac-team-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
   gap: 26px;
   max-width: 720px;
   margin: 0 auto;
@@ -469,7 +469,7 @@ footer {
 }
 .footer-content {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   gap: 30px;
   margin-bottom: 30px;
 }
@@ -506,4 +506,27 @@ footer {
   .ac-quick-grid { margin-top: -40px; }
   .ac-form { padding: 26px 22px; }
   .section-title { font-size: 1.8rem; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   AJUSTES RESPONSIVOS (se agregan al final; no cambian el
+   diseño en pantallas de computador)
+══════════════════════════════════════════════════════════ */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+img, video { max-width: 100%; }
+.footer-section li, .footer-section p { overflow-wrap: anywhere; }
+
+@media (max-width: 768px) {
+  header { position: static; padding: 0.7rem 0; }
+  .logo { margin-left: 0; font-size: 1.25rem; }
+  .logo img { height: 38px; }
+}
+@media (max-width: 480px) {
+  .container { padding: 0 12px; }
+  nav ul { gap: .4rem .6rem; }
+  nav ul li { margin: 0 6px; }
+  nav ul li a { font-size: .95rem; }
+}
+@media (min-width: 1600px) {
+  .container { max-width: 1400px; }
 }

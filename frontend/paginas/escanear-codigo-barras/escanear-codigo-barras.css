@@ -647,3 +647,14 @@
     .peso-custom { grid-template-columns: 1fr 1fr; }
     .peso-aplicar { grid-column: 1 / -1; }
   }
+
+/* ══════════════════════════════════════════════════════════
+   AJUSTES RESPONSIVOS: la grilla de una columna no puede ser
+   más ancha que la pantalla (antes el panel "Venta en curso"
+   se cortaba por la derecha en celulares y tablets).
+══════════════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .main { grid-template-columns: minmax(0, 1fr); }
+  .main > * { min-width: 0; }
+  .ticket-header { flex-wrap: wrap; gap: 8px; }
+}

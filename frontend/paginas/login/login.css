@@ -365,7 +365,7 @@ footer {
 
 .footer-content {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   gap: 30px;
   margin-bottom: 30px;
 }
@@ -401,4 +401,27 @@ footer {
 }
 @media (max-width: 480px) {
   .form-box { padding: 32px 22px 28px; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   AJUSTES RESPONSIVOS (se agregan al final; no cambian el
+   diseño en pantallas de computador)
+══════════════════════════════════════════════════════════ */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+img, video { max-width: 100%; }
+.footer-section li, .footer-section p { overflow-wrap: anywhere; }
+
+@media (max-width: 768px) {
+  header { position: static; padding: 0.7rem 0; }
+  .logo { margin-left: 0; font-size: 1.25rem; }
+  .logo img { height: 38px; }
+}
+@media (max-width: 480px) {
+  .container { padding: 0 12px; }
+  nav ul { gap: .4rem .6rem; }
+  nav ul li { margin: 0 6px; }
+  nav ul li a { font-size: .95rem; }
+}
+@media (min-width: 1600px) {
+  .container { max-width: 1400px; }
 }
