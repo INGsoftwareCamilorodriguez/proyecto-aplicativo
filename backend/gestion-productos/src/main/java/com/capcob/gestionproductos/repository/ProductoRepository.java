@@ -21,5 +21,8 @@ public interface ProductoRepository extends JpaRepository<Producto, Integer> {
 
     // Usado por BarcodeService para garantizar códigos únicos (globales, no por admin,
     // porque la columna codigo_barras tiene índice único en toda la tabla).
+    // Cuenta sin traer los productos (ni sus imágenes) a memoria.
+    long countByPaqueteIdAndActivoTrueAndAdminId(Integer paqueteId, Integer adminId);
+
     boolean existsByCodigoBarras(String codigoBarras);
 }

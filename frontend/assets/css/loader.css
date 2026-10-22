@@ -16,7 +16,7 @@
   justify-content: center;
   background: var(--main-bg, #f5f5f5);
   opacity: 1;
-  transition: opacity .35s ease, visibility .35s ease;
+  transition: opacity .15s ease, visibility .15s ease;
 }
 #capcob-loader.capcob-loader--full { background: #ffffff; }
 

@@ -11,7 +11,8 @@
   <link rel="stylesheet" href="/frontend/assets/css/responsive.css">
   <link rel="stylesheet" href="/frontend/assets/css/loader.css">
   <script src="/frontend/assets/js/loader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+  <script defer src="/frontend/assets/js/escaner-barras.js"></script>
 </head>
 <body>
 <script src="/frontend/assets/js/guardian-dashboard.js"></script>
@@ -246,7 +247,7 @@
 
     <div id="escanerVista" style="display:none;">
       <div id="camaraReaderReg"></div>
-      <p class="modalidad-hint">Apunta la cámara al código de barras: se llena solo al detectarlo.</p>
+      <p class="modalidad-hint">Apunta la cámara al código de barras, en cualquier parte de la imagen: se llena solo al detectarlo. Toca el video para enfocar.</p>
     </div>
 
     <div class="form-msg" id="escanerMsgReg"></div>

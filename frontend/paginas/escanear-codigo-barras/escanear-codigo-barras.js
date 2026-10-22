@@ -869,13 +869,11 @@ async function elegirOpcionEscaneo(opt) {
 
 // Pide permiso (sin él el navegador oculta los nombres) y lista TODAS las cámaras conectadas
 async function listarCamaras() {
-  if (typeof Html5Qrcode === 'undefined') { msgEscaner('No se pudo cargar el lector de cámara. Revisa tu conexión a internet.', true); return; }
+  if (!CapcobEscaner.disponible()) { msgEscaner('No se pudo cargar el lector de cámara. Revisa tu conexión a internet.', true); return; }
   if (!window.isSecureContext) { msgEscaner('El navegador solo permite usar la cámara en https o localhost.', true); return; }
   msgEscaner('Buscando cámaras…');
   try {
-    const tmp = await navigator.mediaDevices.getUserMedia({ video: true });
-    tmp.getTracks().forEach(t => t.stop());
-    const camaras = await Html5Qrcode.getCameras();
+    const camaras = await CapcobEscaner.listarCamaras();
     if (!camaras || camaras.length === 0) { msgEscaner('No se detectó ninguna cámara. Conecta la cámara externa y vuelve a intentar.', true); return; }
     const pref = leerPreferencia();
     selCamara.innerHTML = camaras.map((c, i) =>
@@ -898,9 +896,9 @@ function usarCamaraSeleccionada() {
   iniciarCamara(id, nombre);
 }
 
-// ── Cámara (html5-qrcode) ──
+// ── Cámara (escaner-barras.js: lee a la resolución real de la cámara) ──
 async function iniciarCamara(camaraId, etiqueta) {
-  if (typeof Html5Qrcode === 'undefined') {
+  if (!CapcobEscaner.disponible()) {
     alert('No se pudo cargar el lector de cámara. Revisa tu conexión a internet.');
     return;
   }
@@ -912,20 +910,18 @@ async function iniciarCamara(camaraId, etiqueta) {
   camaraActiva = true;
   setModo('camara', etiqueta || 'Cámara');
 
-  html5QrCode = new Html5Qrcode('camaraReader', { experimentalFeatures: { useBarCodeDetectorIfSupported: true } });
-  const config = { fps: 10, qrbox: { width: 260, height: 140 } };
+  html5QrCode = new CapcobEscaner.Lector('camaraReader');
   const ok = (texto) => onCodigoExterno(texto);
-  const ignorar = () => {};
 
   try {
     if (camaraId) {
-      await html5QrCode.start(camaraId, config, ok, ignorar);
+      await html5QrCode.start(camaraId, ok);
     } else {
       try {
-        await html5QrCode.start({ facingMode: 'environment' }, config, ok, ignorar);
+        await html5QrCode.start({ facingMode: 'environment' }, ok);
       } catch (e) {
         // sin cámara trasera (laptop): usa la que haya
-        await html5QrCode.start({ facingMode: 'user' }, config, ok, ignorar);
+        await html5QrCode.start({ facingMode: 'user' }, ok);
       }
     }
   } catch (err) {

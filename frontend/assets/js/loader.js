@@ -19,9 +19,9 @@
 (function () {
   "use strict";
 
-  var TIEMPO_MINIMO_MS = 600;     // que no parpadee si carga muy rápido
-  var TIEMPO_MAXIMO_MS = 10000;   // seguridad: nunca se queda pegada
-  var ESPERA_FINAL_MS  = 150;     // margen para peticiones encadenadas
+  var TIEMPO_MINIMO_MS = 0;       // que no parpadee si carga muy rápido
+  var TIEMPO_MAXIMO_MS = 6000;    // seguridad: nunca se queda pegada
+  var ESPERA_FINAL_MS  = 30;      // margen para peticiones encadenadas
   var IGNORAR_PETICIONES = /heartbeat|\/auth\/logout|mensajes|asistente|anuncios\/en-vivo/i;
 
   var PAGINAS_PANEL = /\/(inicio|ver-inventario|configuracion|registrar-producto|productos-venta|gestion-administradores|gestion-usuario|anuncios)\//i;

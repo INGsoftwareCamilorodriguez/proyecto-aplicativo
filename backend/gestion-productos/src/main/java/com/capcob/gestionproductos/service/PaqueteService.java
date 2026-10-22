@@ -82,7 +82,7 @@ public class PaqueteService {
     }
 
     private PaqueteResponse toResponse(Paquete paquete) {
-        long total = productoRepository.findByPaqueteIdAndActivoTrue(paquete.getId(), contexto.duenoId()).size();
+        long total = productoRepository.countByPaqueteIdAndActivoTrueAndAdminId(paquete.getId(), contexto.duenoId());
         return new PaqueteResponse(paquete.getId(), paquete.getNombre(), paquete.getDescripcion(), total);
     }
 }

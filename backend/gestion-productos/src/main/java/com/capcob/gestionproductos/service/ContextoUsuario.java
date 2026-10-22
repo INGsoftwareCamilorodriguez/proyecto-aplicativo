@@ -11,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.concurrent.ConcurrentHashMap;
 
 // Dice quién hace la petición actual (según los encabezados X-User-Id y X-Token)
 // y de qué administrador son los datos que puede ver.
@@ -23,6 +24,11 @@ public class ContextoUsuario {
     private static final int GRACIA_CAMBIO_PANTALLA_SEGUNDOS = 30;
     // Mismo valor que SESION_TIMEOUT_SEGUNDOS de AuthController.
     private static final int SESION_RENOVADA_SEGUNDOS = 60;
+
+    // Caché corta del usuario validado: evita ir a la BD remota en CADA petición.
+    private static final long CACHE_MS = 5000;
+    private record Cacheado(Usuario usuario, String token, long hasta) {}
+    private final ConcurrentHashMap<Integer, Cacheado> cache = new ConcurrentHashMap<>();
 
     private final UsuarioRepository usuarioRepository;
 
@@ -55,6 +61,15 @@ public class ContextoUsuario {
             throw noAutenticado();
         }
 
+        long ahoraMs = System.currentTimeMillis();
+        Cacheado hit = cache.get(id);
+        if (hit != null && hit.hasta() > ahoraMs && token.equals(hit.token())
+                && hit.usuario().getSesionExpiraEn() != null
+                && LocalDateTime.now(ZoneOffset.UTC).isBefore(hit.usuario().getSesionExpiraEn())) {
+            request.setAttribute(ATRIBUTO, hit.usuario());
+            return hit.usuario();
+        }
+
         Usuario usuario = usuarioRepository.findById(id).orElseThrow(this::noAutenticado);
         if (!token.equals(usuario.getSesionToken()) || usuario.getSesionExpiraEn() == null) {
             throw noAutenticado();
@@ -74,6 +89,7 @@ public class ContextoUsuario {
             usuarioRepository.save(usuario);
         }
 
+        cache.put(id, new Cacheado(usuario, token, ahoraMs + CACHE_MS));
         request.setAttribute(ATRIBUTO, usuario);
         return usuario;
     }
@@ -89,6 +105,11 @@ public class ContextoUsuario {
             return u.getAdminId();
         }
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Tu usuario no tiene un administrador asignado.");
+    }
+
+    // Para llamar al cerrar sesión / iniciar otra, así el cambio se ve al instante.
+    public void invalidar(Integer id) {
+        if (id != null) cache.remove(id);
     }
 
     private ResponseStatusException noAutenticado() {

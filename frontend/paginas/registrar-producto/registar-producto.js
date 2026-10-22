@@ -1155,13 +1155,11 @@ async function regElegirOpcion(opt) {
 
 // Pide permiso (sin él el navegador oculta los nombres) y lista TODAS las cámaras conectadas
 async function regListarCamaras() {
-  if (typeof Html5Qrcode === 'undefined') { regMsg('No se pudo cargar el lector de cámara. Revisa tu conexión a internet.', true); return; }
+  if (!CapcobEscaner.disponible()) { regMsg('No se pudo cargar el lector de cámara. Revisa tu conexión a internet.', true); return; }
   if (!window.isSecureContext) { regMsg('El navegador solo permite usar la cámara en https o localhost.', true); return; }
   regMsg('Buscando cámaras…');
   try {
-    const tmp = await navigator.mediaDevices.getUserMedia({ video: true });
-    tmp.getTracks().forEach(t => t.stop());
-    const camaras = await Html5Qrcode.getCameras();
+    const camaras = await CapcobEscaner.listarCamaras();
     if (!camaras || camaras.length === 0) { regMsg('No se detectó ninguna cámara. Conecta la cámara externa y vuelve a intentar.', true); return; }
     const pref = regLeerPref();
     const sel = regEl('selCamaraReg');
@@ -1181,9 +1179,9 @@ async function regListarCamaras() {
   }
 }
 
-// ── Cámara (html5-qrcode, la misma librería de la caja del empleado) ──
+// ── Cámara (escaner-barras.js, el mismo lector de la caja del empleado) ──
 async function regIniciarCamara(camaraId) {
-  if (typeof Html5Qrcode === 'undefined') { regMsg('No se pudo cargar el lector de cámara. Revisa tu conexión a internet.', true); return; }
+  if (!CapcobEscaner.disponible()) { regMsg('No se pudo cargar el lector de cámara. Revisa tu conexión a internet.', true); return; }
   if (!window.isSecureContext) { regMsg('El navegador solo permite usar la cámara en https o localhost.', true); return; }
   await regDetenerCamara();
 
@@ -1194,26 +1192,19 @@ async function regIniciarCamara(camaraId) {
   regEscaner.activa = true;
   regEscaner.procesando = false;
 
-  // Solo códigos de productos (1D), así no se pierde tiempo ni se leen QR por error.
-  const cfg = { experimentalFeatures: { useBarCodeDetectorIfSupported: true } };
-  if (typeof Html5QrcodeSupportedFormats !== 'undefined') {
-    const F = Html5QrcodeSupportedFormats;
-    cfg.formatsToSupport = [F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E, F.CODE_128, F.CODE_39, F.ITF];
-  }
-  regEscaner.qr = new Html5Qrcode('camaraReaderReg', cfg);
-  const config = { fps: 10, qrbox: { width: 280, height: 130 } };
+  // Solo códigos de productos (1D). Se lee a la resolución real de la cámara (ver escaner-barras.js).
+  regEscaner.qr = new CapcobEscaner.Lector('camaraReaderReg');
   const ok = (texto) => regOnCodigoCamara(texto);
-  const ignorar = () => {};
 
   try {
     if (camaraId) {
-      await regEscaner.qr.start(camaraId, config, ok, ignorar);
+      await regEscaner.qr.start(camaraId, ok);
     } else {
       try {
-        await regEscaner.qr.start({ facingMode: 'environment' }, config, ok, ignorar);
+        await regEscaner.qr.start({ facingMode: 'environment' }, ok);
       } catch (e) {
         // sin cámara trasera (portátil): usa la que haya
-        await regEscaner.qr.start({ facingMode: 'user' }, config, ok, ignorar);
+        await regEscaner.qr.start({ facingMode: 'user' }, ok);
       }
     }
     regMsg('');

@@ -942,7 +942,7 @@ html.tema-panel[data-tema="oscuro"] .tipo-precio-opt.active {
   padding: 9px 16px; border: none; border-radius: 8px; cursor: pointer;
   background: var(--purple); color: #fff; font-size: .82rem; font-weight: 600; font-family: inherit;
 }
-#camaraReaderReg { width: 100%; border-radius: 10px; overflow: hidden; background: #000; }
+#camaraReaderReg { width: 100%; max-width: 340px; margin: 0 auto; border-radius: 10px; overflow: hidden; background: #000; }
 
 html.tema-panel[data-tema="oscuro"] .escaner-opt { background: #F4F6F4; border-color: #D5DBD6; color: #1A1A1A; }
 html.tema-panel[data-tema="oscuro"] .escaner-opt b { color: #1A1A1A; }
