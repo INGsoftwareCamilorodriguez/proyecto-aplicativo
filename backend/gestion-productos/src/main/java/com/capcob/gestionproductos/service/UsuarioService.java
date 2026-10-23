@@ -9,8 +9,10 @@ import com.capcob.gestionproductos.dto.UsuarioRequest;
 import com.capcob.gestionproductos.dto.UsuarioResponse;
 import com.capcob.gestionproductos.model.Usuario;
 import com.capcob.gestionproductos.repository.UsuarioRepository;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -32,12 +34,14 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final ContextoUsuario contexto;
+    private final JdbcTemplate jdbc;
 
     public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder,
-                          ContextoUsuario contexto) {
+                          ContextoUsuario contexto, JdbcTemplate jdbc) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.contexto = contexto;
+        this.jdbc = jdbc;
     }
 
     public List<UsuarioResponse> listarEmpleados() {
@@ -179,8 +183,35 @@ public class UsuarioService {
         return toAdministradorResponse(usuarioRepository.save(usuario));
     }
 
+    // Elimina al administrador Y toda la información de su empresa: detalle de
+    // ventas, ventas, historial, productos, paquetes, mensajes y empleados.
+    // Todo ocurre en una sola transacción: si algo falla, no se borra nada.
+    // El orden importa: primero lo que depende de otra cosa, al final el admin.
+    @Transactional
     public void eliminarAdministrador(Integer id) {
         Usuario usuario = obtenerAdministrador(id);
+
+        // Ventas de la empresa: las del admin y las hechas por sus empleados
+        String ventasDeLaEmpresa = "SELECT id FROM ventas WHERE admin_id = ? "
+                + "OR empleado_id IN (SELECT id FROM usuarios WHERE admin_id = ?)";
+
+        jdbc.update("DELETE FROM detalle_venta WHERE venta_id IN (" + ventasDeLaEmpresa + ")", id, id);
+        jdbc.update("DELETE FROM ventas WHERE admin_id = ? "
+                + "OR empleado_id IN (SELECT id FROM usuarios WHERE admin_id = ?)", id, id);
+
+        jdbc.update("DELETE FROM historial_producto WHERE admin_id = ?", id);
+
+        jdbc.update("DELETE FROM producto WHERE admin_id = ? "
+                + "OR paquete_id IN (SELECT id FROM paquete WHERE admin_id = ?)", id, id);
+        jdbc.update("DELETE FROM paquete WHERE admin_id = ?", id);
+
+        // Mensajes enviados o recibidos por el admin o por cualquiera de sus empleados
+        jdbc.update("DELETE FROM mensajes_empleado WHERE destinatario_id = ? OR remitente_id = ? "
+                + "OR destinatario_id IN (SELECT id FROM usuarios WHERE admin_id = ?) "
+                + "OR remitente_id IN (SELECT id FROM usuarios WHERE admin_id = ?)", id, id, id, id);
+
+        // Empleados del admin y, por último, el admin
+        jdbc.update("DELETE FROM usuarios WHERE admin_id = ?", id);
         usuarioRepository.delete(usuario);
     }
 
